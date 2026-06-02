@@ -259,6 +259,10 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--blue);font-size:12px}
 .bar{height:8px;border-radius:4px;background:var(--card2);overflow:hidden;display:flex}
 .section-title{font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin:26px 0 10px;border-top:1px solid var(--line);padding-top:18px}
 svg text{fill:var(--mut);font-size:10px}
+g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
+#tip{position:absolute;display:none;z-index:60;background:#0b0f17;border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12px;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:220px}
+#tip .nm{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+#tip .vv{font-size:18px;font-weight:700;color:var(--ink)}#tip .wn{color:var(--blue);font-size:12px}
 .legend{font-size:11px;color:var(--mut);display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
 .btn{margin-left:auto;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer;font-size:13px}
@@ -315,18 +319,20 @@ function delta(cur,prev,goodUp=true,pct=false){
 function kpi(label,val,prev,suffix='',goodUp=true){
   return `<div class="card kpi"><div class="v">${val}${suffix}${delta(val,prev,goodUp)}</div><div class="l">${label}</div></div>`;
 }
-// simple multi-series SVG line chart across all periods
-function trend(metricFn, label, color){
-  const xs = DATA.periods.map(p=>p.end.slice(5));
+// interactive multi-period SVG line chart — hover any point to read its value
+function trend(metricFn, label, color, suffix=''){
   const ys = DATA.periods.map(metricFn);
-  const W=260,H=70,pad=18; const mx=Math.max(...ys,1),mn=Math.min(...ys,0);
-  const X=i=>pad+i*((W-2*pad)/Math.max(xs.length-1,1));
-  const Y=v=>H-pad-((v-mn)/Math.max(mx-mn,1))*(H-2*pad);
-  let pts=ys.map((v,i)=>`${X(i)},${Y(v)}`).join(' ');
-  let dots=ys.map((v,i)=>`<circle cx="${X(i)}" cy="${Y(v)}" r="2.5" fill="${color}"/>`).join('');
-  let labs=xs.map((x,i)=>`<text x="${X(i)}" y="${H-4}" text-anchor="middle">${x}</text>`).join('');
-  let vlab=`<text x="${X(ys.length-1)}" y="${Y(ys[ys.length-1])-6}" text-anchor="end" fill="${color}">${ys[ys.length-1]}</text>`;
-  return `<div class="card"><h3>${label}</h3><svg viewBox="0 0 ${W} ${H}" width="100%"><polyline fill="none" stroke="${color}" stroke-width="2" points="${pts}"/>${dots}${labs}${vlab}</svg></div>`;
+  const W=260,H=78,pad=18; const mx=Math.max(...ys,1),mn=Math.min(...ys,0);
+  const X=i=>pad+i*((W-2*pad)/Math.max(ys.length-1,1));
+  const Y=v=>H-pad-8-((v-mn)/Math.max(mx-mn,1))*(H-2*pad-8);
+  const pts=ys.map((v,i)=>`${X(i)},${Y(v)}`).join(' ');
+  const labs=DATA.periods.map((p,i)=>`<text x="${X(i)}" y="${H-3}" text-anchor="middle">${p.end.slice(5)}</text>`).join('');
+  const groups=ys.map((v,i)=>{
+    const p=DATA.periods[i];
+    const meta=`data-name="${esc(label)}" data-win="${p.start} → ${p.end}" data-val="${v}${suffix}"`;
+    return `<g class="ptg"><circle class="pt-hit" cx="${X(i)}" cy="${Y(v)}" r="11" ${meta}/><circle class="pt" cx="${X(i)}" cy="${Y(v)}" r="2.7" fill="${color}" ${meta}/></g>`;
+  }).join('');
+  return `<div class="card"><h3>${label}</h3><svg viewBox="0 0 ${W} ${H}" width="100%"><polyline fill="none" stroke="${color}" stroke-width="2" points="${pts}"/>${groups}${labs}</svg></div>`;
 }
 function mix(p){
   const cols={link:'#3da9fc',text:'#7c5cff',image:'#23c552',video:'#f5a623',gallery:'#ff5470'};
@@ -370,9 +376,9 @@ function render(){
   // trends
   h+='<div class="section-title">Trends across all periods</div><div class="grid g4">';
   h+=trend(p=>p.posts_per_day,'Posts / day','#3da9fc');
-  h+=trend(p=>p.avg_upvote_ratio,'Upvote ratio %','#23c552');
+  h+=trend(p=>p.avg_upvote_ratio,'Upvote ratio %','#23c552','%');
   h+=trend(p=>p.contributors,'Contributors','#7c5cff');
-  h+=trend(p=>p.resolution_rate,'Resolution %','#f5a623');
+  h+=trend(p=>p.resolution_rate,'Resolution %','#f5a623','%');
   h+='</div>';
 
   // RISK table
@@ -420,6 +426,19 @@ function render(){
   $('#app').innerHTML=h;
 }
 $('#periodSel').onchange=render; $('#compareSel').onchange=render; render();
+
+// Hover tooltip for trend charts — read each period's value as the cursor moves.
+const tip=document.createElement('div'); tip.id='tip'; document.body.appendChild(tip);
+document.addEventListener('mousemove',e=>{
+  const t=e.target;
+  if(t&&t.dataset&&t.dataset.val!==undefined){
+    tip.innerHTML=`<div class="nm">${esc(t.dataset.name)}</div><div class="vv">${esc(t.dataset.val)}</div><div class="wn">${esc(t.dataset.win)}</div>`;
+    tip.style.display='block';
+    let x=e.pageX+14, y=e.pageY+14;
+    if(x+230>window.scrollX+document.documentElement.clientWidth) x=e.pageX-230;
+    tip.style.left=x+'px'; tip.style.top=y+'px';
+  } else { tip.style.display='none'; }
+});
 
 // Export: expand all evidence so it prints, then open the print/PDF dialog.
 function exportPDF(){
