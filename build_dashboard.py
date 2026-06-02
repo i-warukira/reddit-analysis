@@ -437,5 +437,8 @@ out_html = (TEMPLATE
             .replace('__TRACKERSTART__', DATA['tracker_start']))
 with open(OUT, 'w', encoding='utf-8') as f:
     f.write(out_html)
-print(f'Dashboard written: {OUT}')
+# Also emit index.html so Vercel (and any static host) serves it at the site root.
+with open('index.html', 'w', encoding='utf-8') as f:
+    f.write(out_html)
+print(f'Dashboard written: {OUT}  (+ index.html for hosting)')
 print('Periods:', [f"{p['start']}..{p['end']} ({p['posts']}p/{p['comments']}c)" for p in DATA['periods']])
