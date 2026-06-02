@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 
 POSTS_CSV = 'data/r_Hedera/posts.csv'
 COMMENTS_CSV = 'data/r_Hedera/comments.csv'
-OUT = 'dashboard_hedera.html'
+OUT = 'index.html'   # single canonical file; Vercel serves it at the site root
 
 # Cohorts auto-generate as rolling 7-day weeks, anchored to the first report
 # boundary (2026-04-28) and extending through the latest data each rebuild — so
@@ -437,8 +437,5 @@ out_html = (TEMPLATE
             .replace('__TRACKERSTART__', DATA['tracker_start']))
 with open(OUT, 'w', encoding='utf-8') as f:
     f.write(out_html)
-# Also emit index.html so Vercel (and any static host) serves it at the site root.
-with open('index.html', 'w', encoding='utf-8') as f:
-    f.write(out_html)
-print(f'Dashboard written: {OUT}  (+ index.html for hosting)')
+print(f'Dashboard written: {OUT}')
 print('Periods:', [f"{p['start']}..{p['end']} ({p['posts']}p/{p['comments']}c)" for p in DATA['periods']])
