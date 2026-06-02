@@ -1,0 +1,243 @@
+========================================================================
+HEDERA REDDIT — COMMUNITY INTELLIGENCE TRACKER
+========================================================================
+Analysis Period : 2026-05-05 to 2026-05-11
+Posts analyzed  : 62  |  Comments analyzed: 809
+
+========================================================================
+REDESIGN OVERVIEW — 7 Sections (Eliminated Reporting Fatigue & Duplicates)
+
+  Section                                     Purpose                                Signal Type
+------------------------------------------------------------------------
+  1. Period Overview                          Narrative headline (wins/concerns/sentiment) Executive summary
+  2. Subreddit Health                         Core volume + engagement KPIs          Operational metrics
+  3. Content Performance                      What hit/didn't — top posts / type mix Performance signal
+  4. Topic & Sentiment Signal                 What's being discussed about Hedera    Community signal
+  5. Developer Funnel                         Builder signals — code/docs/SDKs/Q's   Product signal
+  6. Community Health & Moderation            Contributor diversity + mod operations Health signal
+  7. Signal to Team                           Feature requests / bugs / escalations  Action items
+
+========================================================================
+5 DESIGN PRINCIPLES
+========================================================================
+  1. Narrative First           Exec reads only Section 1 and gets the full story
+  2. Signal Over Volume        Quality metrics not vanity counts (% unanswered > total posts)
+  3. Every Section -> Action   Clear next steps not just data
+  4. Trend-Friendly Columns    Period 1 2 3 layout — patterns visible over time
+  5. One Metric One Home       No duplication — each metric lives where most actionable
+
+========================================================================
+1. PERIOD OVERVIEW — the so-what, written in plain English
+========================================================================
+Reporting period (dates)                   2026-05-05 to 2026-05-11
+Headline                                   62 posts / 809 comments — healthy activity, 3 mod interventions
+
+Top 3 wins:
+  1. 10.3 posts/day — healthy daily activity
+  2. 92.0% upvote ratio — positive community sentiment
+  3. All 12 support questions answered — 100% resolution
+
+Top 3 concerns:
+  1. AI Studio: 0 mentions — zero community visibility (critical gap)
+  2. Hackathon posts: 0 — no event promotion this period
+  3. Developer docs: only 1 link(s) shared — needs promotion
+
+Dominant narrative                         Top keywords: hashgraph, clpr, mclaren; HBAR mentions: 11; Hedera mentions: 22
+Sentiment shift vs last period             FLAT — pos 0% / neutral 100% / neg 0%
+
+========================================================================
+2. SUBREDDIT HEALTH — size and activity volume
+========================================================================
+Subscribers / members                      255
+Net new subscribers (new posters/commenters) 107
+MoM growth %                               -34.4%
+Posts (period)                             62
+Comments (period)                          809
+Active users (period)                      255
+% of subscribers who posted or commented   411.3%
+Peak online users                          (Reddit mod dashboard — manual input)
+Avg upvote ratio %                         92.0%
+Comments per post (avg)                    13.0
+Posts per day (avg)                        10.3
+
+========================================================================
+3. CONTENT PERFORMANCE — what hit, what didn't
+========================================================================
+Top post — title                           Whales Quietly Buy 3.4B HBAR As Retail Capitulates
+Top post — upvotes                         92
+Top post — comments                        15
+Avg post upvotes                           41.5
+Avg post comments                          15.9
+Post type mix                              link 36% / text 31% / image 21% / video 10% / gallery 3%
+Comments-to-upvotes ratio                  0.31
+% of posts with zero engagement            0.0%
+Hedera team/mod posts vs community posts   0 team / 62 community
+
+========================================================================
+4. TOPIC MONITORING — what's being said about Hedera
+========================================================================
+Posts mentioning Hedera                    19
+Posts mentioning HBAR                      11
+Posts mentioning Hiero                     0
+Sentiment (positive/neutral/neg)           pos 0% / neutral 100% / neg 0%
+Support questions posted                   12
+Resolved support questions                 12
+Posts mentioning ecosystem members         1
+Posts mentioning AI Studio                 0
+Competitive mentions (ETH/SOL/XRP)         0
+Top 3 trending keywords                    hashgraph, clpr, mclaren
+Price / speculation posts flagged          2
+FUD / negative narrative posts             1
+
+========================================================================
+5. MODERATION
+========================================================================
+Posts removed (spam/rules)                 0
+Comments removed/deleted                   22 (across 13 posts)
+Hedera-ModTeam interventions               1 (civility warning in "Question or comments: For a regular person...")
+AutoModerator removals                     2 (community-reported comments auto-removed)
+Reported posts                             (Reddit mod dashboard — manual input)
+Active moderators                          (Reddit mod dashboard — manual input)
+Scam / phishing links detected             0
+Impersonation accounts reported            3
+Bans issued / warnings given               (Reddit mod dashboard — manual input)
+Avg response time to reports               (Reddit mod dashboard — manual input)
+Rule violations by rule #                  (Reddit mod dashboard — manual input)
+
+Posts with direct mod intervention:
+  1. "Question or comments: For a regular person living in the USA" — ModTeam civility warning
+  2. "Enterprice Adoption" — AutoMod removed reported comment
+  3. "Enterprise Blockchain is no longer a 'risk'..." — AutoMod removed reported comment
+
+Posts with most removed comments:
+  - Nice little spurts (5 removed)
+  - Hedera Hashgraph HBAR Is Built For What's Coming (4 removed)
+  - How does anyone even see $1 happening? (3 removed)
+
+========================================================================
+6. COMMUNITY ENGAGEMENT QUALITY — contributor diversity
+========================================================================
+First-time posters (new contributors)      107
+Returning contributors                     145
+Top 10 contributor activity share %        32.2%
+Unanswered questions count                 0
+Avg time-to-first-response on questions    1.2 hrs  (from 12 posts)
+Hedera team participation (posts/comments) 0 posts / 0 comments
+Avg thread depth                           1.1
+
+========================================================================
+7. DEVELOPER FUNNEL — builder signals
+========================================================================
+Posts containing code snippets             3
+Links to docs.hedera.com shared            1
+Links to GitHub / Hiero shared             0
+Tool mentions (Playground/Portal etc)      0
+Tutorial / how-to posts                    0
+SDK-specific questions                     0
+Hackathon-related posts                    0
+Unanswered dev questions (>24h)            0
+
+========================================================================
+8. CROSS-PLATFORM SIGNAL
+========================================================================
+Crossposts from / to X (Twitter)           0
+Links to Discord shared                    3
+Community call / YouTube references        14
+Redirects to Kapa AI / Hivemind / docs     0
+Twitter / X mentions                       12
+
+========================================================================
+9. RISK & COMPLIANCE
+========================================================================
+Scam attempts detected                     0 posts / 7 comment mentions
+Misinformation posts flagged               5
+Users educated on security                 (manual — track mod comment interventions)
+Posts escalated to Hedera team             (manual — track via mod notes)
+Compliance-sensitive topics flagged        11 (SEC/regulation-specific)
+
+========================================================================
+10. FEEDBACK & PRODUCT SIGNAL
+========================================================================
+Feature requests captured                  0
+Bug reports surfaced                       0
+Dominant narrative (short text)            hashgraph, clpr, mclaren — positive sentiment
+Top 3 community concerns                   see Section 1 concerns above
+Items escalated to dev team                0
+
+========================================================================
+11. REACH & DISCOVERY
+========================================================================
+Mentions in r/CryptoCurrency etc           0
+Notable / influencer account activity      (requires manual account list)
+Appearances in r/all or r/popular          0 posts (500+ upvotes)
+Moderately upvoted posts (100+)            0
+
+========================================================================
+12. MOD OPERATIONS
+========================================================================
+Mod hours logged                           (manual — mod team input required)
+Tickets / escalations closed               (manual — mod team input required)
+Automations added or updated               (manual — mod team input required)
+New resources created (wiki/FAQ/pins)      (manual — mod team input required)
+
+========================================================================
+TOP PERFORMING POSTS — Which threads drove engagement
+========================================================================
+
+TOP 5 BY UPVOTES:
+------------------------------------------------------------------------
+  1. Whales Quietly Buy 3.4B HBAR As Retail Capitulates
+     UP 92 upvotes  |  REPLY 15 comments  |  engagement 0.16x
+  2. Another 27M scooped up by the Canary Hbar ETF
+     UP 84 upvotes  |  REPLY 21 comments  |  engagement 0.25x
+  3. McLaren’s (McLarenF1) Hedera node already has more than
+     UP 84 upvotes  |  REPLY 16 comments  |  engagement 0.19x
+  4. Okay I buying hbar because its cool
+     UP 82 upvotes  |  REPLY 57 comments  |  engagement 0.69x
+  5. Grayscale’s Hedera Holdings January 6.53% / May 7.32%
+     UP 81 upvotes  |  REPLY 12 comments  |  engagement 0.15x
+
+TOP 5 BY DISCUSSION (Comments):
+------------------------------------------------------------------------
+  1. How does anyone even see $1 happening?
+     UP 40 upvotes  |  REPLY 74 comments  |  engagement 1.80x
+  2. Why has FUD about Hedera taken over Twitter?
+     UP 19 upvotes  |  REPLY 65 comments  |  engagement 3.25x
+  3. Okay I buying hbar because its cool
+     UP 82 upvotes  |  REPLY 57 comments  |  engagement 0.69x
+  4. Dr. Leemon once said about 4 or 5 systems will survive
+     UP 54 upvotes  |  REPLY 48 comments  |  engagement 0.87x
+  5. I think we're all sleeping on CLPR
+     UP 81 upvotes  |  REPLY 47 comments  |  engagement 0.57x
+
+========================================================================
+AREAS FOR IMPROVEMENT — Next steps for the community
+========================================================================
+
+  • DOCS: Developer docs (docs.hedera.com) — Only 1 link(s) shared. → Pin developer resource thread, promote SDK documentation
+
+  • CODE: GitHub/Hiero — Zero mentions. → Create tech-focused weekly thread, highlight open-source projects
+
+  • AI: AI Studio visibility — Zero mentions (critical gap). → Feature AI Studio in official announcement, create demo/tutorial
+
+  • EVENTS: Hackathon/Events — Zero promotion. → Announce upcoming hackathons, post requirements
+
+
+========================================================================
+SUMMARY SCORECARD
+========================================================================
+Period                                   2026-05-05 to 2026-05-11
+Posts                                    62
+Comments                                 809
+Unique contributors                      255
+Posts per day                            10.3
+Comments per post                        13.0
+Community health                         HEALTHY
+Developer activity                       LOW
+Risk level                               LOW
+Support resolution                       12/12 resolved
+Avg response time                        1.2 hrs
+
+========================================================================
+END OF REPORT
+========================================================================

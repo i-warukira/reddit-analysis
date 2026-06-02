@@ -1,0 +1,98 @@
+version: '3.8'
+
+# Reddit Analytics Suite - Full Stack
+# Start with: docker-compose up -d
+
+services:
+  # Main Scraper (run scrape jobs)
+  scraper:
+    build: .
+    volumes:
+      - ./data:/app/data  # Persist scraped data
+    command: ["--help"]   # Override with your scrape command
+    profiles: ["scrape"]  # Only run when explicitly requested
+
+  # REST API Server (for Metabase/Grafana integration)
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    command: ["--api"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Streamlit Dashboard
+  dashboard:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+    command: ["--dashboard"]
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  # Scheduled Scraper (optional - uncomment and configure)
+  # scheduler:
+  #   build: .
+  #   volumes:
+  #     - ./data:/app/data
+  #   command: ["--schedule", "python", "--every", "60"]
+  #   restart: unless-stopped
+
+# Optional: Add Metabase for data visualization
+# Uncomment to enable
+#
+#   metabase:
+#     image: metabase/metabase:latest
+#     ports:
+#       - "3000:3000"
+#     environment:
+#       MB_DB_TYPE: h2
+#     volumes:
+#       - metabase-data:/metabase-data
+#     depends_on:
+#       - api
+
+# ===========================================
+# PRODUCTION DEPLOYMENT (AWS/VPS)
+# ===========================================
+# Uncomment the nginx service below for:
+# - HTTPS/SSL termination
+# - Basic authentication
+# - Single port exposure (80/443)
+
+#   nginx:
+#     image: nginx:alpine
+#     ports:
+#       - "80:80"
+#       - "443:443"
+#     volumes:
+#       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+#       - ./ssl:/etc/nginx/ssl:ro  # Add your SSL certs
+#     depends_on:
+#       - api
+#       - dashboard
+
+# volumes:
+#   metabase-data:
+
+# ===========================================
+# QUICK DEPLOY TO AWS/VPS:
+# ===========================================
+# 1. SSH into your server
+# 2. git clone <your-repo>
+# 3. docker-compose up -d
+# 4. Open firewall: ports 8000, 8501
+#
+# Access:
+#   http://<your-server-ip>:8501  (Dashboard)
+#   http://<your-server-ip>:8000  (API)
+# ===========================================

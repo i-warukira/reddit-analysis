@@ -1,0 +1,499 @@
+========================================================================
+HEDERA REDDIT — COMMUNITY INTELLIGENCE TRACKER
+========================================================================
+Analysis Period : 2026-05-12 to 2026-06-01
+Posts analyzed  : 287  |  Comments analyzed: 3081
+
+========================================================================
+REDESIGN OVERVIEW — 7 Sections (Eliminated Reporting Fatigue & Duplicates)
+
+  Section                                     Purpose                                Signal Type
+------------------------------------------------------------------------
+  1. Period Overview                          Narrative headline (wins/concerns/sentiment) Executive summary
+  2. Subreddit Health                         Core volume + engagement KPIs          Operational metrics
+  3. Content Performance                      What hit/didn't — top posts / type mix Performance signal
+  4. Topic & Sentiment Signal                 What's being discussed about Hedera    Community signal
+  5. Developer Funnel                         Builder signals — code/docs/SDKs/Q's   Product signal
+  6. Community Health & Moderation            Contributor diversity + mod operations Health signal
+  7. Signal to Team                           Feature requests / bugs / escalations  Action items
+
+========================================================================
+5 DESIGN PRINCIPLES
+========================================================================
+  1. Narrative First           Exec reads only Section 1 and gets the full story
+  2. Signal Over Volume        Quality metrics not vanity counts (% unanswered > total posts)
+  3. Every Section -> Action   Clear next steps not just data
+  4. Trend-Friendly Columns    Period 1 2 3 layout — patterns visible over time
+  5. One Metric One Home       No duplication — each metric lives where most actionable
+
+========================================================================
+1. PERIOD OVERVIEW — the so-what, written in plain English
+========================================================================
+Reporting period (dates)                   2026-05-12 to 2026-06-01
+Headline                                   287 posts / 3081 comments — healthy activity, zero safety issues
+
+Top 3 wins:
+  1. 13.7 posts/day — healthy daily activity
+  2. 91.6% upvote ratio — positive community sentiment
+  3. Zero scams / FUD / misinformation detected — clean community
+
+Top 3 concerns:
+  1. GitHub / Hiero: 0 links shared — missed technical education
+
+Dominant narrative                         Top keywords: real, hashgraph, agent; HBAR mentions: 34; Hedera mentions: 110
+Sentiment shift vs last period             UP — pos 8% / neutral 91% / neg 1%
+
+========================================================================
+2. SUBREDDIT HEALTH — size and activity volume
+========================================================================
+Subscribers / members                      583
+New contributors (new to tracker since 2026-02-05) 302
+Growth vs prior 21d window %               +45.4%
+Posts (period)                             287
+Comments (period)                          3081
+Active users (period)                      583
+% of subscribers who posted or commented   203.1%
+Peak online users                          (Reddit mod dashboard — manual input)
+Avg upvote ratio %                         91.6%
+Comments per post (avg)                    10.7
+Posts per day (avg)                        13.7
+
+========================================================================
+3. CONTENT PERFORMANCE — what hit, what didn't
+========================================================================
+Top post — title                           Hey HBAR10DOLLARS you got a fan!
+Top post — upvotes                         200
+Top post — comments                        57
+Avg post upvotes                           27.5
+Avg post comments                          9.0
+Post type mix                              link 36% / text 29% / image 28% / gallery 6% / video 2%
+Comments-to-upvotes ratio                  0.39
+% of posts with zero engagement            18.5%
+Hedera team/mod posts vs community posts   0 team / 287 community
+
+========================================================================
+4. TOPIC MONITORING — what's being said about Hedera
+========================================================================
+Posts mentioning Hedera                    106
+Posts mentioning HBAR                      33
+Posts mentioning Hiero                     6
+Sentiment (positive/neutral/neg)           pos 8% / neutral 91% / neg 1%
+Support questions posted                   55
+Support posts with >=1 reply               38
+Posts mentioning ecosystem members         9
+Posts mentioning AI Studio                 3
+Competitive mentions (ETH/SOL/XRP)         7
+Top 3 trending keywords                    real, hashgraph, agent
+Price / speculation posts flagged          5
+FUD-keyword posts (see appendix)           0
+
+========================================================================
+5. MODERATION
+========================================================================
+Posts removed (spam/rules)                 35
+Reported posts                             (Reddit mod dashboard — manual input)
+Active moderators                          (Reddit mod dashboard — manual input)
+Scam-keyword posts (see appendix)          0
+Impersonation/fake-acct keyword hits       0
+Bans issued / warnings given               (Reddit mod dashboard — manual input)
+AutoMod actions                            (Reddit mod dashboard — manual input)
+Avg response time to reports               (Reddit mod dashboard — manual input)
+Rule violations by rule #                  (Reddit mod dashboard — manual input)
+
+========================================================================
+6. COMMUNITY ENGAGEMENT QUALITY — contributor diversity
+========================================================================
+New to tracker (since 2026-02-05)          302
+Returning contributors                     281
+Top 10 contributor activity share %        32.0%
+Unanswered questions count                 17
+Avg time-to-first-response on questions    3.0 hrs  (from 38 posts)
+Hedera team participation (posts/comments) 0 posts / 0 comments
+Avg thread depth                           1.6
+
+========================================================================
+7. DEVELOPER FUNNEL — builder signals
+========================================================================
+Posts containing code snippets             8
+Links to docs.hedera.com shared            3
+Links to GitHub / Hiero shared             0
+Tool mentions (Playground/Portal etc)      0
+Tutorial / how-to posts                    1
+SDK-specific questions                     2
+Hackathon-related posts                    2
+Unanswered dev questions (>24h)            17
+
+========================================================================
+8. CROSS-PLATFORM SIGNAL
+========================================================================
+Crossposts from / to X (Twitter)           0
+Links to Discord shared                    10
+Community call / YouTube references        18
+Redirects to Kapa AI / Hivemind / docs     3
+Twitter / X mentions                       26
+
+========================================================================
+9. RISK & COMPLIANCE
+========================================================================
+Scam-keyword posts (see appendix)          0
+Misinformation-keyword hits                6
+Users educated on security                 (manual — track mod comment interventions)
+Posts escalated to Hedera team             (manual — track via mod notes)
+Compliance-keyword hits (see appendix)     65
+
+========================================================================
+10. FEEDBACK & PRODUCT SIGNAL
+========================================================================
+Feature-request keyword posts              0
+Bug-report keyword posts                   3
+Dominant narrative (short text)            real, hashgraph, agent — positive sentiment
+Top 3 community concerns                   see Section 1 concerns above
+Items escalated to dev team                3
+
+========================================================================
+11. REACH & DISCOVERY
+========================================================================
+Mentions in r/CryptoCurrency etc           0
+Notable / influencer account activity      (requires manual account list)
+Appearances in r/all or r/popular          0 posts (500+ upvotes)
+Moderately upvoted posts (100+)            10
+
+========================================================================
+12. MOD OPERATIONS
+========================================================================
+Mod hours logged                           (manual — mod team input required)
+Tickets / escalations closed               (manual — mod team input required)
+Automations added or updated               (manual — mod team input required)
+New resources created (wiki/FAQ/pins)      (manual — mod team input required)
+
+========================================================================
+TOP PERFORMING POSTS — Which threads drove engagement
+========================================================================
+
+TOP 5 BY UPVOTES:
+------------------------------------------------------------------------
+  1. Hey HBAR10DOLLARS you got a fan!
+     UP 200 upvotes  |  REPLY 57 comments  |  engagement 0.28x
+  2. What’s causing the price increase?
+     UP 156 upvotes  |  REPLY 68 comments  |  engagement 0.43x
+  3. UPDATE: Accenture (@Accenture) and FedEx (@FedEx) have 
+     UP 121 upvotes  |  REPLY 27 comments  |  engagement 0.22x
+  4. HBAR-Powered AI Startup Gets Handpicked By Google
+     UP 117 upvotes  |  REPLY 7 comments  |  engagement 0.06x
+  5. Hedera CLPR
+     UP 115 upvotes  |  REPLY 19 comments  |  engagement 0.16x
+
+TOP 5 BY DISCUSSION (Comments):
+------------------------------------------------------------------------
+  1. Morale at rock bottom
+     UP 17 upvotes  |  REPLY 86 comments  |  engagement 4.78x
+  2. What’s your conspiracy or probable theory of hbar reach
+     UP 28 upvotes  |  REPLY 82 comments  |  engagement 2.83x
+  3. What’s causing the price increase?
+     UP 156 upvotes  |  REPLY 68 comments  |  engagement 0.43x
+  4. I think it's time to move on...
+     UP 0 upvotes  |  REPLY 63 comments  |  engagement 63.00x
+  5. What crypto holdings do you own?
+     UP 12 upvotes  |  REPLY 60 comments  |  engagement 4.62x
+
+========================================================================
+AREAS FOR IMPROVEMENT — Next steps for the community
+========================================================================
+
+  • CODE: GitHub/Hiero — Zero mentions. → Create tech-focused weekly thread, highlight open-source projects
+
+
+========================================================================
+SUMMARY SCORECARD
+========================================================================
+Period                                   2026-05-12 to 2026-06-01
+Posts                                    287
+Comments                                 3081
+Unique contributors                      583
+Posts per day                            13.7
+Comments per post                        10.7
+Community health                         HEALTHY
+Developer activity                       ACTIVE
+Risk level                               LOW
+Support resolution                       38/55 resolved
+Avg response time                        3.0 hrs
+
+========================================================================
+EVIDENCE APPENDIX — every heuristic/keyword metric, traced to source rows
+========================================================================
+Each count below is a keyword/regex match over post titles + comment
+bodies in the period. These are SOFT signals (proxies), not verified mod
+actions. Use the rows to audit or discard false positives.
+
+FUD / negative-narrative posts (keyword): 0 match(es)
+------------------------------------------------------------------------
+  (none)
+
+Posts with scam-related keywords: 0 match(es)
+------------------------------------------------------------------------
+  (none)
+
+AI Studio mentions (keyword): 3 match(es)
+------------------------------------------------------------------------
+  • 2026-05-15 17:40 | u/DocumentFair4693 | post
+    https://reddit.com/r/Hedera/comments/1te3h8o/introducing_the_hedera_ai_studio_agent_bounty/
+    "Introducing the Hedera AI Studio Agent Bounty Campaign!  🗓️ May 18 – June 21, 2026  Build AI…"
+  • 2026-05-26 10:29 | u/DocumentFair4693 | post
+    https://reddit.com/r/Hedera/comments/1to2wwa/open_now_bounty_2_of_the_hedera_ai_studio_agent/
+    "Open now: Bounty 2 of the Hedera AI Studio Agent Bounty Campaign!"
+  • 2026-06-01 14:45 | u/ComprehensiveCat973 | comment
+    https://reddit.com/r/Hedera/comments/1ttsdbp/is_it_true_hbar_going_to_sky_tonight/
+    "…, Hedera provides a modular Hedera AI Agent Kit through its AI Studio. This allows developers to easily plug HBAR and stablecoin …"
+
+Hackathon-related posts (keyword): 2 match(es)
+------------------------------------------------------------------------
+  • 2026-05-13 14:40 | u/DocumentFair4693 | post
+    https://reddit.com/r/Hedera/comments/1tc1nyv/hedera_hello_future_hackathon_apex_closing/
+    "Hedera Hello Future Hackathon | Apex Closing Ceremony"
+  • 2026-05-27 23:31 | u/LynxifyDefi | post
+    https://reddit.com/r/Hedera/comments/1tpmdcv/hackathon_winners_at_hederacon/
+    "Hackathon winners at HederaCon!!"
+
+Impersonation / fake-account mentions (keyword): 0 match(es)
+------------------------------------------------------------------------
+  (none)
+
+Compliance-sensitive mentions (keyword): 65 match(es)
+------------------------------------------------------------------------
+  • 2026-05-14 19:27 | u/oak1337 | post
+    https://reddit.com/r/Hedera/comments/1td8kbo/crypto_industry_scores_win_as_clarity_act/
+    "Crypto industry scores win as Clarity Act regulation bill clears Senate hurdle"
+  • 2026-05-15 17:16 | u/DocumentFair4693 | post
+    https://reddit.com/r/Hedera/comments/1te2s33/over_a_year_ago_hashgraph_introduced_hashsphere/
+    "… network purpose-built for regulated institutions that need compliance"
+  • 2026-05-21 12:45 | u/DocumentFair4693 | post
+    https://reddit.com/r/Hedera/comments/1tjjewp/exploring_australias_proposed_payments_reforms/
+    "…nts reforms The new laws look to create a more encompassing regulatory ruleset to encourage and welcome investment and innovation …"
+  • 2026-05-29 15:00 | u/DocumentFair4693 | post
+    https://reddit.com/r/Hedera/comments/1tr4iwx/lawsuit_breakdown/
+    "lawsuit breakdown"
+  • 2026-05-12 12:46 | u/alexsicart | comment
+    (permalink unavailable)
+    "…the winner is often whoever owns the customer relationship, compliance stack, merchant/banking integrations, and support flow. The…"
+  • 2026-05-12 20:13 | u/oak1337 | comment
+    https://reddit.com/r/Hedera/comments/1tbcrea/hederas_isadora_arredondo_and_defi_technologies/
+    "…applications in payments and financial markets, cryptoasset regulation and the future role of central banks in payments.  Speakers…"
+  • 2026-05-13 02:56 | u/Hedera-ModTeam | comment
+    https://reddit.com/r/Hedera/comments/1tbmxh4/leemon_baird_seen_boarding_air_force_one_with/
+    "…spam.  Consistent spamming may result in your account being banned from posting in r/Hedera."
+  • 2026-05-14 08:31 | u/Impossible-Goal3492 | comment
+    https://reddit.com/r/Hedera/comments/1tcj1gs/hedera_in_the_future_great_reset/
+    "…s time to build, test, and migrate legacy systems. Once gov regulation is set we will officially see the early adopters move as mo…"
+  • 2026-05-14 14:34 | u/General-Bedroom6079 | comment
+    https://reddit.com/r/Hedera/comments/1tcs7iz/nvidias_hbar_bet_clashes_with_retail_ai_agent/
+    "… the 100’s of trillions waiting to play as long as there is regulations and protections. Retail spikes the price on game stop and …"
+  • 2026-05-14 20:11 | u/dingus_boy | comment
+    https://reddit.com/r/Hedera/comments/1td8kbo/crypto_industry_scores_win_as_clarity_act/
+    "Fair enough, but if your voting strictly based on crypto regulation instead of the myriad of other garbage that makes our life …"
+  • 2026-05-14 20:30 | u/scottyboi200000 | comment
+    https://reddit.com/r/Hedera/comments/1td8s4t/for_those_of_you_not_following_all_the_activity/
+    "…C.! Nilmini and the team putting in the hard work for clear regulations is exactly why I'm so confident holding !!   "
+  • 2026-05-14 22:31 | u/kevin09207 | comment
+    https://reddit.com/r/Hedera/comments/1td1at1/metal_metallicus_vs_banksocial/
+    "…us big partnership they forge, John sitting next to head of SEC, treasury, NCUA, etc in private roundtable helping forge th…"
+  • 2026-05-14 22:44 | u/Immediate-Ebb7602 | comment
+    https://reddit.com/r/Hedera/comments/1td8kbo/crypto_industry_scores_win_as_clarity_act/
+    "At which point does this flop get banned??"
+  • 2026-05-15 15:08 | u/Ricola63 | comment
+    https://reddit.com/r/Hedera/comments/1td1at1/metal_metallicus_vs_banksocial/
+    "…NOT fans of Risk and the thought of being the wrong side of regulation will be a major sticking point in that market.  If you ask …"
+  • 2026-05-16 08:45 | u/Longjumping-Bonus723 | comment
+    https://reddit.com/r/Hedera/comments/1tebi50/context_nice_support_for_hbar_on_recent_dump/
+    "… towards a regulated framework and a clear ruling under the CFTC where Hedera is actually namely listed as commodity.  the t…"
+  • 2026-05-16 11:16 | u/Impossible-Goal3492 | comment
+    https://reddit.com/r/Hedera/comments/1te2s33/over_a_year_ago_hashgraph_introduced_hashsphere/
+    "… operate    Certain use cases simply can't be public due to regulations & red tape    Hedera, HashSpheres, & CLPR is the web3 Big …"
+  • 2026-05-16 15:56 | u/Longjumping_Pound186 | comment
+    https://reddit.com/r/Hedera/comments/1tesy0i/some_hopium_what_people_used_to_say_about_hbar/
+    "…e of decentralized crypto.  We are moving toward the age of regulation, which favors decentralized cryptos oriented toward institu…"
+  • 2026-05-16 17:02 | u/Ricola63 | comment
+    https://reddit.com/r/Hedera/comments/1tesy0i/some_hopium_what_people_used_to_say_about_hbar/
+    "…e Tokenomics, The Governance,The Strategy, The Pricing, The Regulatory Compliance, The Managment, The potential in Finance/ Insura…"
+  • 2026-05-16 22:44 | u/oak1337 | comment
+    https://reddit.com/r/Hedera/comments/1tf7oy6/hedera_council_meeting_minutes_february_18_2026/
+    "…re, customer experience and lifecycle management, legal and regulatory, tax, and strategic governance and policy. The Council mem…"
+  • 2026-05-17 14:59 | u/Beginning_Ask_9930 | comment
+    https://reddit.com/r/Hedera/comments/1tesy0i/some_hopium_what_people_used_to_say_about_hbar/
+    "…on Bloomberg or no company has mentioned in their 10Q or an SEC filing then you are stuck with press releases that disappea…"
+  • 2026-05-17 16:26 | u/oak1337 | comment
+    https://reddit.com/r/Hedera/comments/1tesy0i/some_hopium_what_people_used_to_say_about_hbar/
+    "…c or GPT done that part yet? Oh yea, cause they won't until regulations pass, and that's where DLT comes in. AI + DLT + Quantum Co…"
+  • 2026-05-17 17:37 | u/Ricola63 | comment
+    https://reddit.com/r/Hedera/comments/1tesy0i/some_hopium_what_people_used_to_say_about_hbar/
+    "… The Financial Services and Markets Act 2000 (Cryptoassets) Regulations 2026. Some of the provisions in that regulation are VERY t…"
+  • 2026-05-17 17:40 | u/Beginning_Ask_9930 | comment
+    https://reddit.com/r/Hedera/comments/1tesy0i/some_hopium_what_people_used_to_say_about_hbar/
+    "…. JP Morgan has been in the space since 2019.  Even without regulations. [https://en.wikipedia.org/wiki/JPM\_Coin](https://en.wiki…"
+  • 2026-05-17 17:51 | u/Beginning_Ask_9930 | comment
+    https://reddit.com/r/Hedera/comments/1tesy0i/some_hopium_what_people_used_to_say_about_hbar/
+    "…more companies adopt. Robinhood chose arbitrum to build pre regulation. It's also crypto which is tech but people act like nothing…"
+  • 2026-05-17 18:53 | u/oak1337 | comment
+    https://reddit.com/r/Hedera/comments/1tesy0i/some_hopium_what_people_used_to_say_about_hbar/
+    "…ra's reliability. Granted HBAR (NOT bought HBAR, because NO REGULATIONS). No one is going to launch anything of significance until…"
+  • 2026-05-17 19:46 | u/Large-Perception-684 | comment
+    https://reddit.com/r/Hedera/comments/1tf19yw/accentures_membership_in_the_hedera_council_shows/
+    "…ing about no one using the network voluntarily ... but when regulations come in then it will be MANDATORY!"
+  • 2026-05-17 19:46 | u/Large-Perception-684 | comment
+    https://reddit.com/r/Hedera/comments/1tfm7mo/real_world_finance_tokenized_on_hedera_through/
+    "…ing about no one using the network voluntarily ... but when regulations come in then it will be MANDATORY!"
+  • 2026-05-17 19:55 | u/Beginning_Ask_9930 | comment
+    https://reddit.com/r/Hedera/comments/1tesy0i/some_hopium_what_people_used_to_say_about_hbar/
+    "…ls. Some where a CEO or CTO has said to Wall Street or in a SEC doc we are using this thing. You know it doesn't it exist. …"
+  • 2026-05-17 23:23 | u/Jefeman00 | comment
+    https://reddit.com/r/Hedera/comments/1tfhxct/hbar_weekly_update_clarity_competition_copies_and/
+    "Is that regulatory friendly environment with us in the room now? "
+  • 2026-05-18 04:41 | u/cyhiandra | comment
+    https://reddit.com/r/Hedera/comments/1tgb68g/ħ_throwback_article_that_we_missed_imperium/
+    "…e (ASX). USA and UK in comparison rely on antitrust law and regulatory instruments. Point of story: Australian Government is guara…"
+  • 2026-05-18 12:16 | u/oak1337 | comment
+    https://reddit.com/r/Hedera/comments/1tga8sd/the_reserve_bank_of_australia_just_released_its/
+    "… income dominated at 13 of 20 use cases. Next phase: a DFMI regulatory sandbox, expanded deposit token work, and a tokenised gover…"
+  • 2026-05-18 12:24 | u/oak1337 | comment
+    https://reddit.com/r/Hedera/comments/1tgko40/rba_and_dfcrc_release_findings_from_project_acacia/
+    "… income dominated at 13 of 20 use cases. Next phase: a DFMI regulatory sandbox, expanded deposit token work, and a tokenised gover…"
+  • 2026-05-18 12:31 | u/EnvironmentSelect472 | comment
+    https://reddit.com/r/Hedera/comments/1tgjeij/morale_at_rock_bottom/
+    "…l come, but imo you need to be able to leave it alone while regulations are agreed, and enterprises roll out the developments. Im …"
+  • 2026-05-18 13:08 | u/Afterlife123 | comment
+    https://reddit.com/r/Hedera/comments/1tgko40/rba_and_dfcrc_release_findings_from_project_acacia/
+    "…anual tasks relating to reconciliation, asset servicing and compliance.*  *More sceptical critiques question whether these benefit…"
+  • 2026-05-19 00:16 | u/Dull-Fun | comment
+    https://reddit.com/r/Hedera/comments/1tgsrq9/ħ_no_ones_perfect_but_the_hashgraph_consensus/
+    "…eting, it's narrative, it's manipulative. You are afraid of regulations? Again... Kraken in the US, bitcoin farms in the US SBF ja…"
+  • 2026-05-19 03:09 | u/OoPieceOfKandi | comment
+    https://reddit.com/r/Hedera/comments/1tgjeij/morale_at_rock_bottom/
+    "…ed as investment contracts and conducted in accordance with SEC regulations.  Hedera offered the first series of SAFTs in l…"
+  • 2026-05-19 05:15 | u/DocumentFair4693 | comment
+    https://reddit.com/r/Hedera/comments/1tgpacp/hedera_agent_kit_v4_policies_modular_packages_and/
+    "…e the aspect of adding  programmable guardrails for agents, compliance controls, audit trails, and autonomous payment capabilities…"
+  • 2026-05-19 18:13 | u/para1131_F33L | comment
+    https://reddit.com/r/Hedera/comments/1thdp6s/doing_my_part_because_they_still_dont_know/
+    "I have a growing list of communities I'm banned from because I drop in with Hedera.  ![gif](giphy|3ornk57Kw…"
+  • 2026-05-20 02:52 | u/Beginning_Ask_9930 | comment
+    https://reddit.com/r/Hedera/comments/1thisc1/watch_this_to_understand_the_eqty_lab_verifiable/
+    "…uild their crypto platform which will be alot of B2B before regulation. 3) JP Morgan developed an internal Coin for B2B transactio…"
+  • 2026-05-21 00:42 | u/oak1337 | comment
+    https://reddit.com/r/Hedera/comments/1tisw3c/apparently_hederas_max_recorded_throughput_is/
+    "…S don't want to do anything until they see exactly what the regulations are.  [https://www.worldometers.info/gdp/gdp-by-country/](…"
+  • 2026-05-21 16:01 | u/Beginning_Ask_9930 | comment
+    https://reddit.com/r/Hedera/comments/1tisw3c/apparently_hederas_max_recorded_throughput_is/
+    "…d towards the majors. Win in Russell Camp. Win abroad. Play regulatory arbritrage game. Team wants to serve enterprise then serve …"
+  • 2026-05-21 17:25 | u/Implimiento | comment
+    https://reddit.com/r/Hedera/comments/1tjijmn/ai_rwas_and_the_need_for_context_why_dovu_is_the/
+    "… together trying to work with DovuOS and Flows, but getting banned for asking questions is why that post was written."
+  • 2026-05-22 13:02 | u/Large-Perception-684 | comment
+    https://reddit.com/r/Hedera/comments/1tk3pt5/oleary_wouldnt_the_clarity_act_help_hbar/
+    "…... so he back tracking ... but when he knows its early and regulations will pass at some point "
+  • 2026-05-23 10:14 | u/East-Day-7888 | comment
+    https://reddit.com/r/Hedera/comments/1tl1czk/whats_your_favorite_tokencoin_on_the_hedera/
+    "…ted from actual network usage and lending activity.  From a regulatory or lobbying standpoint, it would also be nearly impossible …"
+  • 2026-05-23 12:15 | u/m_e_sek | comment
+    https://reddit.com/r/Hedera/comments/1tkwxkj/is_it_only_a_matter_of_time/
+    "…ms that are not yet pressing either due to market forces or regulations. That is still a very open question."
+  • 2026-05-23 16:41 | u/Astral_Modulator709 | comment
+    https://reddit.com/r/Hedera/comments/1tlj7ms/are_haters_schizoid_hbar_bad_reputation/
+    "… act, lemme tell you something. BTC,ETH,SOL didn't wait for regulation crap to deliver what they promised. Hell will freeze over b…"
+  • 2026-05-23 18:47 | u/Northtan53 | comment
+    https://reddit.com/r/Hedera/comments/1tlj7ms/are_haters_schizoid_hbar_bad_reputation/
+    "…wasn't under the fire but their misfortune ended up causing regulatory intervention on the industry something that as long Hbar is…"
+  • 2026-05-24 13:41 | u/Dependent_Impress_35 | comment
+    https://reddit.com/r/Hedera/comments/1tkg6xc/4282026_patent_application_granted_tmobile/
+    "…teams trust us for 1,200+ complex claim charts spanning SEP compliance, EoU charting, and invalidity analysis — courtroom-ready, e…"
+  • 2026-05-24 13:47 | u/Ricola63 | comment
+    https://reddit.com/r/Hedera/comments/1tlq31l/hedera_leadership/
+    "…tty well perfect operation (September 2026) and (hopefully) Regulation becomes clear. If these two hurdles are cleared this year, …"
+  • 2026-05-25 21:35 | u/Beginning_Ask_9930 | comment
+    https://reddit.com/r/Hedera/comments/1tne8q4/hey_hbar10dollars_you_got_a_fan/
+    "…re changing the numbers and their forecasts. Red candle and lawsuit moment. lol"
+  • 2026-05-25 22:20 | u/Dull-Fun | comment
+    https://reddit.com/r/Hedera/comments/1tgsrq9/ħ_no_ones_perfect_but_the_hashgraph_consensus/
+    "… they recruit a lot but my function was precisely to assess compliance and legal meaning.    Let me be direct: this is not a minut…"
+  • 2026-05-25 23:41 | u/Cold_Custodian | comment
+    https://reddit.com/r/Hedera/comments/1tne8q4/hey_hbar10dollars_you_got_a_fan/
+    "…out the need to hold any crypto or wallets, eliminating the compliance risk for enterprises.  A Transaction Gateway for Crypto-Fre…"
+  • 2026-05-27 03:22 | u/cyhiandra | comment
+    https://reddit.com/r/Hedera/comments/1toq3ww/hashsphere_is_now_general_availability_ga_because/
+    "… that Avery Dennison changed their position due to possible regulatory exposure and went dark, soon back on mainnet again... "
+  • 2026-05-27 04:31 | u/Ricola63 | comment
+    https://reddit.com/r/Hedera/comments/1toq3ww/hashsphere_is_now_general_availability_ga_because/
+    "…ain issue was/is the timescales of the arrival of EU ‘s DPP regulation , which is the  primary reason for the use case. Why ‘go li…"
+  • 2026-05-27 17:33 | u/Beginning_Ask_9930 | comment
+    https://reddit.com/r/Hedera/comments/1tp50lh/capitals_hbar_etf_now_holds_640163419_hbar_worth/
+    "…le to hedge from inside their firm. Every shop has risk and compliance to make sure of that. Lot's of crypto ETF's. Another factor…"
+  • 2026-05-28 18:58 | u/1aTa | comment
+    https://reddit.com/r/Hedera/comments/1tqctoy/vng_ironman_da_nang_just_became_the_testing/
+    "Vietnam is also actively building a regulatory sandbox for Fintech, Blockchain, and digital assets as part…"
+  • 2026-05-29 16:36 | u/Cold_Custodian | comment
+    https://reddit.com/r/Hedera/comments/1tr464z/as_if_it_wasnt_enough/
+    "SEC/DTC no-action letter: https://www.sec.gov/files/tm/no-actio…"
+  • 2026-05-29 21:53 | u/hockerz | comment
+    https://reddit.com/r/Hedera/comments/1tr464z/as_if_it_wasnt_enough/
+    "…borating to ensure blockchain integration adheres to strict regulatory frameworks and compliance standards. * **DTCC Digital Asset…"
+  • 2026-05-30 01:52 | u/Hedera-ModTeam | comment
+    https://reddit.com/r/Hedera/comments/1trmblh/top_gainers_24hrs/
+    "…spam.  Consistent spamming may result in your account being banned from posting in r/Hedera."
+  • 2026-05-30 12:41 | u/Trueohioplaya | comment
+    https://reddit.com/r/Hedera/comments/1tr464z/as_if_it_wasnt_enough/
+    "…xed/predictable fee structures, high throughput, and robust compliance tooling.  The DTCC didn't choose Stellar as a "fixer-upper …"
+  • 2026-05-31 05:40 | u/asdjbf4 | comment
+    https://reddit.com/r/Hedera/comments/1tsm2df/week_3_challenge_build_an_mcp_or_x402_agent/
+    "@mods can we have this bot banned please "
+  • 2026-05-31 05:45 | u/cyhiandra | comment
+    https://reddit.com/r/Hedera/comments/1tslwtw/hedera_reaches_wall_street_via_zero_hash/
+    "…ts of the crypto market focus on price movements, ETFs, and regulatory developments, the truly important developments often happen…"
+  • 2026-05-31 14:37 | u/AMGsForever | comment
+    https://reddit.com/r/Hedera/comments/1tsi397/chainlinks_7th_anniversary_chainlink_has_been/
+    "…pr. clpr isnt setting data standards that requires industry compliance, it isnt demanding payment in a 3rd currency, it doesnt dem…"
+  • 2026-06-01 14:45 | u/ComprehensiveCat973 | comment
+    https://reddit.com/r/Hedera/comments/1ttsdbp/is_it_true_hbar_going_to_sky_tonight/
+    "…a facilitator like Blocky402.  4. Built-in Audit Trails and Compliance  Instead of forcing developers to write complex, vulnerable…"
+  • 2026-06-01 21:33 | u/Beginning_Ask_9930 | comment
+    https://reddit.com/r/Hedera/comments/1tsdqxr/what_is_the_vision/
+    "…t's old trick.   Blockworks tried to push for industry self regulation and created a site but not much traction.  [https://blockwo…"
+
+Misinformation mentions (keyword): 6 match(es)
+------------------------------------------------------------------------
+  • 2026-05-13 23:16 | u/goldsphinix | comment
+    https://reddit.com/r/Hedera/comments/1tc6new/why_hbar_is_touted_as_backbone_of_a_100_trillion/
+    "he regularly spouts misinformation. I actually think he does a disservice to Hedera/Hbar. ther…"
+  • 2026-05-14 23:11 | u/owlderona | comment
+    https://reddit.com/r/Hedera/comments/1td8s4t/for_those_of_you_not_following_all_the_activity/
+    "…ow when facts posted in this sub are actually facts and not misinformation?  A. It gets downvoted! "
+  • 2026-05-19 20:59 | u/owlderona | comment
+    https://reddit.com/r/Hedera/comments/1thdp6s/doing_my_part_because_they_still_dont_know/
+    "Not allowing fake news is pretty commonplace"
+  • 2026-05-20 06:48 | u/Dull-Fun | comment
+    https://reddit.com/r/Hedera/comments/1tgsrq9/ħ_no_ones_perfect_but_the_hashgraph_consensus/
+    "…some tokens. Just 800k USD worth of tokens based on literal fake news he published himself. It's precisely because he is in the C…"
+  • 2026-05-20 14:08 | u/Mulvita43 | comment
+    https://reddit.com/r/Hedera/comments/1tiktbe/enterprise_adoption_is_real_token_value_isnt/
+    "…rise adoption isn’t really happening. Maybe some pilots but not true adoption. Google has their own block chain;  we use Hedera"
+  • 2026-05-28 14:27 | u/AMGsForever | comment
+    https://reddit.com/r/Hedera/comments/1tq3xf1/so_what_are_you_saying_here_hedera/
+    "…o excuse for what he said.   It was factually wrong, easily debunked, and an elementary error. To even say something so wrong,…"
+
+Feature-request posts (keyword): 0 match(es)
+------------------------------------------------------------------------
+  (none)
+
+Bug-report posts (keyword): 3 match(es)
+------------------------------------------------------------------------
+  • 2026-05-26 11:13 | u/Hashly_h | post
+    https://reddit.com/r/Hedera/comments/1to3skv/saucerswap_opens_50000_bug_bounty_for_v3/
+    "SaucerSwap Opens $50,000 Bug Bounty for V3 Orderbook Testnet on Hedera"
+  • 2026-05-26 13:54 | u/Hashly_h | post
+    https://reddit.com/r/Hedera/comments/1to7ozb/saucerswap_opens_50000_bug_bounty_for_v3/
+    "SaucerSwap Opens $50,000 Bug Bounty for V3 Orderbook Testnet on Hedera"
+  • 2026-05-26 16:17 | u/DocumentFair4693 | post
+    https://reddit.com/r/Hedera/comments/1tobsld/sauceswap_bug_bounty/
+    "sauceswap bug bounty"
+
+
+========================================================================
+END OF REPORT
+========================================================================

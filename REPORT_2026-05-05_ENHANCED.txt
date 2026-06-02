@@ -1,0 +1,254 @@
+========================================================================
+HEDERA REDDIT — COMMUNITY INTELLIGENCE TRACKER
+========================================================================
+Analysis Period : 2026-04-28 to 2026-05-05
+Posts analyzed  : 72  |  Comments analyzed: 795
+
+========================================================================
+REDESIGN OVERVIEW — 7 Sections (Eliminated Reporting Fatigue & Duplicates)
+========================================================================
+  Section                                     Purpose                                Signal Type
+------------------------------------------------------------------------
+  1. Period Overview                          Narrative headline (wins/concerns/sentiment) Executive summary
+  2. Subreddit Health                         Core volume + engagement KPIs          Operational metrics
+  3. Content Performance                      What hit/didn't — top posts / type mix Performance signal
+  4. Topic & Sentiment Signal                 What's being discussed about Hedera    Community signal
+  5. Developer Funnel                         Builder signals — code/docs/SDKs/Q's   Product signal
+  6. Community Health & Moderation            Contributor diversity + mod operations Health signal
+  7. Signal to Team                           Feature requests / bugs / escalations  Action items
+
+========================================================================
+5 DESIGN PRINCIPLES
+========================================================================
+  1. Narrative First           Exec reads only Section 1 and gets the full story
+  2. Signal Over Volume        Quality metrics not vanity counts (% unanswered > total posts)
+  3. Every Section -> Action   Clear next steps not just data
+  4. Trend-Friendly Columns    Period 1 2 3 layout — patterns visible over time
+  5. One Metric One Home       No duplication — each metric lives where most actionable
+
+========================================================================
+1. PERIOD OVERVIEW — the so-what, written in plain English
+========================================================================
+Reporting period (dates)                   2026-04-28 to 2026-05-05
+Headline                                   72 posts / 795 comments — healthy activity, 1 safety issues
+
+Top 3 wins:
+  1. 10.3 posts/day — healthy daily activity
+  2. 90.2% upvote ratio — positive community sentiment
+  3. All 8 support questions answered — 100% resolution
+
+Top 3 concerns:
+  1. AI Studio: 0 mentions — zero community visibility (critical gap)
+  2. Developer docs: only 1 link(s) shared — needs promotion
+
+Dominant narrative                         Top keywords: hederacon, enterprise, hashgraph; HBAR mentions: 11; Hedera mentions: 32
+Sentiment shift vs last period             FLAT — pos 0% / neutral 100% / neg 0%
+
+========================================================================
+2. SUBREDDIT HEALTH — size and activity volume
+========================================================================
+Subscribers / members                      209
+Net new subscribers (new posters/commenters) 59
+MoM growth %                               -52.0%
+Posts (period)                             72
+Comments (period)                          795
+Active users (period)                      209
+% of subscribers who posted or commented   290.3%
+Peak online users                          (Reddit mod dashboard — manual input)
+Avg upvote ratio %                         90.2%
+Comments per post (avg)                    11.0
+Posts per day (avg)                        10.3
+
+========================================================================
+3. CONTENT PERFORMANCE — what hit, what didn't
+========================================================================
+Top post — title                           Accenture Joins the Hedera Council
+Top post — upvotes                         171
+Top post — comments                        102
+Avg post upvotes                           32.2
+Avg post comments                          13.3
+Post type mix                              link 43% / text 25% / image 18% / video 11% / gallery 3%
+Comments-to-upvotes ratio                  0.34
+% of posts with zero engagement            0.0%
+Hedera team/mod posts vs community posts   0 team / 72 community
+
+========================================================================
+4. TOPIC MONITORING — what's being said about Hedera
+========================================================================
+Posts mentioning Hedera                    23
+Posts mentioning HBAR                      11
+Posts mentioning Hiero                     1
+Sentiment (positive/neutral/neg)           pos 0% / neutral 100% / neg 0%
+Support questions posted                   8
+Resolved support questions                 8
+Posts mentioning ecosystem members         3
+Posts mentioning AI Studio                 0
+Competitive mentions (ETH/SOL/XRP)         0
+Top 3 trending keywords                    hederacon, enterprise, hashgraph
+Price / speculation posts flagged          0
+FUD / negative narrative posts             0
+
+========================================================================
+5. MODERATION
+========================================================================
+Posts removed (spam/rules)                 0
+Reported posts                             (Reddit mod dashboard — manual input)
+Active moderators                          (Reddit mod dashboard — manual input)
+Scam / phishing links detected             1
+Impersonation accounts reported            1
+Bans issued / warnings given               (Reddit mod dashboard — manual input)
+AutoMod actions                            (Reddit mod dashboard — manual input)
+Avg response time to reports               (Reddit mod dashboard — manual input)
+Rule violations by rule #                  (Reddit mod dashboard — manual input)
+
+========================================================================
+6. COMMUNITY ENGAGEMENT QUALITY — contributor diversity
+========================================================================
+First-time posters (new contributors)      59
+Returning contributors                     150
+Top 10 contributor activity share %        37.6%
+Unanswered questions count                 0
+Avg time-to-first-response on questions    0.3 hrs  (from 8 posts)
+Hedera team participation (posts/comments) 0 posts / 0 comments
+Avg thread depth                           1.0
+
+========================================================================
+7. DEVELOPER FUNNEL — builder signals
+========================================================================
+Posts containing code snippets             2
+Links to docs.hedera.com shared            1
+Links to GitHub / Hiero shared             1
+Tool mentions (Playground/Portal etc)      1
+Tutorial / how-to posts                    1
+SDK-specific questions                     1
+Hackathon-related posts                    1
+Unanswered dev questions (>24h)            0
+
+========================================================================
+8. CROSS-PLATFORM SIGNAL
+========================================================================
+Crossposts from / to X (Twitter)           0
+Links to Discord shared                    1
+Community call / YouTube references        5
+Redirects to Kapa AI / Hivemind / docs     1
+Twitter / X mentions                       6
+
+========================================================================
+9. RISK & COMPLIANCE
+========================================================================
+Scam attempts detected                     1
+Misinformation posts flagged               5
+Users educated on security                 (manual — track mod comment interventions)
+Posts escalated to Hedera team             (manual — track via mod notes)
+Compliance-sensitive topics flagged        52
+
+========================================================================
+10. FEEDBACK & PRODUCT SIGNAL
+========================================================================
+Feature requests captured                  0
+Bug reports surfaced                       0
+Dominant narrative (short text)            hederacon, enterprise, hashgraph — positive sentiment
+Top 3 community concerns                   see Section 1 concerns above
+Items escalated to dev team                0
+
+========================================================================
+11. REACH & DISCOVERY
+========================================================================
+Mentions in r/CryptoCurrency etc           0
+Notable / influencer account activity      (requires manual account list)
+Appearances in r/all or r/popular          0 posts (500+ upvotes)
+Moderately upvoted posts (100+)            2
+
+========================================================================
+12. MOD OPERATIONS
+========================================================================
+Mod hours logged                           (manual — mod team input required)
+Tickets / escalations closed               (manual — mod team input required)
+Automations added or updated               (manual — mod team input required)
+New resources created (wiki/FAQ/pins)      (manual — mod team input required)
+
+========================================================================
+TOP PERFORMING POSTS — Which threads drove engagement
+========================================================================
+
+TOP 5 BY UPVOTES:
+------------------------------------------------------------------------
+  1. Accenture Joins the Hedera Council
+     UP 171 upvotes  |  REPLY 102 comments  |  engagement 0.59x
+  2. What does Cross Ledger Protocol (CLPR) unlock? No borde
+     UP 107 upvotes  |  REPLY 20 comments  |  engagement 0.19x
+  3. "We work across every major market with more than 9,000
+     UP 95 upvotes  |  REPLY 53 comments  |  engagement 0.55x
+  4. The Business Model is evolving nicely. And right on tim
+     UP 87 upvotes  |  REPLY 52 comments  |  engagement 0.59x
+  5. Everyone’s talking about Accenture joining the Hedera G
+     UP 84 upvotes  |  REPLY 26 comments  |  engagement 0.31x
+
+TOP 5 BY DISCUSSION (Comments):
+------------------------------------------------------------------------
+  1. Accenture Joins the Hedera Council
+     UP 171 upvotes  |  REPLY 102 comments  |  engagement 0.59x
+  2. Probability of CLARITY ACT passing in 2026 is declining
+     UP 6 upvotes  |  REPLY 93 comments  |  engagement 13.29x
+  3. "We work across every major market with more than 9,000
+     UP 95 upvotes  |  REPLY 53 comments  |  engagement 0.55x
+  4. The Business Model is evolving nicely. And right on tim
+     UP 87 upvotes  |  REPLY 52 comments  |  engagement 0.59x
+  5. Dtcc =/= Hedera
+     UP 0 upvotes  |  REPLY 45 comments  |  engagement 45.00x
+
+========================================================================
+HEDERACON COVERAGE — Event-specific analysis
+========================================================================
+HederaCon posts published                  9
+Total upvotes on HederaCon posts           322
+Total comments on HederaCon posts          61
+Avg engagement (comments/post)             6.8
+
+HederaCon posts this period:
+  1. Hashgraph unveils three major announcements at HederaCon in 
+     UP 48 | REPLY 3
+  2. McLaren placed 2nd & 3rd at the Miami race, and driver Lando
+     UP 35 | REPLY 3
+  3. "The 3 Layer Cake" - Nadine Chakar of DTCC at HederaCon 2026
+     UP 24 | REPLY 17
+  4. Nice viewership numbers on the HederaCon Morning Sessions...
+     UP 50 | REPLY 8
+  5. HederaCon is live!!!
+     UP 38 | REPLY 10
+  6. HederaCon 2026 kicks off in a couple hours!
+     UP 50 | REPLY 9
+  7. Anyone from Miami or there for Hederacon also participating 
+     UP 6 | REPLY 0
+  8. Is Hederacon going to be streamed live?
+     UP 11 | REPLY 7
+  9. Nadine Chakar of DTCC ready for HederaCon 2026
+     UP 60 | REPLY 26
+
+========================================================================
+AREAS FOR IMPROVEMENT — Next steps for the community
+========================================================================
+
+  • DOCS: Developer docs (docs.hedera.com) — Only 1 link(s) shared. → Pin developer resource thread, promote SDK documentation
+
+  • AI: AI Studio visibility — Zero mentions (critical gap). → Feature AI Studio in official announcement, create demo/tutorial
+
+
+========================================================================
+SUMMARY SCORECARD
+========================================================================
+Period                                   2026-04-28 to 2026-05-05
+Posts                                    72
+Comments                                 795
+Unique contributors                      209
+Posts per day                            10.3
+Comments per post                        11.0
+Community health                         HEALTHY
+Developer activity                       LOW
+Risk level                               LOW
+Support resolution                       8/8 resolved
+Avg response time                        0.3 hrs
+
+========================================================================
+END OF REPORT
+========================================================================
