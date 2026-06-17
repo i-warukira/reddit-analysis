@@ -385,6 +385,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 .brand .logo{width:30px;height:30px;border-radius:8px;object-fit:contain;background:#fff;padding:3px}
 .brand .h{font-weight:400}
 .nav a{display:flex;align-items:center;gap:11px;padding:11px 22px;color:var(--sb-ink);text-decoration:none;font-size:14px;cursor:pointer;border-left:3px solid transparent}
+.nav a svg{width:18px;height:18px;flex-shrink:0}
 .nav a:hover{background:rgba(255,255,255,.05);color:#fff}
 .nav a.active{background:rgba(59,130,246,.16);border-left-color:var(--accent);color:#fff}
 .nav .cnt{margin-left:auto;background:rgba(255,255,255,.1);border-radius:999px;padding:1px 9px;font-size:11px}
@@ -450,10 +451,10 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
   <aside class="sidebar">
     <div class="brand"><img class="logo" src="public/log.png" alt="ℏIntel"><span><span class="h">ℏ</span>Intel</span></div>
     <nav class="nav" id="nav">
-      <a data-v="dashboard" class="active">📊 <span class="t">Dashboard</span> <span class="cnt" id="c-dash"></span></a>
-      <a data-v="mentions">💬 <span class="t">Mentions</span> <span class="cnt" id="c-ment"></span></a>
-      <a data-v="moderation">🛡️ <span class="t">Moderation</span> <span class="cnt" id="c-mod"></span></a>
-      <a data-v="trends">📈 <span class="t">Trends</span> <span class="cnt" id="c-tr"></span></a>
+      <a data-v="dashboard" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span class="t">Dashboard</span> <span class="cnt" id="c-dash"></span></a>
+      <a data-v="mentions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg><span class="t">Mentions</span> <span class="cnt" id="c-ment"></span></a>
+      <a data-v="moderation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg><span class="t">Moderation</span> <span class="cnt" id="c-mod"></span></a>
+      <a data-v="trends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg><span class="t">Trends</span> <span class="cnt" id="c-tr"></span></a>
     </nav>
     <div class="sbnote">intels.app · r/Hedera community intelligence<br>Source: Arctic-Shift archive<br>Generated __GENERATED__ · since __TRACKERSTART__</div>
   </aside>
