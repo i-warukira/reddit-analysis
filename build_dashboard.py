@@ -462,6 +462,8 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 #gbubble.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 #gbubble::after{content:"";position:absolute;top:18%;left:24%;width:30%;height:22%;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.95),rgba(255,255,255,0) 70%);filter:blur(.4px)}
 @media print{.sidebar,.topbar,#gbubble{display:none!important}.content{max-width:none;padding-bottom:0}body{background:#fff}.card{break-inside:avoid}
+  a[href]{color:#1d4ed8!important;text-decoration:underline}
+  .appfoot .built .xlink{box-shadow:none!important;transform:none!important}
   .appfoot{position:static;margin-top:26px;padding:10px 0 2px;background:none!important;color:#555;border-top:1px solid #ccc;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .appfoot .fbrand{color:#111}.appfoot .built{color:#333}.appfoot .built .ftip{display:none}
   .appfoot .built img{width:18px;height:18px;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
