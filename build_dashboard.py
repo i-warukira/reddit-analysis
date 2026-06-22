@@ -371,7 +371,7 @@ except Exception as e:
 
 # ---------------------------------------------------------------- HTML
 TEMPLATE = r"""<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <title>ℏIntel — r/Hedera Community Intelligence</title>
 <link rel="icon" href="public/log.png">
 <style>
