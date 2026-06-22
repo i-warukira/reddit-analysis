@@ -461,7 +461,10 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 #gbubble{position:fixed;left:0;top:0;width:54px;height:54px;border-radius:50%;pointer-events:none;z-index:60;opacity:0;transform:translate(-50%,-50%) scale(.5);transition:opacity .2s ease,transform .2s cubic-bezier(.2,.9,.3,1.2);-webkit-backdrop-filter:blur(.5px) brightness(1.05);backdrop-filter:blur(.4px) brightness(1.06) saturate(115%) url(#gbubbleFilter);box-shadow:inset 1.6px 1.6px 5px rgba(255,255,255,.75),inset -2px -2px 7px rgba(0,0,0,.22),0 8px 20px rgba(20,30,60,.28);border:1px solid rgba(255,255,255,.4)}
 #gbubble.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 #gbubble::after{content:"";position:absolute;top:18%;left:24%;width:30%;height:22%;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.95),rgba(255,255,255,0) 70%);filter:blur(.4px)}
-@media print{.sidebar,.topbar,.appfoot,#gbubble{display:none!important}.content{max-width:none}body{background:#fff}.card{break-inside:avoid}}
+@media print{.sidebar,.topbar,#gbubble{display:none!important}.content{max-width:none;padding-bottom:0}body{background:#fff}.card{break-inside:avoid}
+  .appfoot{position:static;margin-top:26px;padding:10px 0 2px;background:none!important;color:#555;border-top:1px solid #ccc;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .appfoot .fbrand{color:#111}.appfoot .built{color:#333}.appfoot .built .ftip{display:none}
+  .appfoot .built img{width:18px;height:18px;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style></head><body>
 <div class="app">
   <aside class="sidebar">
