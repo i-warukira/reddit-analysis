@@ -445,7 +445,7 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 #tip .nm{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
 #tip .vv{font-size:18px;font-weight:700;color:var(--ink)}#tip .wn{color:var(--blue);font-size:12px}
 .warnbox{border:1px solid var(--warn);background:#fff7e6;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:13px}
-.appfoot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:30px;padding:16px 2px 6px;border-top:1px solid var(--line);color:var(--mut);font-size:13px}
+.appfoot{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;align-items:center;gap:14px;padding:10px 26px;border-top:1px solid var(--line);background:var(--card);color:var(--mut);font-size:13px;box-shadow:0 -2px 12px rgba(20,30,60,.06)}
 .appfoot .fbrand{font-weight:600;color:var(--ink)}
 .appfoot .built{margin:0 auto;position:relative;display:inline-flex;align-items:center;gap:8px;cursor:default}
 .appfoot .built img{width:24px;height:24px;border-radius:50%;object-fit:cover;border:1px solid var(--line)}
