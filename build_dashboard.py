@@ -445,7 +445,7 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 #tip .nm{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
 #tip .vv{font-size:18px;font-weight:700;color:var(--ink)}#tip .wn{color:var(--blue);font-size:12px}
 .warnbox{border:1px solid var(--warn);background:#fff7e6;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:13px}
-.appfoot{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;align-items:center;gap:14px;padding:10px 26px;color:var(--ink);font-size:13px;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.28));-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);border-top:1px solid rgba(255,255,255,.65);box-shadow:0 -8px 30px rgba(20,30,60,.12),inset 0 1px 0 rgba(255,255,255,.75)}
+.appfoot{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;align-items:center;gap:14px;padding:12px 26px;color:var(--ink);font-size:13px;background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,.16));-webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(2px) saturate(180%) url(#glassFoot);border-top:1px solid rgba(255,255,255,.7);box-shadow:0 -8px 30px rgba(20,30,60,.14),inset 0 1px 0 rgba(255,255,255,.85),inset 0 -1px 0 rgba(255,255,255,.25)}
 .appfoot .fbrand{font-weight:600;color:var(--ink)}
 .appfoot .built{margin:0 auto;position:relative;display:inline-flex;align-items:center;gap:8px;cursor:default}
 .appfoot .built .xlink{display:inline-flex;border-radius:50%;transition:transform .15s,box-shadow .15s}
@@ -488,6 +488,49 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
     </div>
   </div>
 </div>
+<!-- displacement-map housing for the liquid-glass footer (refracts the backdrop; Chromium only) -->
+<svg id="glassFootSvg" width="0" height="0" style="position:fixed;bottom:0;pointer-events:none" aria-hidden="true"></svg>
+<script>
+// Liquid-glass footer: build a rounded-rect edge normal-map sized to the footer, feed it to an
+// feDisplacementMap, and apply via backdrop-filter:url() so the live page refracts through the bar.
+// Renders in Chromium; Safari/Firefox fall back to the frosted -webkit-backdrop-filter blur above.
+(function(){
+  const foot=document.querySelector('.appfoot'), svg=document.getElementById('glassFootSvg');
+  if(!foot||!svg) return;
+  const RADIUS=18, RIM=26, CURVE=1.6, SCALE=22, c255=v=>v<0?0:v>255?255:v;
+  function buildMap(w,h){
+    const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+    const ctx=cv.getContext('2d'), img=ctx.createImageData(w,h), px=img.data;
+    const hx=w/2, hy=h/2, r=Math.min(RADIUS,hy-1);
+    const sdf=(x,y)=>{const qx=Math.abs(x-hx)-(hx-r),qy=Math.abs(y-hy)-(hy-r);
+      const ox=Math.max(qx,0),oy=Math.max(qy,0);return Math.hypot(ox,oy)+Math.min(Math.max(qx,qy),0)-r;};
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+      const s=sdf(x+0.5,y+0.5);
+      const gx=sdf(x+1.5,y+0.5)-sdf(x-0.5,y+0.5), gy=sdf(x+0.5,y+1.5)-sdf(x+0.5,y-0.5);
+      const len=Math.hypot(gx,gy)||1, nx=gx/len, ny=gy/len;
+      let amt=Math.max(0,1-Math.abs(s)/RIM);
+      amt=amt*amt*amt*(amt*(amt*6-15)+10);            // smootherstep
+      amt=Math.pow(amt,CURVE);
+      const i=(y*w+x)*4;
+      px[i]=c255(Math.round(127.5-nx*amt*127));        // R = x displacement
+      px[i+1]=c255(Math.round(127.5-ny*amt*127));      // G = y displacement
+      px[i+2]=128; px[i+3]=255;
+    }
+    ctx.putImageData(img,0,0); return cv.toDataURL('image/png');
+  }
+  let lastW=0,lastH=0;
+  function build(){
+    const w=Math.round(foot.offsetWidth), h=Math.round(foot.offsetHeight);
+    if(!w||!h||(w===lastW&&h===lastH)) return; lastW=w; lastH=h;
+    const url=buildMap(w,h);
+    svg.innerHTML=`<defs><filter id="glassFoot" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">`+
+      `<feImage href="${url}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="none" result="m"/>`+
+      `<feDisplacementMap in="SourceGraphic" in2="m" scale="${SCALE}" xChannelSelector="R" yChannelSelector="G"/></filter></defs>`;
+  }
+  build();
+  let t; addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(build,150);});
+})();
+</script>
 <script>
 const DATA = __DATA__;
 const $ = s => document.querySelector(s);
