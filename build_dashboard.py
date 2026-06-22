@@ -431,7 +431,7 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 .wc-wrap{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;line-height:1.3}.wc{font-weight:600}
 /* heatmap */
 .heat{display:flex;flex-direction:column;gap:3px}.hrow{display:flex;align-items:center;gap:3px}
-.hlab{width:30px;font-size:10px;color:var(--mut)}.hcell{flex:1;height:13px;border-radius:2px}
+.hlab{width:30px;font-size:10px;color:var(--mut)}.hcell{flex:1;min-width:7px;height:14px;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(40,55,90,.08)}
 /* author bars */
 .abar{height:7px;background:#eef2fb;border-radius:4px;overflow:hidden}.abar span{display:block;height:100%;background:var(--accent)}
 /* mentions feed */
@@ -719,7 +719,7 @@ function wordcloud(tw){
 function heatmap(heat,mx){
   const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; let h='<div class="heat">';
   heat.forEach((row,di)=>{h+=`<div class="hrow"><span class="hlab">${days[di]}</span>`;
-    row.forEach((c,hi)=>{const a=mx?c/mx:0;const bg=a?`rgba(59,130,246,${(0.12+a*0.88).toFixed(2)})`:'#eef2fb';
+    row.forEach((c,hi)=>{const a=mx?c/mx:0;const bg=a?`rgba(59,130,246,${(0.18+a*0.82).toFixed(2)})`:'#e2e8f5';
       h+=`<span class="hcell" style="background:${bg}" title="${days[di]} ${hi}:00 · ${c} posts"></span>`;});h+='</div>';});
   h+='</div><div class="muted" style="font-size:11px;margin-top:7px">Posts by day-of-week × hour (UTC) · darker = busier</div>';
   return h;
