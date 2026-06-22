@@ -719,7 +719,7 @@ function wordcloud(tw){
 function heatmap(heat,mx){
   const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; let h='<div class="heat">';
   heat.forEach((row,di)=>{h+=`<div class="hrow"><span class="hlab">${days[di]}</span>`;
-    row.forEach((c,hi)=>{const a=mx?c/mx:0;const bg=a?`rgba(59,130,246,${(0.18+a*0.82).toFixed(2)})`:'#e2e8f5';
+    row.forEach((c,hi)=>{const a=mx?c/mx:0;const bg=a?`rgba(37,99,235,${(0.35+Math.sqrt(a)*0.65).toFixed(2)})`:'#e2e8f5';
       h+=`<span class="hcell" style="background:${bg}" title="${days[di]} ${hi}:00 · ${c} posts"></span>`;});h+='</div>';});
   h+='</div><div class="muted" style="font-size:11px;margin-top:7px">Posts by day-of-week × hour (UTC) · darker = busier</div>';
   return h;
