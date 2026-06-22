@@ -456,7 +456,12 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 .appfoot .built:hover .ftip{opacity:1}
 .appfoot .live{margin-left:auto;display:inline-flex;align-items:center;gap:7px}
 .appfoot .live .dot{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px rgba(34,197,94,.18)}
-@media print{.sidebar,.topbar,.appfoot{display:none!important}.content{max-width:none}body{background:#fff}.card{break-inside:avoid}}
+.appfoot:hover{cursor:none}
+/* liquid-glass water bubble that trails the cursor over the footer (Chromium refraction; baked-in "Thick glass" params) */
+#gbubble{position:fixed;left:0;top:0;width:54px;height:54px;border-radius:50%;pointer-events:none;z-index:60;opacity:0;transform:translate(-50%,-50%) scale(.5);transition:opacity .2s ease,transform .2s cubic-bezier(.2,.9,.3,1.2);-webkit-backdrop-filter:blur(.5px) brightness(1.05);backdrop-filter:blur(.4px) brightness(1.06) saturate(115%) url(#gbubbleFilter);box-shadow:inset 1.6px 1.6px 5px rgba(255,255,255,.75),inset -2px -2px 7px rgba(0,0,0,.22),0 8px 20px rgba(20,30,60,.28);border:1px solid rgba(255,255,255,.4)}
+#gbubble.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#gbubble::after{content:"";position:absolute;top:18%;left:24%;width:30%;height:22%;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.95),rgba(255,255,255,0) 70%);filter:blur(.4px)}
+@media print{.sidebar,.topbar,.appfoot,#gbubble{display:none!important}.content{max-width:none}body{background:#fff}.card{break-inside:avoid}}
 </style></head><body>
 <div class="app">
   <aside class="sidebar">
@@ -490,6 +495,54 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 </div>
 <!-- displacement-map housing for the liquid-glass footer (refracts the backdrop; Chromium only) -->
 <svg id="glassFootSvg" width="0" height="0" style="position:fixed;bottom:0;pointer-events:none" aria-hidden="true"></svg>
+<!-- cursor-following liquid-glass water bubble (shown only over the footer) -->
+<div id="gbubble" aria-hidden="true"></div>
+<svg id="gbubbleSvg" width="0" height="0" style="position:fixed;pointer-events:none" aria-hidden="true"></svg>
+<script>
+// Water-bubble cursor for the footer. A small circular lens refracts the live backdrop through an
+// feDisplacementMap (Chromium); it smoothly trails the pointer with a gentle float so it reads like
+// a floating drop of liquid glass. Glass params are HARD-SET to the "Thick glass" preset — not tunable.
+(function(){
+  const foot=document.querySelector('.appfoot'), b=document.getElementById('gbubble'), svg=document.getElementById('gbubbleSvg');
+  if(!foot||!b||!svg) return;
+  // baked-in "Thick glass": depth(scale) 120 · splay(rim) 2 · feather 30 · curve 3 · glint 60
+  const D=54, RIM=2, FEATHER=30, CURVE=3, SCALE=120, BOOST=.8, c255=v=>v<0?0:v>255?255:v;
+  (function buildFilter(){
+    const cv=document.createElement('canvas'); cv.width=cv.height=D;
+    const ctx=cv.getContext('2d'), img=ctx.createImageData(D,D), px=img.data, cx=D/2, cy=D/2, r=D/2-1;
+    const sdf=(x,y)=>Math.hypot(x-cx,y-cy)-r;                 // circle edge
+    for(let y=0;y<D;y++)for(let x=0;x<D;x++){
+      const s=sdf(x+.5,y+.5);
+      const gx=sdf(x+1.5,y+.5)-sdf(x-.5,y+.5), gy=sdf(x+.5,y+1.5)-sdf(x+.5,y-.5);
+      const len=Math.hypot(gx,gy)||1, nx=gx/len, ny=gy/len;
+      const span=s<0?RIM+FEATHER:RIM;
+      let amt=Math.max(0,1-Math.abs(s)/span);
+      amt=amt*amt*amt*(amt*(amt*6-15)+10);                   // smootherstep
+      amt=Math.pow(amt,CURVE);
+      const i=(y*D+x)*4;
+      px[i]=c255(Math.round(127.5-nx*amt*127*BOOST));
+      px[i+1]=c255(Math.round(127.5-ny*amt*127*BOOST));
+      px[i+2]=128; px[i+3]=255;
+    }
+    ctx.putImageData(img,0,0);
+    const url=cv.toDataURL('image/png');
+    svg.innerHTML=`<defs><filter id="gbubbleFilter" x="-20%" y="-20%" width="140%" height="140%" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">`+
+      `<feImage href="${url}" x="0" y="0" width="${D}" height="${D}" preserveAspectRatio="none" result="m"/>`+
+      `<feDisplacementMap in="SourceGraphic" in2="m" scale="${SCALE}" xChannelSelector="R" yChannelSelector="G"/></filter></defs>`;
+  })();
+  // smooth trailing + gentle float so it feels like liquid, not a hard-locked cursor
+  let tx=0,ty=0,cxp=0,cyp=0,active=false,raf=0;
+  function tick(t){
+    cxp+=(tx-cxp)*.22; cyp+=(ty-cyp)*.22;                   // ease toward pointer (watery lag)
+    const bob=Math.sin(t/420)*2.2;                          // gentle vertical float
+    b.style.left=cxp+'px'; b.style.top=(cyp+bob)+'px';
+    raf=active?requestAnimationFrame(tick):0;
+  }
+  foot.addEventListener('pointerenter',e=>{tx=cxp=e.clientX; ty=cyp=e.clientY; active=true; b.classList.add('on'); if(!raf)raf=requestAnimationFrame(tick);});
+  foot.addEventListener('pointermove',e=>{tx=e.clientX; ty=e.clientY;});
+  foot.addEventListener('pointerleave',()=>{active=false; b.classList.remove('on');});
+})();
+</script>
 <script>
 // Liquid-glass footer: build a rounded-rect edge normal-map sized to the footer, feed it to an
 // feDisplacementMap, and apply via backdrop-filter:url() so the live page refracts through the bar.
