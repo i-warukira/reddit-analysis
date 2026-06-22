@@ -445,12 +445,12 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 #tip .nm{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
 #tip .vv{font-size:18px;font-weight:700;color:var(--ink)}#tip .wn{color:var(--blue);font-size:12px}
 .warnbox{border:1px solid var(--warn);background:#fff7e6;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:13px}
-.appfoot{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;align-items:center;gap:14px;padding:12px 26px;color:var(--ink);font-size:13px;background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,.16));-webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(2px) saturate(180%) url(#glassFoot);border-top:1px solid rgba(255,255,255,.7);box-shadow:0 -8px 30px rgba(20,30,60,.14),inset 0 1px 0 rgba(255,255,255,.85),inset 0 -1px 0 rgba(255,255,255,.25)}
+.appfoot{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;align-items:center;gap:12px;padding:3px 26px;color:var(--ink);font-size:12px;line-height:1.2;background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,.16));-webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(2px) saturate(180%) url(#glassFoot);border-top:1px solid rgba(255,255,255,.7);box-shadow:0 -8px 30px rgba(20,30,60,.14),inset 0 1px 0 rgba(255,255,255,.85),inset 0 -1px 0 rgba(255,255,255,.25)}
 .appfoot .fbrand{font-weight:600;color:var(--ink)}
 .appfoot .built{margin:0 auto;position:relative;display:inline-flex;align-items:center;gap:8px;cursor:default}
 .appfoot .built .xlink{display:inline-flex;border-radius:50%;transition:transform .15s,box-shadow .15s}
 .appfoot .built .xlink:hover{transform:scale(1.12);box-shadow:0 0 0 3px rgba(59,130,246,.35)}
-.appfoot .built img{display:block;width:24px;height:24px;border-radius:50%;object-fit:cover;border:1px solid var(--line);cursor:pointer}
+.appfoot .built img{display:block;width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid var(--line);cursor:pointer}
 .appfoot .built .ftip{position:absolute;bottom:150%;left:50%;transform:translateX(-50%);white-space:nowrap;background:#1d2540;color:#fff;padding:7px 11px;border-radius:8px;font-size:12px;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:0 6px 20px rgba(20,30,60,.25)}
 .appfoot .built .ftip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1d2540}
 .appfoot .built:hover .ftip{opacity:1}
