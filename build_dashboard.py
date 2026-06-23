@@ -384,6 +384,14 @@ TEMPLATE = r"""<!DOCTYPE html>
 .brand{display:flex;align-items:center;gap:10px;padding:0 22px 22px;color:#fff;font-weight:600;font-size:17px}
 .brand .logo{width:30px;height:30px;border-radius:8px;object-fit:contain;background:#fff;padding:3px}
 .brand .h{font-weight:400}
+.sbtop{display:flex;align-items:center;gap:8px;padding:0 14px 18px}.sbtop .brand{padding:0;flex:1;min-width:0}
+.sbtoggle,.mopen{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border:none;border-radius:9px;background:rgba(255,255,255,.06);color:var(--sb-ink);cursor:pointer}
+.sbtoggle svg,.mopen svg{width:19px;height:19px}.sbtoggle:hover{background:rgba(255,255,255,.14);color:#fff}
+.mopen{display:none;position:fixed;top:10px;left:10px;z-index:90;background:var(--sb);box-shadow:0 2px 10px rgba(0,0,0,.25)}.mopen:hover{color:#fff}
+.sbscrim{position:fixed;inset:0;background:rgba(8,12,24,.5);opacity:0;pointer-events:none;transition:opacity .25s;z-index:99}
+.app.sb-collapsed .sidebar{width:64px}
+.app.sb-collapsed .brand span,.app.sb-collapsed .nav a .t,.app.sb-collapsed .nav .cnt,.app.sb-collapsed .sbnote{display:none}
+.app.sb-collapsed .sbtop{justify-content:center}.app.sb-collapsed .sbtop .brand{display:none}
 .nav a{display:flex;align-items:center;gap:11px;padding:11px 22px;color:var(--sb-ink);text-decoration:none;font-size:14px;cursor:pointer;border-left:3px solid transparent}
 .nav a svg{width:18px;height:18px;flex-shrink:0}
 .nav a:hover{background:rgba(255,255,255,.05);color:#fff}
@@ -398,17 +406,15 @@ label.lbl{color:var(--mut);font-size:12px}
 .content{padding:22px 26px 70px;max-width:1200px}
 .sub{color:var(--mut);font-size:12px}
 .grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
-@media(max-width:980px){.g4,.g3{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}.sidebar{width:64px}.brand span,.nav a span.t,.sbnote{display:none}}
+@media(max-width:980px){.g4,.g3{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
 @media(max-width:640px){
-  .app{flex-direction:column}
-  .sidebar{width:100%;height:auto;position:sticky;top:0;z-index:40;flex-direction:row;align-items:center;padding:8px 10px;overflow-x:auto;gap:6px}
-  .brand{display:flex!important;padding:0 4px 0 2px;flex-shrink:0}.brand span{display:none}
-  .nav{display:flex;flex-direction:row;gap:2px;flex:1}
-  .nav a{padding:8px 10px;border-left:none;border-bottom:3px solid transparent;white-space:nowrap;font-size:13px}
-  .nav a span.t{display:inline!important}
-  .nav a.active{border-left-color:transparent;border-bottom-color:var(--accent)}
-  .nav .cnt{display:none}.sbnote{display:none!important}
-  .topbar{position:static;padding:10px 14px}
+  .mopen{display:flex}
+  .sidebar{position:fixed;left:0;top:0;height:100vh;width:266px;transform:translateX(-100%);transition:transform .25s ease;z-index:100;box-shadow:0 0 40px rgba(0,0,0,.45)}
+  .app.sb-open .sidebar{transform:none}
+  .app.sb-open .sbscrim{opacity:1;pointer-events:auto}
+  .app .sidebar .brand span,.app .sidebar .nav a .t,.app .sidebar .nav .cnt{display:inline}
+  .app .sidebar .sbnote{display:block}
+  .topbar{position:static;padding:10px 14px 10px 52px}
   .topbar h2{width:100%;margin:0 0 6px}
   select{flex:1 1 42%;min-width:0}.topbar .btn{flex:1 1 100%}
   .content{padding:16px 14px 64px}
@@ -489,8 +495,13 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
   .appfoot .built img{width:18px;height:18px;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style></head><body>
 <div class="app">
+  <button id="mOpen" class="mopen" type="button" aria-label="Open sidebar" title="Open sidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg></button>
+  <div id="sbScrim" class="sbscrim"></div>
   <aside class="sidebar">
-    <div class="brand"><img class="logo" src="public/log.png" alt="ℏIntel"><span><span class="h">ℏ</span>Intel</span></div>
+    <div class="sbtop">
+      <button id="sbToggle" class="sbtoggle" type="button" aria-label="Toggle sidebar" title="Collapse sidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg></button>
+      <div class="brand"><img class="logo" src="public/log.png" alt="ℏIntel"><span><span class="h">ℏ</span>Intel</span></div>
+    </div>
     <nav class="nav" id="nav">
       <a data-v="dashboard" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span class="t">Dashboard</span> <span class="cnt" id="c-dash"></span></a>
       <a data-v="mentions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg><span class="t">Mentions</span> <span class="cnt" id="c-ment"></span></a>
@@ -867,8 +878,19 @@ function render(){
 }
 document.querySelectorAll('#nav a').forEach(a=>a.onclick=()=>{
   view=a.dataset.v; document.querySelectorAll('#nav a').forEach(x=>x.classList.toggle('active',x===a)); render();
+  if(mqMobile.matches) appEl.classList.remove('sb-open');   // close the drawer after picking a tab
 });
 $('#periodSel').onchange=render; $('#compareSel').onchange=render; render();
+
+// --- collapsible / drawer sidebar (Gemini-style) ---
+const appEl=document.querySelector('.app');
+const mqMobile=matchMedia('(max-width:640px)');
+$('#sbToggle').onclick=()=>{ mqMobile.matches ? appEl.classList.toggle('sb-open') : appEl.classList.toggle('sb-collapsed'); };
+$('#mOpen').onclick=()=>appEl.classList.add('sb-open');
+$('#sbScrim').onclick=()=>appEl.classList.remove('sb-open');
+// tablets start collapsed to a rail; clear any collapsed state when dropping to phone width
+if(matchMedia('(min-width:641px) and (max-width:980px)').matches) appEl.classList.add('sb-collapsed');
+mqMobile.addEventListener('change',e=>{ if(e.matches) appEl.classList.remove('sb-collapsed'); appEl.classList.remove('sb-open'); });
 
 // Hover tooltip for trend charts — read each period's value as the cursor moves.
 const tip=document.createElement('div'); tip.id='tip'; document.body.appendChild(tip);
