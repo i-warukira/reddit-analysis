@@ -385,9 +385,10 @@ TEMPLATE = r"""<!DOCTYPE html>
 .brand .logo{width:30px;height:30px;border-radius:8px;object-fit:contain;background:#fff;padding:3px}
 .brand .h{font-weight:400}
 .sbtop{display:flex;align-items:center;gap:8px;padding:0 14px 18px}.sbtop .brand{padding:0;flex:1;min-width:0}
-.sbtoggle,.mopen{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border:none;border-radius:9px;background:rgba(255,255,255,.06);color:var(--sb-ink);cursor:pointer}
-.sbtoggle svg,.mopen svg{width:19px;height:19px}.sbtoggle:hover{background:rgba(255,255,255,.14);color:#fff}
-.mopen{display:none;position:fixed;top:10px;left:10px;z-index:90;background:var(--sb);box-shadow:0 2px 10px rgba(0,0,0,.25)}.mopen:hover{color:#fff}
+.sbtoggle{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border:none;border-radius:9px;background:rgba(255,255,255,.06);color:var(--sb-ink);cursor:pointer}
+.sbtoggle svg{width:19px;height:19px}.sbtoggle:hover{background:rgba(255,255,255,.14);color:#fff}
+.topmenu{display:none;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;margin-right:6px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);cursor:pointer}
+.topmenu svg{width:19px;height:19px}.topmenu:hover{background:var(--bg)}
 .sbscrim{position:fixed;inset:0;background:rgba(8,12,24,.5);opacity:0;pointer-events:none;transition:opacity .25s;z-index:99}
 .app.sb-collapsed .sidebar{width:64px}
 .app.sb-collapsed .brand span,.app.sb-collapsed .nav a .t,.app.sb-collapsed .nav .cnt,.app.sb-collapsed .sbnote{display:none}
@@ -408,15 +409,16 @@ label.lbl{color:var(--mut);font-size:12px}
 .grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
 @media(max-width:980px){.g4,.g3{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
 @media(max-width:640px){
-  .mopen{display:flex}
+  .topmenu{display:flex}
   .sidebar{position:fixed;left:0;top:0;height:100vh;width:266px;transform:translateX(-100%);transition:transform .25s ease;z-index:100;box-shadow:0 0 40px rgba(0,0,0,.45)}
   .app.sb-open .sidebar{transform:none}
   .app.sb-open .sbscrim{opacity:1;pointer-events:auto}
   .app .sidebar .brand span,.app .sidebar .nav a .t,.app .sidebar .nav .cnt{display:inline}
   .app .sidebar .sbnote{display:block}
-  .topbar{position:static;padding:10px 14px 10px 52px}
-  .topbar h2{width:100%;margin:0 0 6px}
-  select{flex:1 1 42%;min-width:0}.topbar .btn{flex:1 1 100%}
+  .topbar{position:static;padding:10px 14px}
+  .topbar h2{flex:1;margin:0}
+  .topbar label.lbl{display:none}
+  .topbar select{flex:1 1 100%;min-width:0}.topbar .sub,.topbar .btn{flex:1 1 100%}
   .content{padding:16px 14px 64px}
   .g4,.g3,.g2{grid-template-columns:1fr 1fr}
   .kpi .v{font-size:23px}.hero .hv{font-size:34px}
@@ -495,7 +497,6 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
   .appfoot .built img{width:18px;height:18px;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style></head><body>
 <div class="app">
-  <button id="mOpen" class="mopen" type="button" aria-label="Open sidebar" title="Open sidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg></button>
   <div id="sbScrim" class="sbscrim"></div>
   <aside class="sidebar">
     <div class="sbtop">
@@ -512,6 +513,7 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
   </aside>
   <div class="main">
     <div class="topbar">
+      <button id="mOpen" class="topmenu" type="button" aria-label="Open sidebar" title="Open sidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg></button>
       <h2 id="viewTitle">Dashboard</h2>
       <label class="lbl">Period</label><select id="periodSel"></select>
       <label class="lbl">Compare</label><select id="compareSel"></select>
