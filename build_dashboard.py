@@ -399,6 +399,26 @@ label.lbl{color:var(--mut);font-size:12px}
 .sub{color:var(--mut);font-size:12px}
 .grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
 @media(max-width:980px){.g4,.g3{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}.sidebar{width:64px}.brand span,.nav a span.t,.sbnote{display:none}}
+@media(max-width:640px){
+  .app{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:sticky;top:0;z-index:40;flex-direction:row;align-items:center;padding:8px 10px;overflow-x:auto;gap:6px}
+  .brand{display:flex!important;padding:0 4px 0 2px;flex-shrink:0}.brand span{display:none}
+  .nav{display:flex;flex-direction:row;gap:2px;flex:1}
+  .nav a{padding:8px 10px;border-left:none;border-bottom:3px solid transparent;white-space:nowrap;font-size:13px}
+  .nav a span.t{display:inline!important}
+  .nav a.active{border-left-color:transparent;border-bottom-color:var(--accent)}
+  .nav .cnt{display:none}.sbnote{display:none!important}
+  .topbar{position:static;padding:10px 14px}
+  .topbar h2{width:100%;margin:0 0 6px}
+  select{flex:1 1 42%;min-width:0}.topbar .btn{flex:1 1 100%}
+  .content{padding:16px 14px 64px}
+  .g4,.g3,.g2{grid-template-columns:1fr 1fr}
+  .kpi .v{font-size:23px}.hero .hv{font-size:34px}
+  .hero{flex-direction:column;align-items:flex-start;gap:12px;padding:16px}.hero .hl{min-width:0}
+  .card{overflow-x:auto}
+  .heat{overflow-x:auto}.hrow{min-width:max-content}
+  table{min-width:480px}
+}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(20,30,60,.05)}
 .card h3{margin:0 0 12px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut)}
 .kpi .v{font-size:30px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
