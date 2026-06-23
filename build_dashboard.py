@@ -393,6 +393,12 @@ TEMPLATE = r"""<!DOCTYPE html>
 .app.sb-collapsed .sidebar{width:64px}
 .app.sb-collapsed .brand span,.app.sb-collapsed .nav a .t,.app.sb-collapsed .nav .cnt,.app.sb-collapsed .sbnote{display:none}
 .app.sb-collapsed .sbtop{justify-content:center}.app.sb-collapsed .sbtop .brand{display:none}
+.tbctrls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sbctrls .tbctrls{flex-direction:column;align-items:stretch;gap:9px;padding:12px 14px 4px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08)}
+.sbctrls label.lbl{color:var(--sb-ink);font-size:11px;margin-bottom:-5px}
+.sbctrls select{width:100%}
+.sbctrls .sub{color:#8b95b6;font-size:11px}
+.sbctrls .btn{width:100%;display:block;text-align:center}
 .nav a{display:flex;align-items:center;gap:11px;padding:11px 22px;color:var(--sb-ink);text-decoration:none;font-size:14px;cursor:pointer;border-left:3px solid transparent}
 .nav a svg{width:18px;height:18px;flex-shrink:0}
 .nav a:hover{background:rgba(255,255,255,.05);color:#fff}
@@ -417,8 +423,6 @@ label.lbl{color:var(--mut);font-size:12px}
   .app .sidebar .sbnote{display:block}
   .topbar{position:static;padding:10px 14px}
   .topbar h2{flex:1;margin:0}
-  .topbar label.lbl{display:none}
-  .topbar select{flex:1 1 100%;min-width:0}.topbar .sub,.topbar .btn{flex:1 1 100%}
   .content{padding:16px 14px 64px}
   .g4,.g3,.g2{grid-template-columns:1fr 1fr}
   .kpi .v{font-size:23px}.hero .hv{font-size:34px}
@@ -509,17 +513,20 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
       <a data-v="moderation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg><span class="t">Moderation</span> <span class="cnt" id="c-mod"></span></a>
       <a data-v="trends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg><span class="t">Trends</span> <span class="cnt" id="c-tr"></span></a>
     </nav>
+    <div id="sbCtrlMount" class="sbctrls"></div>
     <div class="sbnote">intels.app · r/Hedera community intelligence<br>Source: Arctic-Shift archive<br>Generated __GENERATED__ · since __TRACKERSTART__</div>
   </aside>
   <div class="main">
     <div class="topbar">
       <button id="mOpen" class="topmenu" type="button" aria-label="Open sidebar" title="Open sidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg></button>
       <h2 id="viewTitle">Dashboard</h2>
-      <label class="lbl">Period</label><select id="periodSel"></select>
-      <label class="lbl">Compare</label><select id="compareSel"></select>
-      <span class="sub" id="winLabel"></span>
-      <a class="btn alt" href="weekly.html">📋 Weekly</a>
-      <button class="btn" onclick="exportPDF()">⬇ PDF</button>
+      <div class="tbctrls" id="tbctrls">
+        <label class="lbl">Period</label><select id="periodSel"></select>
+        <label class="lbl">Compare</label><select id="compareSel"></select>
+        <span class="sub" id="winLabel"></span>
+        <a class="btn alt" href="weekly.html">📋 Weekly</a>
+        <button class="btn" onclick="exportPDF()">⬇ PDF</button>
+      </div>
     </div>
     <div class="content"><div id="view"></div>
       <p class="sub" style="margin-top:24px">Soft/keyword metrics (risk, themes, sentiment) are regex proxies over titles + comment bodies — not verified mod actions. Bans/reports/peak-online require the Reddit mod dashboard.</p>
@@ -892,7 +899,11 @@ $('#mOpen').onclick=()=>appEl.classList.add('sb-open');
 $('#sbScrim').onclick=()=>appEl.classList.remove('sb-open');
 // tablets start collapsed to a rail; clear any collapsed state when dropping to phone width
 if(matchMedia('(min-width:641px) and (max-width:980px)').matches) appEl.classList.add('sb-collapsed');
-mqMobile.addEventListener('change',e=>{ if(e.matches) appEl.classList.remove('sb-collapsed'); appEl.classList.remove('sb-open'); });
+// move the Period/Compare/Weekly/PDF controls into the drawer on mobile, back to the top bar on desktop
+const tbctrls=$('#tbctrls'), sbMount=$('#sbCtrlMount'), topbarEl=document.querySelector('.topbar');
+function placeControls(){ (mqMobile.matches?sbMount:topbarEl).appendChild(tbctrls); }
+placeControls();
+mqMobile.addEventListener('change',e=>{ if(e.matches) appEl.classList.remove('sb-collapsed'); appEl.classList.remove('sb-open'); placeControls(); });
 
 // Hover tooltip for trend charts — read each period's value as the cursor moves.
 const tip=document.createElement('div'); tip.id='tip'; document.body.appendChild(tip);
