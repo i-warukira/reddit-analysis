@@ -423,13 +423,14 @@ label.lbl{color:var(--mut);font-size:12px}
   .app .sidebar .sbnote{display:block}
   .topbar{position:static;padding:10px 14px}
   .topbar h2{flex:1;margin:0}
-  .content{padding:16px 14px 64px}
-  .g4,.g3,.g2{grid-template-columns:1fr 1fr}
+  .content{padding:16px 13px 64px}
+  .grid{grid-template-columns:1fr!important;gap:12px}
+  .g4{grid-template-columns:1fr 1fr!important}
   .kpi .v{font-size:23px}.hero .hv{font-size:34px}
   .hero{flex-direction:column;align-items:flex-start;gap:12px;padding:16px}.hero .hl{min-width:0}
-  .card{overflow-x:auto}
+  .card{padding:15px;overflow-x:auto}
   .heat{overflow-x:auto}.hrow{min-width:max-content}
-  table{min-width:480px}
+  table{min-width:0}
 }
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(20,30,60,.05)}
 .card h3{margin:0 0 12px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut)}
