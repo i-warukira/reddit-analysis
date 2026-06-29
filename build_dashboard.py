@@ -600,9 +600,10 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 .mb{min-width:0}.mh{font-size:12px;font-weight:600}.mt{margin:2px 0}.mm{font-size:11px}
 .sdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:5px;vertical-align:middle}
 .bar{height:8px;border-radius:4px;background:var(--btn-alt);overflow:hidden;display:flex}
-#tip{position:absolute;display:none;z-index:60;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12px;pointer-events:none;box-shadow:0 8px 24px rgba(20,30,60,.16);max-width:220px}
-#tip .nm{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
-#tip .vv{font-size:18px;font-weight:700;color:var(--ink)}#tip .wn{color:var(--blue);font-size:12px}
+/* GitHub-style hover tooltip — dark capsule, single-line, with caret arrow */
+#tip{position:absolute;display:none;z-index:60;background:#1f242e;color:#f1f3f7;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:7px 11px;font:500 12px Inter,system-ui;letter-spacing:-.005em;pointer-events:none;box-shadow:0 6px 22px rgba(0,0,0,.35);max-width:260px;white-space:nowrap}
+#tip::before{content:"";position:absolute;top:-5px;left:14px;width:9px;height:9px;background:#1f242e;border-top:1px solid rgba(255,255,255,.08);border-left:1px solid rgba(255,255,255,.08);transform:rotate(45deg)}
+#tip .vv{font-weight:600;color:#fff}#tip .wn{color:#a8b1c4}#tip .nm{display:none}/* GitHub style is a single line: "N posts on Wed 14:00" */
 .warnbox{border:1px solid var(--warn);background:#fff7e6;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:13px}
 .infobox{display:flex;gap:14px;align-items:flex-start;border:1px solid rgba(59,130,246,.28);background:linear-gradient(180deg,rgba(59,130,246,.06),rgba(59,130,246,.02));border-radius:14px;padding:14px 18px;margin-bottom:18px;font-size:13.5px;color:var(--ink)}
 .infobox .ibi{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:rgba(59,130,246,.14);color:var(--accent);flex-shrink:0;margin-top:1px}
@@ -970,10 +971,15 @@ function wordcloud(tw){
     return `<span class="wc" style="font-size:${sz}px;color:${CPAL[i%CPAL.length]}" title="${x.n} mentions">${esc(x.t)}</span>`;}).join('')+'</div>';
 }
 function heatmap(heat,mx){
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; let h='<div class="heat">';
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dayFull=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  let h='<div class="heat">';
   heat.forEach((row,di)=>{h+=`<div class="hrow"><span class="hlab">${days[di]}</span>`;
-    row.forEach((c,hi)=>{const a=mx?c/mx:0;const bg=a?`rgba(37,99,235,${(0.35+Math.sqrt(a)*0.65).toFixed(2)})`:'#e2e8f5';
-      h+=`<span class="hcell" style="background:${bg}" title="${days[di]} ${hi}:00 · ${c} posts"></span>`;});h+='</div>';});
+    row.forEach((c,hi)=>{const a=mx?c/mx:0;const bg=a?`rgba(37,99,235,${(0.35+Math.sqrt(a)*0.65).toFixed(2)})`:'var(--heat-empty,#e2e8f5)';
+      const hr=String(hi).padStart(2,'0')+':00';
+      const noun=c===1?'post':'posts';
+      const tip=`${c} ${noun} on ${dayFull[di]} at ${hr}`;
+      h+=`<span class="hcell" style="background:${bg}" data-tt="${esc(tip)}"></span>`;});h+='</div>';});
   h+='</div><div class="muted" style="font-size:11px;margin-top:7px">Posts by day-of-week × hour (UTC) · darker = busier</div>';
   return h;
 }
@@ -1243,17 +1249,28 @@ function placeControls(){ (mqMobile.matches?sbMount:topbarEl).appendChild(tbctrl
 placeControls();
 mqMobile.addEventListener('change',e=>{ if(e.matches) appEl.classList.remove('sb-collapsed'); appEl.classList.remove('sb-open'); placeControls(); });
 
-// Hover tooltip for trend charts — read each period's value as the cursor moves.
+// GitHub-style hover tooltip — single line "5 posts on Wednesday at 14:00" for the
+// heatmap, "11 posts · 06-18" for trend charts. Driven off two data conventions:
+//   data-tt="<plain string>"               → used as-is (heatmap)
+//   data-name / data-val / data-win        → composed into one line (trend charts)
 const tip=document.createElement('div'); tip.id='tip'; document.body.appendChild(tip);
 document.addEventListener('mousemove',e=>{
-  const t=e.target;
-  if(t&&t.dataset&&t.dataset.val!==undefined){
-    tip.innerHTML=`<div class="nm">${esc(t.dataset.name)}</div><div class="vv">${esc(t.dataset.val)}</div><div class="wn">${esc(t.dataset.win)}</div>`;
-    tip.style.display='block';
-    let x=e.pageX+14, y=e.pageY+14;
-    if(x+230>window.scrollX+document.documentElement.clientWidth) x=e.pageX-230;
-    tip.style.left=x+'px'; tip.style.top=y+'px';
-  } else { tip.style.display='none'; }
+  const t=e.target; if(!t || !t.dataset) { tip.style.display='none'; return; }
+  let body = null;
+  if(t.dataset.tt !== undefined){
+    body = `<span class="vv">${esc(t.dataset.tt)}</span>`;
+  } else if(t.dataset.val !== undefined){
+    body = `<span class="vv">${esc(t.dataset.val)} ${esc(t.dataset.name||'').toLowerCase()}</span>`
+         + (t.dataset.win ? ` <span class="wn">· ${esc(t.dataset.win)}</span>` : '');
+  }
+  if(body===null){ tip.style.display='none'; return; }
+  tip.innerHTML = body; tip.style.display='block';
+  // Position below-right of the cursor; clamp to viewport
+  const tr = tip.getBoundingClientRect();
+  let x = e.pageX + 12, y = e.pageY + 16;
+  if(x + tr.width > window.scrollX + document.documentElement.clientWidth - 8)
+    x = e.pageX - tr.width - 12;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
 });
 
 // Export: expand all evidence so it prints, then open the print/PDF dialog.
