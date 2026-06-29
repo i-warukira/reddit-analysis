@@ -479,36 +479,62 @@ html[data-theme="dark"] .nav a.active{color:#fff}
 .topbar h2{font-size:16px;margin:0;font-weight:600;margin-right:auto}
 select{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px}
 label.lbl{color:var(--mut);font-size:12px}
-/* Common Room–style range picker */
-.rangebtn{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 12px;font:600 13px system-ui;cursor:pointer;transition:all 120ms}
-.rangebtn:hover{border-color:var(--accent);color:var(--accent)}.rangebtn.active{border-color:var(--accent);background:var(--accent);color:#fff}
-.rangebtn .rb-i{width:15px;height:15px;color:var(--accent)}.rangebtn.active .rb-i{color:#fff}
-.rangebtn .rb-c{width:14px;height:14px;opacity:.65}
-.theme-toggle{background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
-.theme-toggle svg{width:16px;height:16px}.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
-.rpop{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);padding:10px;min-width:220px;z-index:200;font-size:13px}
-.rpop-presets button{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;border:none;color:var(--ink);padding:8px 12px;border-radius:6px;cursor:pointer;font:500 13px system-ui;text-align:left}
-.rpop-presets button:hover{background:var(--hover)}.rpop-presets button.sel{background:var(--accent);color:#fff}
-.rpop-presets .div{height:1px;background:var(--line);margin:6px 0}
-.rpop-cal{margin-top:6px;border-top:1px solid var(--line);padding-top:10px;min-width:540px}
-.rpop-tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--hover);padding:3px;border-radius:6px;margin-bottom:10px}
-.rpop-tab{background:transparent;border:none;color:var(--mut);padding:7px 0;font:600 12px system-ui;border-radius:5px;cursor:pointer}
-.rpop-tab.active{background:var(--panel);color:var(--accent);box-shadow:var(--shadow)}
-.rpop-cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.rpop-cal-nav button{background:transparent;border:1px solid var(--line);color:var(--ink);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:18px;line-height:0}
-.rpop-cal-nav button:hover{background:var(--hover)}
-.rpop-months{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.rpop-m h4{margin:0 0 6px;text-align:center;font-size:13px;color:var(--ink);font-weight:600}
-.rpop-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:11px;text-align:center}
-.rpop-dh{color:var(--mut);font-weight:600;padding:4px 0;font-size:10px}
-.rpop-d{padding:7px 0;border-radius:4px;cursor:pointer;color:var(--ink);user-select:none}
+/* Common Room–style range picker — Inter-stack, tighter, tinted blue trigger */
+body{font-feature-settings:"cv02","cv03","cv04","cv11";letter-spacing:-.005em;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.rangebtn{display:inline-flex;align-items:center;gap:9px;background:rgba(59,130,246,.10);border:1px solid rgba(59,130,246,.32);color:var(--accent);border-radius:7px;padding:6px 11px 6px 10px;font:600 13px Inter,system-ui;cursor:pointer;transition:all 120ms;letter-spacing:-.01em}
+html[data-theme="dark"] .rangebtn{background:rgba(59,130,246,.13);border-color:rgba(59,130,246,.40);color:#dbeafe}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) .rangebtn{background:rgba(59,130,246,.13);border-color:rgba(59,130,246,.40);color:#dbeafe}}
+.rangebtn:hover{background:rgba(59,130,246,.18);border-color:var(--accent)}
+.rangebtn .rb-i{width:14px;height:14px;color:var(--accent)}
+html[data-theme="dark"] .rangebtn .rb-i{color:#93c5fd}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) .rangebtn .rb-i{color:#93c5fd}}
+.rangebtn .rb-c{width:13px;height:13px;opacity:.7;margin-left:1px}
+.theme-toggle{background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:7px;padding:6px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.theme-toggle svg{width:15px;height:15px}.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+
+/* Popover: tighter, slightly darker tone in dark mode, refined separators */
+.rpop{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow-lg);padding:6px;min-width:212px;z-index:200;font:400 13px Inter,system-ui;letter-spacing:-.005em}
+html[data-theme="dark"] .rpop{background:#1a1d24;border-color:#2a2f3a}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) .rpop{background:#1a1d24;border-color:#2a2f3a}}
+.rpop-presets button{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;border:none;color:var(--ink);padding:8px 12px;border-radius:6px;cursor:pointer;font:500 13px Inter,system-ui;letter-spacing:-.005em;text-align:left}
+.rpop-presets button:hover{background:var(--hover)}
+.rpop-presets button.sel{background:var(--accent);color:#fff}
+.rpop-presets .div{height:1px;background:var(--line);margin:5px 6px}
+
+/* Calendar panel */
+.rpop-cal{margin-top:4px;padding:10px 6px 6px;border-top:1px solid var(--line);min-width:530px}
+
+/* Outlined Start/End tabs (segmented control) */
+.rpop-tabs{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:7px;overflow:hidden;margin:0 4px 12px}
+.rpop-tab{background:transparent;border:none;color:var(--mut);padding:8px 0;font:600 12.5px Inter,system-ui;letter-spacing:-.005em;cursor:pointer;border-right:1px solid var(--line)}
+.rpop-tab:last-child{border-right:none}
+.rpop-tab:hover{color:var(--ink)}
+.rpop-tab.active{background:var(--hover);color:var(--accent)}
+html[data-theme="dark"] .rpop-tab.active{background:#252932;color:#dbeafe;box-shadow:inset 0 0 0 1px rgba(59,130,246,.4)}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) .rpop-tab.active{background:#252932;color:#dbeafe;box-shadow:inset 0 0 0 1px rgba(59,130,246,.4)}}
+
+.rpop-cal-nav{display:flex;justify-content:space-between;align-items:center;margin:0 4px 4px}
+.rpop-cal-nav button{background:transparent;border:none;color:var(--mut);width:24px;height:24px;border-radius:5px;cursor:pointer;font-size:16px;line-height:1;font-family:inherit}
+.rpop-cal-nav button:hover{background:var(--hover);color:var(--ink)}
+
+.rpop-months{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 4px}
+.rpop-m h4{margin:0 0 8px;text-align:center;font:500 13px Inter,system-ui;color:var(--ink);letter-spacing:-.01em}
+.rpop-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;font-size:12px;text-align:center;font-variant-numeric:tabular-nums}
+.rpop-dh{color:var(--mut);font-weight:500;padding:4px 0;font-size:10.5px;text-transform:none}
+
+.rpop-d{padding:6px 0;border-radius:4px;cursor:pointer;color:var(--ink);user-select:none;font-weight:400;line-height:1.5}
 .rpop-d:hover{background:var(--hover)}
-.rpop-d.dis{color:var(--mut);opacity:.3;cursor:not-allowed}
-.rpop-d.in-range{background:rgba(59,130,246,.15);border-radius:0}
-.rpop-d.sel{background:var(--accent);color:#fff;font-weight:600}
-.rpop-actions{display:flex;justify-content:flex-end;margin-top:10px;gap:6px}
-.rpop-apply{background:var(--accent);color:#fff;border:none;padding:7px 16px;border-radius:6px;cursor:pointer;font:600 12px system-ui}
-.rpop-apply:disabled{opacity:.5;cursor:not-allowed}
+.rpop-d.dis{color:var(--mut);opacity:.32;cursor:not-allowed}
+.rpop-d.dis:hover{background:transparent}
+.rpop-d.in-range{background:rgba(59,130,246,.18);border-radius:0;color:var(--ink)}
+html[data-theme="dark"] .rpop-d.in-range{background:rgba(59,130,246,.22)}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) .rpop-d.in-range{background:rgba(59,130,246,.22)}}
+.rpop-d.sel{background:var(--accent);color:#fff;font-weight:500;border-radius:5px}
+
+.rpop-actions{display:flex;justify-content:flex-end;margin:10px 4px 0;gap:6px}
+.rpop-apply{background:var(--accent);color:#fff;border:none;padding:7px 18px;border-radius:6px;cursor:pointer;font:600 12.5px Inter,system-ui;letter-spacing:-.005em}
+.rpop-apply:hover{filter:brightness(1.06)}
+.rpop-apply:disabled{opacity:.4;cursor:not-allowed}
 @media(max-width:640px){.rpop-cal{min-width:0}.rpop-months{grid-template-columns:1fr}.rpop{left:8px!important;right:8px;width:auto;max-width:calc(100vw - 16px)}}
 .content{padding:22px 26px 70px;max-width:1200px}
 .sub{color:var(--mut);font-size:12px}
@@ -1146,7 +1172,7 @@ function renderCalendar(){
     const y = m.getFullYear(), mi = m.getMonth();
     const first = new Date(y, mi, 1); const last = new Date(y, mi+1, 0);
     let cells = '';
-    ['S','M','T','W','T','F','S'].forEach(d => cells += `<div class="rpop-dh">${d}</div>`);
+    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => cells += `<div class="rpop-dh">${d}</div>`);
     for(let i=0;i<first.getDay();i++) cells += '<div></div>';
     for(let d=1; d<=last.getDate(); d++){
       const ds = `${y}-${String(mi+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
