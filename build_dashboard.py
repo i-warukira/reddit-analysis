@@ -673,6 +673,16 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 #tip{position:absolute;display:none;z-index:60;background:#1f242e;color:#f1f3f7;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:7px 11px;font:500 12px Inter,system-ui;letter-spacing:-.005em;pointer-events:none;box-shadow:0 6px 22px rgba(0,0,0,.35);max-width:260px;white-space:nowrap}
 #tip::before{content:"";position:absolute;top:-5px;left:14px;width:9px;height:9px;background:#1f242e;border-top:1px solid rgba(255,255,255,.08);border-left:1px solid rgba(255,255,255,.08);transform:rotate(45deg)}
 #tip .vv{font-weight:600;color:#fff}#tip .wn{color:#a8b1c4}#tip .nm{display:none}/* GitHub style is a single line: "N posts on Wed 14:00" */
+/* Recharts-style tooltip for Performance charts — clean white/panel box, label + value */
+#rxtip{position:fixed;display:none;z-index:70;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:9px 13px;font:500 13px Inter,system-ui;letter-spacing:-.005em;pointer-events:none;box-shadow:0 8px 26px rgba(20,30,60,.16);opacity:0;transform:translateY(3px);transition:opacity .12s ease,transform .12s ease,left .08s linear,top .08s linear}
+#rxtip.on{opacity:1;transform:translateY(0)}
+#rxtip .rxl{color:var(--ink);font-weight:600;margin-bottom:3px}
+#rxtip .rxv{color:#0d9488;font-weight:600}
+html[data-theme="dark"] #rxtip .rxv{color:#2dd4bf}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) #rxtip .rxv{color:#2dd4bf}}
+.rxcursor{stroke:var(--mut);stroke-opacity:.35;stroke-width:1}
+.rxfocus{fill:#2dd4bf;stroke:var(--panel);stroke-width:2;filter:drop-shadow(0 1px 3px rgba(20,30,60,.25))}
+.rxchart svg, .rxpie svg{transition:none}
 .warnbox{border:1px solid var(--warn);background:#fff7e6;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:13px}
 /* --- Insights & Performance tabs (Recharts-style cards) --- */
 .rxcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow)}
@@ -1276,7 +1286,7 @@ function renderPie(ct, total){
     const path = `M${cx},${cy} L${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${large} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z`;
     const leader = `M${(cx + r*Math.cos(mid)).toFixed(1)},${(cy + r*Math.sin(mid)).toFixed(1)} L${lx.toFixed(1)},${ly.toFixed(1)} L${tx.toFixed(1)},${ty.toFixed(1)}`;
     const cap = s.type.charAt(0).toUpperCase() + s.type.slice(1);
-    return `<g><path d="${path}" fill="${col}" stroke="var(--panel)" stroke-width="2" data-val="${s.count}" data-name="${esc(cap)}" data-win="${Math.round(s.count/total*100)}%"/>
+    return `<g><path d="${path}" fill="${col}" stroke="var(--panel)" stroke-width="2" data-rx="pie" data-val="${s.count} posts (${Math.round(s.count/total*100)}%)" data-name="${esc(cap)}"/>
       <path d="${leader}" fill="none" stroke="${col}" stroke-width="1.2"/>
       <text x="${labelX.toFixed(1)}" y="${(ty+4).toFixed(1)}" text-anchor="${anchor}" style="fill:${col};font:600 13px Inter,system-ui">${esc(cap)} (${s.count})</text></g>`;
   }).join('');
@@ -1311,11 +1321,11 @@ function renderTitleBars(buckets){
     const x = padL + i * bw + (bw - barW)/2;
     const y = Y(b.avg_score);
     const h = (H - padB) - y;
-    return `<g class="tibg" data-val="${Math.round(b.avg_score)}" data-name="${esc(b.label)}" data-win="${b.count} posts · avg upvotes">
-      <rect class="tihover" x="${padL + i*bw + 8}" y="${padT}" width="${bw-16}" height="${H-padT-padB}" fill="transparent" rx="4"/>
-      <rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="${TEAL}" rx="3"/>
-      <text x="${(x+barW/2).toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle" style="fill:var(--ink);font:600 12px Inter,system-ui">${Math.round(b.avg_score).toLocaleString()}</text>
-      <text x="${padL + i*bw + bw/2}" y="${H-12}" text-anchor="middle" style="fill:var(--mut);font-size:12px">${esc(b.label)}</text>
+    return `<g class="tibg">
+      <rect class="tihover" x="${padL + i*bw + 8}" y="${padT}" width="${bw-16}" height="${H-padT-padB}" fill="transparent" rx="4" data-rx="bar" data-name="${esc(b.label)}" data-val="${Math.round(b.avg_score).toLocaleString()}"/>
+      <rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="${TEAL}" rx="3" pointer-events="none"/>
+      <text x="${(x+barW/2).toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle" style="fill:var(--ink);font:600 12px Inter,system-ui" pointer-events="none">${Math.round(b.avg_score).toLocaleString()}</text>
+      <text x="${padL + i*bw + bw/2}" y="${H-12}" text-anchor="middle" style="fill:var(--mut);font-size:12px" pointer-events="none">${esc(b.label)}</text>
     </g>`;
   }).join('');
   return `<div class="rxchart"><svg viewBox="0 0 ${W} ${H}" width="100%">${grid}${bars}<line x1="${padL}" x2="${W-padR}" y1="${H-padB}" y2="${H-padB}" stroke="var(--line)"/><line x1="${padL}" x2="${padL}" y1="${padT}" y2="${H-padB}" stroke="var(--line)"/></svg></div>`;
@@ -1339,8 +1349,14 @@ function renderHourLine(bh){
   }
   const grid = ticks.map(t => `<line x1="${padL}" x2="${W-padR}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="${padL-8}" y="${Y(t)+4}" text-anchor="end" style="fill:var(--mut);font-size:11px">${fmtTick(t)}</text>`).join('');
   const xlabs = bh.map((d,i)=>`<text x="${X(i)}" y="${H-10}" text-anchor="middle" style="fill:var(--mut);font-size:11px">${d.hr}</text>`).join('');
-  const hits = bh.map((d,i)=>`<g><circle cx="${X(i)}" cy="${Y(d.ratio)}" r="10" fill="transparent" data-val="${d.ratio.toFixed(3)}" data-name="ratio" data-win="${String(d.hr).padStart(2,'0')}:00"/><circle cx="${X(i)}" cy="${Y(d.ratio)}" r="3" fill="${TEAL}" pointer-events="none"/></g>`).join('');
-  return `<div class="rxchart"><svg viewBox="0 0 ${W} ${H}" width="100%">${grid}<line x1="${padL}" x2="${W-padR}" y1="${H-padB}" y2="${H-padB}" stroke="var(--line)"/><line x1="${padL}" x2="${padL}" y1="${padT}" y2="${H-padB}" stroke="var(--line)"/><path d="${path}" fill="none" stroke="${TEAL}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>${hits}${xlabs}</svg></div>`;
+  // continuous hover bands: each hour owns a vertical strip so the cursor/tooltip
+  // follows smoothly across the whole chart (recharts-style), snapping to the point.
+  const seg = (W-padL-padR)/(bh.length-1);
+  const bands = bh.map((d,i)=>{
+    const cx=X(i), cy=Y(d.ratio); const bx=Math.max(padL, cx-seg/2); const bw2=Math.min(W-padR, cx+seg/2)-bx;
+    return `<rect x="${bx.toFixed(1)}" y="${padT}" width="${bw2.toFixed(1)}" height="${(H-padT-padB).toFixed(1)}" fill="transparent" data-rx="line" data-val="${d.ratio.toFixed(3)}" data-win="${d.hr}:00" data-cx="${cx.toFixed(1)}" data-cy="${cy.toFixed(1)}"/>`;
+  }).join('');
+  return `<div class="rxchart"><svg viewBox="0 0 ${W} ${H}" width="100%">${grid}<line x1="${padL}" x2="${W-padR}" y1="${H-padB}" y2="${H-padB}" stroke="var(--line)"/><line x1="${padL}" x2="${padL}" y1="${padT}" y2="${H-padB}" stroke="var(--line)"/><line class="rxcursor" x1="0" x2="0" y1="${padT}" y2="${H-padB}" style="display:none"/><path d="${path}" fill="none" stroke="${TEAL}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/><circle class="rxfocus" r="4" style="display:none"/>${bands}${xlabs}</svg></div>`;
 }
 
 function viewTrends(p,q,cmp){
@@ -1528,8 +1544,39 @@ mqMobile.addEventListener('change',e=>{ if(e.matches) appEl.classList.remove('sb
 //   data-tt="<plain string>"               → used as-is (heatmap)
 //   data-name / data-val / data-win        → composed into one line (trend charts)
 const tip=document.createElement('div'); tip.id='tip'; document.body.appendChild(tip);
+// Recharts-style white tooltip for the Performance charts (data-rx targets)
+const rxtip=document.createElement('div'); rxtip.id='rxtip'; document.body.appendChild(rxtip);
+function hideRx(){ rxtip.classList.remove('on'); rxtip.style.display='none';
+  document.querySelectorAll('.rxcursor,.rxfocus').forEach(c=>c.style.display='none'); }
+function showRx(t,e){
+  const d=t.dataset;
+  const title = d.rx==='line' ? d.win : d.name;
+  const value = d.rx==='line' ? d.val : 'value : '+d.val;
+  rxtip.innerHTML = `<div class="rxl">${esc(title)}</div><div class="rxv">${esc(value)}</div>`;
+  if(rxtip.style.display!=='block'){ rxtip.style.display='block'; requestAnimationFrame(()=>rxtip.classList.add('on')); }
+  else rxtip.classList.add('on');
+  const tr=rxtip.getBoundingClientRect();
+  let x=e.clientX+16, y=e.clientY-tr.height-10;
+  if(x+tr.width>window.innerWidth-8) x=e.clientX-tr.width-16;
+  if(y<8) y=e.clientY+16;
+  rxtip.style.left=x+'px'; rxtip.style.top=y+'px';
+  // line chart: move the vertical cursor + focus dot to the snapped point
+  const svg=t.closest('svg');
+  if(svg){
+    const cur=svg.querySelector('.rxcursor'), foc=svg.querySelector('.rxfocus');
+    if(d.rx==='line' && d.cx){
+      if(cur){cur.setAttribute('x1',d.cx);cur.setAttribute('x2',d.cx);cur.style.display='';}
+      if(foc){foc.setAttribute('cx',d.cx);foc.setAttribute('cy',d.cy);foc.style.display='';}
+    } else { if(cur)cur.style.display='none'; if(foc)foc.style.display='none'; }
+  }
+}
 document.addEventListener('mousemove',e=>{
-  const t=e.target; if(!t || !t.dataset) { tip.style.display='none'; return; }
+  const t=e.target;
+  // Performance charts → recharts white tooltip
+  if(t && t.dataset && t.dataset.rx !== undefined){ tip.style.display='none'; showRx(t,e); return; }
+  hideRx();
+  // Other charts → GitHub-style dark capsule
+  if(!t || !t.dataset) { tip.style.display='none'; return; }
   let body = null;
   if(t.dataset.tt !== undefined){
     body = `<span class="vv">${esc(t.dataset.tt)}</span>`;
@@ -1539,7 +1586,6 @@ document.addEventListener('mousemove',e=>{
   }
   if(body===null){ tip.style.display='none'; return; }
   tip.innerHTML = body; tip.style.display='block';
-  // Position below-right of the cursor; clamp to viewport
   const tr = tip.getBoundingClientRect();
   let x = e.pageX + 12, y = e.pageY + 16;
   if(x + tr.width > window.scrollX + document.documentElement.clientWidth - 8)
