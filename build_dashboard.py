@@ -1157,6 +1157,10 @@ $('#rpopApply').onclick = ()=>{
 function closePop(){ rpop.style.display='none'; pickerRole=null; }
 $('#periodBtn').onclick = e => { e.stopPropagation(); if(pickerRole==='period') closePop(); else openPicker('period'); };
 $('#compareBtn').onclick = e => { e.stopPropagation(); if(pickerRole==='compare') closePop(); else openPicker('compare'); };
+// Stop clicks INSIDE the popover from reaching the document close-on-outside handler.
+// (Without this, a date click that triggers innerHTML re-render leaves e.target detached;
+// rpop.contains(target) then returns false and the popover wrongly closes.)
+rpop.addEventListener('click', e => e.stopPropagation());
 document.addEventListener('click', e => { if(!rpop.contains(e.target)) closePop(); });
 
 // Theme toggle (light/dark) with CoD safe-zone-style curtain reveal on click
