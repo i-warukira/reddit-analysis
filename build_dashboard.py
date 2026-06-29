@@ -578,6 +578,16 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 #tip .nm{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
 #tip .vv{font-size:18px;font-weight:700;color:var(--ink)}#tip .wn{color:var(--blue);font-size:12px}
 .warnbox{border:1px solid var(--warn);background:#fff7e6;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:13px}
+.infobox{display:flex;gap:14px;align-items:flex-start;border:1px solid rgba(59,130,246,.28);background:linear-gradient(180deg,rgba(59,130,246,.06),rgba(59,130,246,.02));border-radius:14px;padding:14px 18px;margin-bottom:18px;font-size:13.5px;color:var(--ink)}
+.infobox .ibi{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:rgba(59,130,246,.14);color:var(--accent);flex-shrink:0;margin-top:1px}
+.infobox .ibi svg{width:18px;height:18px}
+.infobox .ibt{font-size:13px;font-weight:700;letter-spacing:.02em;color:var(--ink);margin:0 0 2px}
+.infobox .ibd{color:var(--mut);line-height:1.5;font-size:13px}
+.infobox .ibchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.infobox .ibchip{font-size:11px;padding:2px 9px;border-radius:999px;background:var(--btn-alt);color:var(--mut);font-weight:500}
+.infobox .ibchip.on{background:rgba(34,197,94,.14);color:#15803d}
+html[data-theme="dark"] .infobox .ibchip.on{color:#86efac}
+@media (prefers-color-scheme: dark){html:not([data-theme="light"]) .infobox .ibchip.on{color:#86efac}}
 .appfoot{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;align-items:center;gap:12px;padding:3px 26px;color:var(--ink);font-size:12px;line-height:1.2;background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,.16));-webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(2px) saturate(180%) url(#glassFoot);border-top:1px solid rgba(255,255,255,.7);box-shadow:0 -8px 30px rgba(20,30,60,.14),inset 0 1px 0 rgba(255,255,255,.85),inset 0 -1px 0 rgba(255,255,255,.25)}
 .appfoot .fbrand{font-weight:600;color:var(--ink)}
 .appfoot .built{margin:0 auto;position:relative;display:inline-flex;align-items:center;gap:8px;cursor:default}
@@ -1066,8 +1076,21 @@ function render(){
   else h=viewTrends(p,q,cmp);
   $('#view').innerHTML=h;
   if(p.custom){
-    const note=document.createElement('div');note.className='warnbox';
-    note.innerHTML='<b>Custom date range.</b> <span class="muted">Some deep-analytics panels (risk breakdown, escalation queue, topic cloud) are only computed for the semi-monthly cohorts and not for arbitrary ranges. Headline KPIs, sentiment, top authors, top posts and the activity series above are computed live from daily aggregates.</span>';
+    const note=document.createElement('div');note.className='infobox';
+    note.innerHTML=`<div class="ibi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+      <div style="flex:1;min-width:0">
+        <div class="ibt">Custom date range — live computation</div>
+        <div class="ibd">Headline KPIs, sentiment, top authors, top posts and the activity series above are computed on the fly from per-day aggregates for this exact window.</div>
+        <div class="ibchips">
+          <span class="ibchip on">Posts &amp; comments</span>
+          <span class="ibchip on">Sentiment</span>
+          <span class="ibchip on">Top authors / posts</span>
+          <span class="ibchip on">Activity chart</span>
+          <span class="ibchip">Risk breakdown · cohort only</span>
+          <span class="ibchip">Escalation queue · cohort only</span>
+          <span class="ibchip">Topic cloud · cohort only</span>
+        </div>
+      </div>`;
     $('#view').insertBefore(note, $('#view').firstChild);
   }
 }
