@@ -619,12 +619,12 @@ html[data-theme="dark"] .rpop-d.in-range{background:rgba(59,130,246,.22)}
   table{min-width:0}
 }
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(20,30,60,.05)}
-.card h3{margin:0 0 12px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut)}
+.card h3{margin:0 0 14px;font:700 15px Inter,system-ui;letter-spacing:-.01em;color:var(--ink)}
 .kpi .v{font-size:30px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
 .kpi .l{color:var(--mut);font-size:12px;margin-top:2px}
 .delta{font-size:12px;font-weight:600;margin-left:8px}.up{color:var(--good)}.down{color:var(--bad)}.flat{color:var(--mut)}
 .hero{display:flex;gap:22px;align-items:center;padding:20px 22px}.hero .hl{min-width:190px}.hero .hc{flex:1;min-width:0}
-.hero .hc svg{max-height:160px;display:block}
+.hero .hc svg{max-height:190px;display:block}
 .hero .hv{font-size:42px;font-weight:600;letter-spacing:-.02em;line-height:1.05;margin:4px 0}
 .donut{align-items:center}.donut svg{flex-shrink:0}
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:middle}
@@ -973,17 +973,20 @@ function kpi(label,val,prev,suffix='',goodUp=true){
 // interactive multi-period SVG line chart — hover any point to read its value
 function trend(metricFn, label, color, suffix=''){
   const ys = DATA.periods.map(metricFn);
-  const W=260,H=78,pad=18; const mx=Math.max(...ys,1),mn=Math.min(...ys,0);
-  const X=i=>pad+i*((W-2*pad)/Math.max(ys.length-1,1));
-  const Y=v=>H-pad-8-((v-mn)/Math.max(mx-mn,1))*(H-2*pad-8);
-  const pts=ys.map((v,i)=>`${X(i)},${Y(v)}`).join(' ');
-  const labs=DATA.periods.map((p,i)=>`<text x="${X(i)}" y="${H-3}" text-anchor="middle">${p.end.slice(5)}</text>`).join('');
+  const W=260,H=96,padL=8,padR=8,padT=14,padB=12; const mx=Math.max(...ys,1),mn=Math.min(...ys,0);
+  const X=i=>padL+i*((W-padL-padR)/Math.max(ys.length-1,1));
+  const Y=v=>H-padB-((v-mn)/Math.max(mx-mn,1))*(H-padT-padB);
+  const pts=ys.map((v,i)=>[X(i),Y(v)]);
+  let line=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for(let i=1;i<pts.length;i++){const [px,py]=pts[i-1],[x,y]=pts[i],cx=(px+x)/2;line+=` C${cx.toFixed(1)},${py.toFixed(1)} ${cx.toFixed(1)},${y.toFixed(1)} ${x.toFixed(1)},${y.toFixed(1)}`;}
+  const fill=line+` L${pts[pts.length-1][0].toFixed(1)},${H-padB} L${pts[0][0].toFixed(1)},${H-padB} Z`;
+  const gid='tg'+Math.abs([...label].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7));
   const groups=ys.map((v,i)=>{
     const p=DATA.periods[i];
     const meta=`data-name="${esc(label)}" data-win="${p.start} → ${p.end}" data-val="${v}${suffix}"`;
-    return `<g class="ptg"><circle class="pt-hit" cx="${X(i)}" cy="${Y(v)}" r="11" ${meta}/><circle class="pt" cx="${X(i)}" cy="${Y(v)}" r="2.7" fill="${color}" ${meta}/></g>`;
+    return `<g class="ptg"><circle class="pt-hit" cx="${X(i)}" cy="${Y(v)}" r="10" ${meta}/><circle class="pt" cx="${X(i)}" cy="${Y(v)}" r="2.4" fill="${color}" ${meta} pointer-events="none"/></g>`;
   }).join('');
-  return `<div class="card"><h3>${label}</h3><svg viewBox="0 0 ${W} ${H}" width="100%"><polyline fill="none" stroke="${color}" stroke-width="2" points="${pts}"/>${groups}${labs}</svg></div>`;
+  return `<div class="card"><h3 style="font-size:13.5px;margin-bottom:8px">${label}</h3><svg viewBox="0 0 ${W} ${H}" width="100%"><defs><linearGradient id="${gid}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${fill}" fill="url(#${gid})"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${groups}</svg></div>`;
 }
 // "This week vs annual average" — one card per metric: week value, the year's
 // mean, and the % gap so a mod instantly sees if a week is above/below the norm.
@@ -1003,25 +1006,29 @@ function annualCard(label,weekVal,annVal,suffix='',goodUp=true){
 // years' periods line up on a shared Jan→Dec axis, one line per year.
 function yoy(metricFn,label,suffix=''){
   const years=Object.keys(DATA.annual).sort();
-  const cols=['#a855f7','#818cf8','#34d399','#fbbf24','#f472b6'];
+  const cols=['#3b82f6','#a855f7','#34d399','#fbbf24','#f472b6'];
   const byYear={}; years.forEach(y=>byYear[y]=[]);
   DATA.periods.forEach(p=>{const y=p.end.slice(0,4); if(byYear[y]){
     const d=new Date(p.end); const doy=Math.round((d-new Date(+y,0,1))/864e5);
     byYear[y].push([doy,metricFn(p),p.start.slice(5)+'→'+p.end.slice(5)]);}});
   const all=DATA.periods.map(metricFn); const mx=Math.max(...all,1),mn=Math.min(...all,0);
-  const W=540,H=120,pad=24;
-  const X=w=>pad+(w/365)*(W-2*pad);
-  const Y=v=>H-pad-((v-mn)/Math.max(mx-mn,1))*(H-2*pad);
+  const W=560,H=180,padL=40,padR=14,padT=16,padB=28;
+  const X=w=>padL+(w/365)*(W-padL-padR);
+  const Y=v=>H-padB-((v-mn)/Math.max(mx-mn,1))*(H-padT-padB);
+  const ticks=[mn,(mn+mx)/2,mx];
+  const grid=ticks.map(t=>`<line x1="${padL}" x2="${W-padR}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="${padL-7}" y="${Y(t)+4}" text-anchor="end" style="fill:var(--mut);font-size:10px">${(Math.round(t*10)/10)}</text>`).join('');
   let lines='',grp='',leg='';
-  years.forEach((y,yi)=>{const c=cols[yi%cols.length];
-    const pts=byYear[y].sort((a,b)=>a[0]-b[0]).map(([w,v])=>`${X(w).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
-    if(byYear[y].length) lines+=`<polyline fill="none" stroke="${c}" stroke-width="2" points="${pts}"/>`;
-    byYear[y].forEach(([w,v,lbl])=>{const meta=`data-name="${esc(label)} ${y}" data-win="${lbl} · ${y}" data-val="${v}${suffix}"`;
-      grp+=`<g class="ptg"><circle class="pt-hit" cx="${X(w)}" cy="${Y(v)}" r="9" ${meta}/><circle class="pt" cx="${X(w)}" cy="${Y(v)}" r="2.4" fill="${c}" ${meta}/></g>`;});
+  years.forEach((y,yi)=>{const c=cols[yi%cols.length];const arr=byYear[y].slice().sort((a,b)=>a[0]-b[0]);
+    if(arr.length){const pts=arr.map(([w,v])=>[X(w),Y(v)]);
+      let pa=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+      for(let i=1;i<pts.length;i++){const[px,py]=pts[i-1],[x,yy]=pts[i],cx=(px+x)/2;pa+=` C${cx.toFixed(1)},${py.toFixed(1)} ${cx.toFixed(1)},${yy.toFixed(1)} ${x.toFixed(1)},${yy.toFixed(1)}`;}
+      lines+=`<path d="${pa}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;}
+    arr.forEach(([w,v,lbl])=>{const meta=`data-name="${esc(label)} ${y}" data-win="${lbl} · ${y}" data-val="${v}${suffix}"`;
+      grp+=`<g class="ptg"><circle class="pt-hit" cx="${X(w)}" cy="${Y(v)}" r="9" ${meta}/><circle class="pt" cx="${X(w)}" cy="${Y(v)}" r="2.4" fill="${c}" ${meta} pointer-events="none"/></g>`;});
     leg+=`<span><span class="dot" style="background:${c}"></span>${y}</span>`;});
-  const ax=[[0,'Jan'],[90,'Apr'],[181,'Jul'],[273,'Oct'],[365,'Dec']].map(([w,m])=>`<text x="${X(w)}" y="${H-6}" text-anchor="middle">${m}</text>`).join('');
-  return `<div class="card"><h3>${label} — year over year</h3>
-    <svg viewBox="0 0 ${W} ${H}" width="100%">${lines}${grp}${ax}</svg>
+  const ax=[[0,'Jan'],[90,'Apr'],[181,'Jul'],[273,'Oct'],[365,'Dec']].map(([w,m])=>`<text x="${X(w)}" y="${H-9}" text-anchor="middle" style="fill:var(--mut);font-size:10px">${m}</text>`).join('');
+  return `<div class="card"><h3>${label} — Year over Year</h3>
+    <svg viewBox="0 0 ${W} ${H}" width="100%">${grid}<line x1="${padL}" x2="${W-padR}" y1="${H-padB}" y2="${H-padB}" stroke="var(--line)"/>${lines}${grp}${ax}</svg>
     <div class="legend">${leg}</div></div>`;
 }
 // Hedera-style section header: small purple eyebrow + large thin heading.
@@ -1033,19 +1040,24 @@ function evBlock(rows){
 const CPAL=['#3b82f6','#8b5cf6','#22c55e','#f59e0b','#ec4899','#14b8a6'];
 function avColor(s){let h=0;for(const c of (s||'?')) h=(h*31+c.charCodeAt(0))%360;return `hsl(${h},52%,55%)`;}
 
-// hero area chart from daily post counts
+// hero area chart from daily post counts — gridlines, smooth curve, y-axis ticks
 function area(daily){
   if(!daily||!daily.length) return '<div class="muted">No daily data.</div>';
-  const ys=daily.map(d=>d.c); const W=1000,H=140,pad=6; const mx=Math.max(...ys,1);
-  const X=i=>pad+i*((W-2*pad)/Math.max(daily.length-1,1));
-  const Y=v=>H-20-(v/mx)*(H-34);
-  const line=daily.map((d,i)=>`${X(i).toFixed(1)},${Y(d.c).toFixed(1)}`).join(' ');
-  const fill=`${X(0).toFixed(1)},${H-20} ${line} ${X(daily.length-1).toFixed(1)},${H-20}`;
-  const grp=daily.map((d,i)=>`<g class="ptg"><circle class="pt-hit" cx="${X(i)}" cy="${Y(d.c)}" r="9" data-name="Posts" data-win="${esc(d.d)}" data-val="${d.c}"/><circle class="pt" cx="${X(i)}" cy="${Y(d.c)}" r="2.4" fill="#3b82f6" data-name="Posts" data-win="${esc(d.d)}" data-val="${d.c}"/></g>`).join('');
-  const labs=daily.map((d,i)=>i%Math.ceil(daily.length/7||1)===0?`<text x="${X(i)}" y="${H-5}" text-anchor="middle">${esc(d.d)}</text>`:'').join('');
+  const ys=daily.map(d=>d.c);
+  const W=1000,H=180,padL=30,padR=12,padT=14,padB=26; const mx=Math.max(...ys,1);
+  const tickMax=Math.max(1,Math.ceil(mx/5)*5); const ticks=[0,tickMax/2,tickMax];
+  const X=i=>padL+i*((W-padL-padR)/Math.max(daily.length-1,1));
+  const Y=v=>H-padB-(v/tickMax)*(H-padT-padB);
+  const pts=daily.map((d,i)=>[X(i),Y(d.c)]);
+  let line=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for(let i=1;i<pts.length;i++){const [px,py]=pts[i-1],[x,y]=pts[i],cx=(px+x)/2;line+=` C${cx.toFixed(1)},${py.toFixed(1)} ${cx.toFixed(1)},${y.toFixed(1)} ${x.toFixed(1)},${y.toFixed(1)}`;}
+  const fill=line+` L${pts[pts.length-1][0].toFixed(1)},${H-padB} L${pts[0][0].toFixed(1)},${H-padB} Z`;
+  const grid=ticks.map(t=>`<line x1="${padL}" x2="${W-padR}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="${padL-7}" y="${Y(t)+4}" text-anchor="end" style="fill:var(--mut);font-size:10px">${Math.round(t)}</text>`).join('');
+  const grp=daily.map((d,i)=>`<g class="ptg"><circle class="pt-hit" cx="${X(i)}" cy="${Y(d.c)}" r="9" data-name="Posts" data-win="${esc(d.d)}" data-val="${d.c}"/><circle class="pt" cx="${X(i)}" cy="${Y(d.c)}" r="2.4" fill="#3b82f6" data-name="Posts" data-win="${esc(d.d)}" data-val="${d.c}" pointer-events="none"/></g>`).join('');
+  const labs=daily.map((d,i)=>i%Math.ceil(daily.length/8||1)===0?`<text x="${X(i)}" y="${H-8}" text-anchor="middle" style="fill:var(--mut);font-size:10px">${esc(d.d)}</text>`:'').join('');
   return `<svg viewBox="0 0 ${W} ${H}" width="100%"><defs><linearGradient id="ag" x1="0" x2="0" y1="0" y2="1">
-    <stop offset="0" stop-color="#3b82f6" stop-opacity=".30"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
-    <polygon points="${fill}" fill="url(#ag)"/><polyline points="${line}" fill="none" stroke="#3b82f6" stroke-width="2"/>${grp}${labs}</svg>`;
+    <stop offset="0" stop-color="#3b82f6" stop-opacity=".26"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>${grid}
+    <path d="${fill}" fill="url(#ag)"/><path d="${line}" fill="none" stroke="#3b82f6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>${grp}${labs}</svg>`;
 }
 function donut(title,segs,centerVal,centerSub){
   const total=segs.reduce((a,s)=>a+s.value,0)||1; const R=40,C=2*Math.PI*R; let off=0;
