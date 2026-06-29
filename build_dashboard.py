@@ -688,6 +688,7 @@ html[data-theme="dark"] #rxtip .rxv{color:#2dd4bf}
 .rxcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow)}
 .rxtitle{font:700 17px Inter,system-ui;color:var(--ink);letter-spacing:-.01em;margin:0 0 4px}
 .rxsub{color:var(--mut);font-size:13.5px;margin-bottom:22px}
+.rxnote{margin-top:16px;padding:11px 14px;background:var(--btn-alt);border-radius:9px;color:var(--mut);font-size:12.5px;line-height:1.55;border-left:3px solid var(--accent)}
 .recgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
 @media(max-width:980px){.recgrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.recgrid{grid-template-columns:1fr}}
@@ -1237,13 +1238,15 @@ function viewPerformance(p){
   h += '</div>';
   h += '<div class="rxcard" style="margin-bottom:18px">';
   h += '<div class="rxtitle">Title Length Impact</div>';
-  h += `<div class="rxsub">Average title length: <b style="color:var(--ink)">${(p.title_impact||{}).avg_len||0} characters</b></div>`;
+  h += `<div class="rxsub">Average upvotes by title length — Short (&lt;50), Medium (50–100), Long (&gt;100) characters. Average title this period: <b style="color:var(--ink)">${(p.title_impact||{}).avg_len||0} characters</b>.</div>`;
   h += renderTitleBars((p.title_impact||{}).buckets || []);
+  h += '<div class="rxnote">Correlation, not cause: longer titles tend to be detailed news/announcements (which naturally draw upvotes), while short titles skew to low-effort or question posts. Read as guidance on what reaches the hot page, not a rule to pad titles.</div>';
   h += '</div>';
   h += '<div class="rxcard">';
   h += '<div class="rxtitle">Discussion Engagement by Time</div>';
-  h += '<div class="rxsub">Higher ratio = more discussion relative to upvotes</div>';
+  h += '<div class="rxsub">Comments per upvote by hour of day (UTC) — total comments ÷ total upvotes for posts created in each hour. Higher = posts spark more conversation relative to how many upvotes they get.</div>';
   h += renderHourLine(p.by_hour || []);
+  h += '<div class="rxnote">Use it to spot discussion-heavy windows (good times to post questions or start debate) vs upvote-heavy windows (better for announcements). It measures engagement style, not raw volume.</div>';
   h += '</div>';
   return h;
 }
