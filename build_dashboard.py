@@ -971,15 +971,10 @@ function wordcloud(tw){
     return `<span class="wc" style="font-size:${sz}px;color:${CPAL[i%CPAL.length]}" title="${x.n} mentions">${esc(x.t)}</span>`;}).join('')+'</div>';
 }
 function heatmap(heat,mx){
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const dayFull=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-  let h='<div class="heat">';
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; let h='<div class="heat">';
   heat.forEach((row,di)=>{h+=`<div class="hrow"><span class="hlab">${days[di]}</span>`;
     row.forEach((c,hi)=>{const a=mx?c/mx:0;const bg=a?`rgba(37,99,235,${(0.35+Math.sqrt(a)*0.65).toFixed(2)})`:'var(--heat-empty,#e2e8f5)';
-      const hr=String(hi).padStart(2,'0')+':00';
-      const noun=c===1?'post':'posts';
-      const tip=`${c} ${noun} on ${dayFull[di]} at ${hr}`;
-      h+=`<span class="hcell" style="background:${bg}" data-tt="${esc(tip)}"></span>`;});h+='</div>';});
+      h+=`<span class="hcell" style="background:${bg}"></span>`;});h+='</div>';});
   h+='</div><div class="muted" style="font-size:11px;margin-top:7px">Posts by day-of-week × hour (UTC) · darker = busier</div>';
   return h;
 }
