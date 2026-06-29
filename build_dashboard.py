@@ -255,7 +255,11 @@ def metrics(start, end):
         for dow_i in range(7):
             sub = grouped[grouped['dow'] == dow_i]
             if not len(sub): continue
-            best = sub.loc[sub['mean'].idxmax()]
+            # Prefer hours with >=2 posts so a single fluke post can't win the slot;
+            # fall back to all hours only if that day never had a repeated hour.
+            pool = sub[sub['count'] >= 2]
+            if not len(pool): pool = sub
+            best = pool.loc[pool['mean'].idxmax()]
             daily_recs.append({'day': DOW_NAMES[dow_i],
                                'hour': int(best['hr']),
                                'avg_score': round(float(best['mean']), 1),
@@ -289,15 +293,20 @@ def metrics(start, end):
                 'avg_score': round(float(s.mean()), 1) if len(s) else 0,
             })
 
-    # Discussion Engagement by Time: avg(comments / max(score,1)) per hour-of-day
+    # Discussion Engagement by Time: comments-per-upvote per hour-of-day, computed on
+    # AGGREGATES (sum of comments / sum of upvotes in the hour) rather than averaging
+    # per-post ratios — the latter is dominated by low-upvote outliers (a 1-upvote /
+    # 6-comment post would read 6.0). Aggregating gives a stable, meaningful ratio.
     by_hour = []
     if n_posts:
         pp3 = pp.copy()
-        pp3['hr']  = pp3['created_utc'].dt.hour
-        pp3['rat'] = pp3['num_comments'] / pp3['score'].clip(lower=1)
-        agg = pp3.groupby('hr')['rat'].mean().reindex(range(24), fill_value=0)
-        for h, v in agg.items():
-            by_hour.append({'hr': int(h), 'ratio': round(float(v), 4)})
+        pp3['hr'] = pp3['created_utc'].dt.hour
+        g = pp3.groupby('hr').agg(c=('num_comments', 'sum'), s=('score', 'sum')).reindex(range(24))
+        for h in range(24):
+            cc = float(g.loc[h, 'c']) if h in g.index and pd.notna(g.loc[h, 'c']) else 0.0
+            ss = float(g.loc[h, 's']) if h in g.index and pd.notna(g.loc[h, 's']) else 0.0
+            ratio = cc / ss if ss > 0 else 0.0
+            by_hour.append({'hr': int(h), 'ratio': round(ratio, 4)})
 
     return {
         'daily': daily, 'heat': heat, 'heat_max': heat_max, 'top_authors': top_authors,
@@ -1045,7 +1054,7 @@ function area(daily){
   if(!daily||!daily.length) return '<div class="muted">No daily data.</div>';
   const ys=daily.map(d=>d.c);
   const W=1000,H=180,padL=30,padR=12,padT=14,padB=26; const mx=Math.max(...ys,1);
-  const tickMax=Math.max(1,Math.ceil(mx/5)*5); const ticks=[0,tickMax/2,tickMax];
+  const asc=niceScale(mx,2); const tickMax=asc.max; const ticks=[0,tickMax/2,tickMax];
   const X=i=>padL+i*((W-padL-padR)/Math.max(daily.length-1,1));
   const Y=v=>H-padB-(v/tickMax)*(H-padT-padB);
   const pts=daily.map((d,i)=>[X(i),Y(d.c)]);
@@ -1275,23 +1284,37 @@ function renderPie(ct, total){
 }
 
 // Vertical bar chart with grid + axes (Title Length)
+// Pick a "nice" axis max + evenly-spaced ticks for ANY data magnitude (10s, 0.1s, 1000s).
+function niceScale(maxVal, want=4){
+  const range = maxVal > 0 ? maxVal : 1;
+  const rawStep = range / want;
+  const pow = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const n = rawStep / pow;
+  const step = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * pow;
+  const niceMax = Math.ceil(maxVal / step) * step;
+  const ticks = [];
+  for(let t = 0; t <= niceMax + step*0.001; t += step) ticks.push(Math.round(t*1000)/1000);
+  return { max: niceMax, ticks };
+}
+function fmtTick(t){ return Number.isInteger(t) ? t.toLocaleString() : t.toLocaleString('en-US',{maximumFractionDigits:3}); }
+
 function renderTitleBars(buckets){
   if(!buckets.length) return '<div class="muted">No data.</div>';
   const W = 720, H = 280, padL = 50, padR = 24, padT = 18, padB = 36;
   const mx = Math.max(...buckets.map(b=>b.avg_score), 1);
-  const tickMax = Math.ceil(mx / 8000) * 8000;
-  const ticks = [0, tickMax/4, tickMax/2, 3*tickMax/4, tickMax].map(t=>Math.round(t));
-  const Y = v => H - padB - (v/tickMax) * (H - padT - padB);
+  const sc = niceScale(mx, 4);                 // auto-fit the y-axis to the real range
+  const Y = v => H - padB - (v/sc.max) * (H - padT - padB);
   const bw = (W - padL - padR) / buckets.length;
   const barW = bw * 0.62;
-  const grid = ticks.map(t => `<line x1="${padL}" x2="${W-padR}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="${padL-8}" y="${Y(t)+4}" text-anchor="end" style="fill:var(--mut);font-size:11px">${t.toLocaleString()}</text>`).join('');
+  const grid = sc.ticks.map(t => `<line x1="${padL}" x2="${W-padR}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="${padL-8}" y="${Y(t)+4}" text-anchor="end" style="fill:var(--mut);font-size:11px">${fmtTick(t)}</text>`).join('');
   const bars = buckets.map((b,i)=>{
     const x = padL + i * bw + (bw - barW)/2;
     const y = Y(b.avg_score);
     const h = (H - padB) - y;
-    return `<g class="tibg" data-val="${Math.round(b.avg_score)}" data-name="${esc(b.label)}" data-win="${b.count} posts">
+    return `<g class="tibg" data-val="${Math.round(b.avg_score)}" data-name="${esc(b.label)}" data-win="${b.count} posts · avg upvotes">
       <rect class="tihover" x="${padL + i*bw + 8}" y="${padT}" width="${bw-16}" height="${H-padT-padB}" fill="transparent" rx="4"/>
       <rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="${TEAL}" rx="3"/>
+      <text x="${(x+barW/2).toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle" style="fill:var(--ink);font:600 12px Inter,system-ui">${Math.round(b.avg_score).toLocaleString()}</text>
       <text x="${padL + i*bw + bw/2}" y="${H-12}" text-anchor="middle" style="fill:var(--mut);font-size:12px">${esc(b.label)}</text>
     </g>`;
   }).join('');
@@ -1303,10 +1326,10 @@ function renderHourLine(bh){
   if(!bh.length) return '<div class="muted">No data.</div>';
   const W = 880, H = 280, padL = 50, padR = 20, padT = 18, padB = 32;
   const mx = Math.max(...bh.map(d=>d.ratio), 0.001);
-  const tickMax = Math.ceil(mx * 100) / 100;  // round to nearest 0.01
-  const ticks = [0, tickMax/4, tickMax/2, 3*tickMax/4, tickMax];
+  const sc = niceScale(mx, 4);
+  const ticks = sc.ticks;
   const X = i => padL + i * ((W-padL-padR) / (bh.length-1));
-  const Y = v => H-padB - (v/tickMax) * (H-padT-padB);
+  const Y = v => H-padB - (v/sc.max) * (H-padT-padB);
   // monotone-cubic-style smoothing (per-segment bezier through midpoints)
   const pts = bh.map((d,i)=>[X(i), Y(d.ratio)]);
   let path = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
@@ -1314,7 +1337,7 @@ function renderHourLine(bh){
     const [px,py]=pts[i-1], [x,y]=pts[i], cx=(px+x)/2;
     path += ` C${cx.toFixed(1)},${py.toFixed(1)} ${cx.toFixed(1)},${y.toFixed(1)} ${x.toFixed(1)},${y.toFixed(1)}`;
   }
-  const grid = ticks.map(t => `<line x1="${padL}" x2="${W-padR}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="${padL-8}" y="${Y(t)+4}" text-anchor="end" style="fill:var(--mut);font-size:11px">${t.toFixed(2)}</text>`).join('');
+  const grid = ticks.map(t => `<line x1="${padL}" x2="${W-padR}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="${padL-8}" y="${Y(t)+4}" text-anchor="end" style="fill:var(--mut);font-size:11px">${fmtTick(t)}</text>`).join('');
   const xlabs = bh.map((d,i)=>`<text x="${X(i)}" y="${H-10}" text-anchor="middle" style="fill:var(--mut);font-size:11px">${d.hr}</text>`).join('');
   const hits = bh.map((d,i)=>`<g><circle cx="${X(i)}" cy="${Y(d.ratio)}" r="10" fill="transparent" data-val="${d.ratio.toFixed(3)}" data-name="ratio" data-win="${String(d.hr).padStart(2,'0')}:00"/><circle cx="${X(i)}" cy="${Y(d.ratio)}" r="3" fill="${TEAL}" pointer-events="none"/></g>`).join('');
   return `<div class="rxchart"><svg viewBox="0 0 ${W} ${H}" width="100%">${grid}<line x1="${padL}" x2="${W-padR}" y1="${H-padB}" y2="${H-padB}" stroke="var(--line)"/><line x1="${padL}" x2="${padL}" y1="${padT}" y2="${H-padB}" stroke="var(--line)"/><path d="${path}" fill="none" stroke="${TEAL}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>${hits}${xlabs}</svg></div>`;
