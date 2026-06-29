@@ -665,33 +665,40 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 #tip::before{content:"";position:absolute;top:-5px;left:14px;width:9px;height:9px;background:#1f242e;border-top:1px solid rgba(255,255,255,.08);border-left:1px solid rgba(255,255,255,.08);transform:rotate(45deg)}
 #tip .vv{font-weight:600;color:#fff}#tip .wn{color:#a8b1c4}#tip .nm{display:none}/* GitHub style is a single line: "N posts on Wed 14:00" */
 .warnbox{border:1px solid var(--warn);background:#fff7e6;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:13px}
-/* --- Insights tab --- */
-.reccard{border:1px solid var(--line);border-radius:10px;padding:0;overflow:hidden;background:var(--panel);display:flex;flex-direction:column}
-.reccard .recrank{background:rgba(34,197,94,.85);color:#fff;font:600 12px Inter,system-ui;text-align:center;padding:6px 0;letter-spacing:.02em}
-.reccard .recday{font-size:17px;font-weight:600;text-align:center;margin:12px 0 2px;color:var(--ink)}
-.reccard .rectime{text-align:center;color:var(--mut);font-size:13px;margin-bottom:10px}
-.reccard .recscore{border-top:1px solid var(--line);padding:9px 12px;font-size:12px;color:var(--mut);text-align:center}
-.reccard .recscore b{color:var(--ink);font-variant-numeric:tabular-nums}
-.ctcard{border:1px solid var(--line);border-radius:10px;padding:13px 15px;background:var(--panel)}
-.ctcard .cthead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.ctcard .ctlabel{display:inline-flex;align-items:center;gap:8px;color:var(--ink);font-size:14px}
-.ctcard .ctico{display:inline-flex;width:16px;height:16px}.ctcard .ctico svg{width:16px;height:16px}
-.ctcard .ctcount{font-size:11px;font-weight:600;padding:2px 9px;border:1px solid var(--line);border-radius:999px;color:var(--mut)}
-.ctcard .ctstats{display:flex;flex-direction:column;gap:5px;font-size:13px}
-.ctcard .ctstats > div{display:flex;justify-content:space-between}
-.ctcard .ctstats b{color:var(--ink);font-variant-numeric:tabular-nums}
-.ctsplit{display:flex;height:10px;border-radius:5px;overflow:hidden;margin-top:14px;background:var(--btn-alt)}
-.ctsplit span{display:block;height:100%}
-.ctlegend{display:flex;flex-wrap:wrap;gap:12px;margin-top:9px;font-size:12px;color:var(--mut)}
-.ctlg{display:inline-flex;align-items:center;gap:6px}
-.ctlgdot{width:9px;height:9px;border-radius:50%}
-.tibars{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:end;padding:8px 12px 0;min-height:180px}
-.tibar{display:flex;flex-direction:column;align-items:center}
-.tibarwrap{width:100%;max-width:140px;height:140px;background:var(--btn-alt);border-radius:8px;position:relative;display:flex;align-items:flex-end;overflow:hidden}
-.tibarbar{width:100%;border-radius:6px 6px 0 0;transition:height .5s ease}
-.tibarval{position:absolute;top:6px;left:50%;transform:translateX(-50%);font:600 13px Inter,system-ui;color:var(--ink);font-variant-numeric:tabular-nums}
-.tibarlbl{margin-top:10px;font-weight:600;color:var(--ink);font-size:13px}
-.tibarn{font-size:11px;margin-top:2px}
+/* --- Insights & Performance tabs (Recharts-style cards) --- */
+.rxcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow)}
+.rxtitle{font:700 17px Inter,system-ui;color:var(--ink);letter-spacing:-.01em;margin:0 0 4px}
+.rxsub{color:var(--mut);font-size:13.5px;margin-bottom:22px}
+.recgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media(max-width:980px){.recgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.recgrid{grid-template-columns:1fr}}
+.reccard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 16px 0;display:flex;flex-direction:column;overflow:hidden}
+.recpill{background:#2dd4bf;color:#fff;font:600 13px Inter,system-ui;text-align:center;border-radius:6px;padding:6px 0;letter-spacing:.01em}
+.recbody{padding:16px 0 14px;text-align:center}
+.recday{font:700 18px Inter,system-ui;color:var(--ink);letter-spacing:-.01em;margin-bottom:4px}
+.rectime{color:var(--mut);font-size:14px}
+.recfoot{border-top:1px solid var(--line);padding:11px 0;font-size:12.5px;color:var(--mut);text-align:center;margin:0 -16px;background:transparent}
+.recfoot b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* Content type cards + pie */
+.ctgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:18px}
+@media(max-width:640px){.ctgrid{grid-template-columns:1fr}}
+.ctcard{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--panel)}
+.cthead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.ctlabel{display:inline-flex;align-items:center;gap:8px;color:var(--ink);font-size:15px}
+.ctico{display:inline-flex;width:16px;height:16px}.ctico svg{width:16px;height:16px}
+.ctcount{font-size:11.5px;font-weight:600;padding:3px 11px;border:1px solid var(--line);border-radius:999px;color:var(--mut);background:var(--btn-alt)}
+.ctrow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:14px}
+.ctrow .muted{font-size:13.5px}
+.ctrow b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums;font-size:17px}
+.rxpie{display:flex;justify-content:center;padding:8px 0 4px}
+
+/* Charts (Title Length bars + Hourly line) */
+.rxchart{padding:4px 0}
+.rxchart svg{display:block}
+.rxchart .tihover:hover{fill:var(--btn-alt)}
+.rxchart g.tibg{cursor:pointer}
+.rxchart svg path[data-val]:hover{filter:brightness(1.08)}
 .infobox{display:flex;gap:14px;align-items:flex-start;border:1px solid rgba(59,130,246,.28);background:linear-gradient(180deg,rgba(59,130,246,.06),rgba(59,130,246,.02));border-radius:14px;padding:14px 18px;margin-bottom:18px;font-size:13.5px;color:var(--ink)}
 .infobox .ibi{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:rgba(59,130,246,.14);color:var(--accent);flex-shrink:0;margin-top:1px}
 .infobox .ibi svg{width:18px;height:18px}
@@ -743,6 +750,7 @@ html[data-theme="dark"] .infobox .ibchip.on{color:#86efac}
       <a data-v="moderation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg><span class="t">Moderation</span> <span class="cnt" id="c-mod"></span></a>
       <a data-v="trends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg><span class="t">Trends</span> <span class="cnt" id="c-tr"></span></a>
       <a data-v="insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg><span class="t">Insights</span> <span class="cnt" id="c-in"></span></a>
+      <a data-v="performance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="3" x2="3" y2="21"/><line x1="3" y1="21" x2="21" y2="21"/><rect x="7" y="13" width="3" height="5" rx=".5"/><rect x="12" y="8" width="3" height="10" rx=".5"/><rect x="17" y="4" width="3" height="14" rx=".5"/></svg><span class="t">Performance</span> <span class="cnt" id="c-pf"></span></a>
     </nav>
     <div id="sbCtrlMount" class="sbctrls"></div>
     <div class="sbnote">intels.app · r/Hedera community intelligence<br>Source: Arctic-Shift archive<br>Generated __GENERATED__ · since __TRACKERSTART__</div>
@@ -1154,8 +1162,9 @@ function viewModeration(p,q,cmp){
   h+='<div class="card" style="margin-top:14px"><h3>Gaps identified</h3>'+(p.gaps.length?'<table><tbody>'+p.gaps.map(g=>`<tr><td><b>${esc(g.gap)}</b><div class="muted">${esc(g.detail)}</div></td><td class="muted">${esc(g.action)}</td></tr>`).join('')+'</tbody></table>':'<div class="muted">No major gaps flagged.</div>')+'</div>';
   return h;
 }
-// -------- Insights tab — best times, content type, title length, hourly engagement --------
-const HR12 = h => { const ap=h<12?'AM':'PM'; const h12 = h%12 || 12; return h12+':00 '+ap; };
+// -------- Insights & Performance tabs — Recharts-style aesthetic --------
+// Shared mint/teal accent used by recommendation pills, bars and line charts
+const TEAL = '#2dd4bf', TEAL_DARK = '#14b8a6';
 const TYPE_ICONS = {
   text:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>',
   link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
@@ -1163,83 +1172,140 @@ const TYPE_ICONS = {
   gallery:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
   video:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
 };
+const TYPE_COL = {text:'#2dd4bf', link:'#3b82f6', image:'#f59e0b', gallery:'#ec4899', video:'#8b5cf6'};
+function fmt12(h){const ap=h<12?'AM':'PM';const h12=h%12||12;return h12+':00 '+ap;}
+function fmtN(n){return n.toLocaleString('en-US',{maximumFractionDigits:1});}
+
+// -------- Insights tab: ONLY Daily Recommendations --------
 function viewInsights(p){
-  if(p.custom) return `<div class="card"><h3>Insights</h3><div class="muted">Insights are precomputed per reporting period (cohort). Switch the Period to a preset (e.g. <b>Last 15 days</b>) to see best-posting-time recommendations, content type performance, title length impact, and discussion engagement by hour.</div></div>`;
-  let h='';
-  // 1) Daily Recommendations
+  if(p.custom) return `<div class="card"><h3>Insights</h3><div class="muted">Switch Period to a preset (e.g. <b>Last 15 days</b>) to see Daily Recommendations.</div></div>`;
   const recs = p.daily_recs || [];
-  h+='<div class="card" style="margin-bottom:14px"><h3>Daily recommendations</h3><div class="muted" style="margin-bottom:14px;font-size:13px">Best posting time per day, ranked by average score. Use these windows to reach the hot page.</div>';
-  if(!recs.length) h+='<div class="muted">No posts in this period.</div>';
-  else { h+='<div class="grid g4" style="gap:12px">'+recs.map((r,i)=>`
-    <div class="reccard"><div class="recrank">#${i+1}</div>
-      <div class="recday">${esc(r.day)}</div>
-      <div class="rectime">${HR12(r.hour)}</div>
-      <div class="recscore">Avg score <b>${r.avg_score.toLocaleString()}</b> <span class="muted">· n=${r.sample}</span></div>
-    </div>`).join('')+'</div>'; }
-  h+='</div>';
-
-  // 2) Content Type Performance
-  const ct = p.content_perf || [];
-  const ctTotal = ct.reduce((a,r)=>a+r.count,0) || 1;
-  const tCol = {text:'#22c55e', link:'#3b82f6', image:'#f59e0b', gallery:'#ec4899', video:'#8b5cf6'};
-  h+='<div class="card" style="margin-bottom:14px"><h3>Content type performance</h3>';
-  if(!ct.length) h+='<div class="muted">No posts.</div>';
-  else {
-    h+='<div class="grid g2" style="gap:14px">';
-    ct.forEach(r=>{const col=tCol[r.type]||'#94a3b8';h+=`
-      <div class="ctcard">
-        <div class="cthead">
-          <div class="ctlabel"><span class="ctico" style="color:${col}">${TYPE_ICONS[r.type]||''}</span><b>${esc(r.type)}</b></div>
-          <span class="ctcount">${r.count} posts</span>
-        </div>
-        <div class="ctstats">
-          <div><span class="muted">Avg upvotes</span><b>${r.avg_upvotes.toLocaleString()}</b></div>
-          <div><span class="muted">Avg comments</span><b>${r.avg_comments.toLocaleString()}</b></div>
-        </div>
-      </div>`;});
-    h+='</div>';
-    // bar split
-    h+='<div class="ctsplit">'+ct.map(r=>{const w=(r.count/ctTotal*100).toFixed(1);return `<span style="width:${w}%;background:${tCol[r.type]||'#94a3b8'}" title="${esc(r.type)} ${r.count}"></span>`;}).join('')+'</div>';
-    h+='<div class="ctlegend">'+ct.map(r=>`<span class="ctlg"><span class="ctlgdot" style="background:${tCol[r.type]||'#94a3b8'}"></span>${esc(r.type)} (${r.count})</span>`).join('')+'</div>';
-  }
-  h+='</div>';
-
-  // 3) Title Length Impact
-  const ti = p.title_impact || {avg_len:0, buckets:[]};
-  const mxB = Math.max(...ti.buckets.map(b=>b.avg_score), 1);
-  const tCols = ['#22c55e','#3b82f6','#f59e0b'];
-  h+=`<div class="card" style="margin-bottom:14px"><h3>Title length impact</h3>
-    <div class="muted" style="margin-bottom:14px;font-size:13px">Average upvote score by title length. <b style="color:var(--ink)">Average title length in this period: ${ti.avg_len} characters.</b></div>
-    <div class="tibars">`+
-    ti.buckets.map((b,i)=>{const ht=Math.round((b.avg_score/mxB)*100);return `
-      <div class="tibar"><div class="tibarwrap"><div class="tibarbar" style="height:${ht}%;background:${tCols[i]}"></div><div class="tibarval">${Math.round(b.avg_score).toLocaleString()}</div></div><div class="tibarlbl">${esc(b.label)}</div><div class="tibarn muted">${b.count} posts</div></div>`;}).join('')+
-    '</div></div>';
-
-  // 4) Discussion Engagement by Time (hourly line)
-  const bh = p.by_hour || [];
-  h+='<div class="card" style="margin-bottom:14px"><h3>Discussion engagement by time</h3><div class="muted" style="margin-bottom:14px;font-size:13px">Comments per upvote, averaged by hour of day (UTC). Higher = more conversation per upvote.</div>';
-  if(!bh.length) h+='<div class="muted">No data.</div>';
-  else h+=hourLine(bh);
-  h+='</div>';
+  let h = `<div class="rxcard">
+    <div class="rxtitle">Daily Recommendations</div>
+    <div class="rxsub">Use the overall best times to get a viral post and reach the hot page.</div>`;
+  if(!recs.length) h += '<div class="muted">No posts in this period.</div>';
+  else h += '<div class="recgrid">' + recs.map((r,i)=>`
+    <div class="reccard">
+      <div class="recpill">#${i+1}</div>
+      <div class="recbody">
+        <div class="recday">${esc(r.day)}</div>
+        <div class="rectime">${fmt12(r.hour)}</div>
+      </div>
+      <div class="recfoot">Avg Score: <b>${fmtN(r.avg_score)}</b></div>
+    </div>`).join('') + '</div>';
+  h += '</div>';
   return h;
 }
-function hourLine(bh){
-  const W=720,H=180,padL=36,padR=10,padT=10,padB=26;
+
+// -------- Performance tab: Content Type + Title Length + Discussion Engagement --------
+function viewPerformance(p){
+  if(p.custom) return `<div class="card"><h3>Performance</h3><div class="muted">Switch Period to a preset to see content-type performance, title length impact, and discussion engagement by hour.</div></div>`;
+  let h = '<div class="rxcard" style="margin-bottom:18px">';
+  h += '<div class="rxtitle">Content Type Performance</div>';
+  h += renderContentPerf(p.content_perf || []);
+  h += '</div>';
+  h += '<div class="rxcard" style="margin-bottom:18px">';
+  h += '<div class="rxtitle">Title Length Impact</div>';
+  h += `<div class="rxsub">Average title length: <b style="color:var(--ink)">${(p.title_impact||{}).avg_len||0} characters</b></div>`;
+  h += renderTitleBars((p.title_impact||{}).buckets || []);
+  h += '</div>';
+  h += '<div class="rxcard">';
+  h += '<div class="rxtitle">Discussion Engagement by Time</div>';
+  h += '<div class="rxsub">Higher ratio = more discussion relative to upvotes</div>';
+  h += renderHourLine(p.by_hour || []);
+  h += '</div>';
+  return h;
+}
+
+function renderContentPerf(ct){
+  if(!ct.length) return '<div class="muted">No posts.</div>';
+  const total = ct.reduce((a,r)=>a+r.count,0) || 1;
+  let h = '<div class="ctgrid">';
+  ct.forEach(r=>{const col=TYPE_COL[r.type]||'#94a3b8';h += `
+    <div class="ctcard">
+      <div class="cthead">
+        <span class="ctlabel"><span class="ctico" style="color:${col}">${TYPE_ICONS[r.type]||''}</span><b>${esc(r.type.charAt(0).toUpperCase()+r.type.slice(1))}</b></span>
+        <span class="ctcount">${r.count} posts</span>
+      </div>
+      <div class="ctrow"><span class="muted">Avg Upvotes</span><b>${fmtN(r.avg_upvotes)}</b></div>
+      <div class="ctrow"><span class="muted">Avg Comments</span><b>${fmtN(r.avg_comments)}</b></div>
+    </div>`;});
+  h += '</div>';
+  h += renderPie(ct, total);
+  return h;
+}
+
+// SVG pie chart with leader lines (Recharts style)
+function renderPie(ct, total){
+  const W = 480, H = 360, cx = W/2, cy = H/2 + 8, r = 105, lr = 130;
+  let acc = -Math.PI/2;   // start at top
+  const slices = ct.map(s => {
+    const ang = (s.count / total) * 2 * Math.PI;
+    const a0 = acc, a1 = acc + ang;
+    acc = a1;
+    const x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0);
+    const x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
+    const large = ang > Math.PI ? 1 : 0;
+    const mid = (a0 + a1) / 2;
+    const lx = cx + lr * Math.cos(mid), ly = cy + lr * Math.sin(mid);
+    const tx = cx + (lr + 22) * Math.cos(mid), ty = cy + (lr + 22) * Math.sin(mid);
+    const anchor = Math.cos(mid) > 0 ? 'start' : 'end';
+    const labelX = anchor === 'start' ? tx + 4 : tx - 4;
+    const col = TYPE_COL[s.type] || '#94a3b8';
+    const path = `M${cx},${cy} L${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${large} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z`;
+    const leader = `M${(cx + r*Math.cos(mid)).toFixed(1)},${(cy + r*Math.sin(mid)).toFixed(1)} L${lx.toFixed(1)},${ly.toFixed(1)} L${tx.toFixed(1)},${ty.toFixed(1)}`;
+    const cap = s.type.charAt(0).toUpperCase() + s.type.slice(1);
+    return `<g><path d="${path}" fill="${col}" stroke="var(--panel)" stroke-width="2" data-val="${s.count}" data-name="${esc(cap)}" data-win="${Math.round(s.count/total*100)}%"/>
+      <path d="${leader}" fill="none" stroke="${col}" stroke-width="1.2"/>
+      <text x="${labelX.toFixed(1)}" y="${(ty+4).toFixed(1)}" text-anchor="${anchor}" style="fill:${col};font:600 13px Inter,system-ui">${esc(cap)} (${s.count})</text></g>`;
+  }).join('');
+  return `<div class="rxpie"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:520px">${slices}</svg></div>`;
+}
+
+// Vertical bar chart with grid + axes (Title Length)
+function renderTitleBars(buckets){
+  if(!buckets.length) return '<div class="muted">No data.</div>';
+  const W = 720, H = 280, padL = 50, padR = 24, padT = 18, padB = 36;
+  const mx = Math.max(...buckets.map(b=>b.avg_score), 1);
+  const tickMax = Math.ceil(mx / 8000) * 8000;
+  const ticks = [0, tickMax/4, tickMax/2, 3*tickMax/4, tickMax].map(t=>Math.round(t));
+  const Y = v => H - padB - (v/tickMax) * (H - padT - padB);
+  const bw = (W - padL - padR) / buckets.length;
+  const barW = bw * 0.62;
+  const grid = ticks.map(t => `<line x1="${padL}" x2="${W-padR}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="${padL-8}" y="${Y(t)+4}" text-anchor="end" style="fill:var(--mut);font-size:11px">${t.toLocaleString()}</text>`).join('');
+  const bars = buckets.map((b,i)=>{
+    const x = padL + i * bw + (bw - barW)/2;
+    const y = Y(b.avg_score);
+    const h = (H - padB) - y;
+    return `<g class="tibg" data-val="${Math.round(b.avg_score)}" data-name="${esc(b.label)}" data-win="${b.count} posts">
+      <rect class="tihover" x="${padL + i*bw + 8}" y="${padT}" width="${bw-16}" height="${H-padT-padB}" fill="transparent" rx="4"/>
+      <rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="${TEAL}" rx="3"/>
+      <text x="${padL + i*bw + bw/2}" y="${H-12}" text-anchor="middle" style="fill:var(--mut);font-size:12px">${esc(b.label)}</text>
+    </g>`;
+  }).join('');
+  return `<div class="rxchart"><svg viewBox="0 0 ${W} ${H}" width="100%">${grid}${bars}<line x1="${padL}" x2="${W-padR}" y1="${H-padB}" y2="${H-padB}" stroke="var(--line)"/><line x1="${padL}" x2="${padL}" y1="${padT}" y2="${H-padB}" stroke="var(--line)"/></svg></div>`;
+}
+
+// Smooth line chart with grid + axes (Discussion by hour)
+function renderHourLine(bh){
+  if(!bh.length) return '<div class="muted">No data.</div>';
+  const W = 880, H = 280, padL = 50, padR = 20, padT = 18, padB = 32;
   const mx = Math.max(...bh.map(d=>d.ratio), 0.001);
+  const tickMax = Math.ceil(mx * 100) / 100;  // round to nearest 0.01
+  const ticks = [0, tickMax/4, tickMax/2, 3*tickMax/4, tickMax];
   const X = i => padL + i * ((W-padL-padR) / (bh.length-1));
-  const Y = v => H-padB - (v/mx) * (H-padT-padB);
-  // smooth path with cardinal-like interpolation
+  const Y = v => H-padB - (v/tickMax) * (H-padT-padB);
+  // monotone-cubic-style smoothing (per-segment bezier through midpoints)
   const pts = bh.map((d,i)=>[X(i), Y(d.ratio)]);
-  const path = pts.reduce((acc,[x,y],i)=>{
-    if(i===0) return `M${x.toFixed(1)},${y.toFixed(1)}`;
-    const [px,py] = pts[i-1];
-    const cx = (px+x)/2;
-    return acc + ` C${cx.toFixed(1)},${py.toFixed(1)} ${cx.toFixed(1)},${y.toFixed(1)} ${x.toFixed(1)},${y.toFixed(1)}`;
-  }, '');
-  const grid = [0, 0.25, 0.5, 0.75, 1].map(f=>{const y=H-padB - f*(H-padT-padB);return `<line x1="${padL}" x2="${W-padR}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="${padL-6}" y="${y+3}" text-anchor="end" style="fill:var(--mut);font-size:10px">${(mx*f).toFixed(3)}</text>`;}).join('');
-  const labs = bh.map((d,i)=>`<text x="${X(i)}" y="${H-8}" text-anchor="middle" style="fill:var(--mut);font-size:10px">${d.hr}</text>`).join('');
-  const dots = bh.map((d,i)=>`<circle cx="${X(i)}" cy="${Y(d.ratio)}" r="7" fill="transparent" data-val="${d.ratio.toFixed(3)}" data-name="ratio" data-win="${String(d.hr).padStart(2,'0')}:00"/><circle cx="${X(i)}" cy="${Y(d.ratio)}" r="2.4" fill="#22c55e" pointer-events="none"/>`).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none">${grid}<path d="${path}" fill="none" stroke="#22c55e" stroke-width="2.2"/>${dots}${labs}</svg>`;
+  let path = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for(let i=1;i<pts.length;i++){
+    const [px,py]=pts[i-1], [x,y]=pts[i], cx=(px+x)/2;
+    path += ` C${cx.toFixed(1)},${py.toFixed(1)} ${cx.toFixed(1)},${y.toFixed(1)} ${x.toFixed(1)},${y.toFixed(1)}`;
+  }
+  const grid = ticks.map(t => `<line x1="${padL}" x2="${W-padR}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="${padL-8}" y="${Y(t)+4}" text-anchor="end" style="fill:var(--mut);font-size:11px">${t.toFixed(2)}</text>`).join('');
+  const xlabs = bh.map((d,i)=>`<text x="${X(i)}" y="${H-10}" text-anchor="middle" style="fill:var(--mut);font-size:11px">${d.hr}</text>`).join('');
+  const hits = bh.map((d,i)=>`<g><circle cx="${X(i)}" cy="${Y(d.ratio)}" r="10" fill="transparent" data-val="${d.ratio.toFixed(3)}" data-name="ratio" data-win="${String(d.hr).padStart(2,'0')}:00"/><circle cx="${X(i)}" cy="${Y(d.ratio)}" r="3" fill="${TEAL}" pointer-events="none"/></g>`).join('');
+  return `<div class="rxchart"><svg viewBox="0 0 ${W} ${H}" width="100%">${grid}<line x1="${padL}" x2="${W-padR}" y1="${H-padB}" y2="${H-padB}" stroke="var(--line)"/><line x1="${padL}" x2="${padL}" y1="${padT}" y2="${H-padB}" stroke="var(--line)"/><path d="${path}" fill="none" stroke="${TEAL}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>${hits}${xlabs}</svg></div>`;
 }
 
 function viewTrends(p,q,cmp){
@@ -1259,7 +1325,7 @@ function viewTrends(p,q,cmp){
 }
 
 let view='dashboard';
-const TITLES={dashboard:'Dashboard',mentions:'Mentions',moderation:'Moderation',trends:'Trends',insights:'Insights'};
+const TITLES={dashboard:'Dashboard',mentions:'Mentions',moderation:'Moderation',trends:'Trends',insights:'Insights',performance:'Performance'};
 function setCnt(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
 function render(){
   const p = scopeOf(periodSel);
@@ -1271,12 +1337,13 @@ function render(){
   $('#compareHint').textContent = cmp ? 'vs ' + selHint(compareSel) : '';
   $('#viewTitle').textContent = TITLES[view];
   const riskTot=(p.risks||[]).reduce((a,r)=>a+(r.count||0),0);
-  setCnt('c-dash',p.posts); setCnt('c-ment',(p.feed||[]).length); setCnt('c-mod',riskTot+(p.escalation_count||0)); setCnt('c-tr',DATA.periods.length); setCnt('c-in',(p.daily_recs||[]).length);
+  setCnt('c-dash',p.posts); setCnt('c-ment',(p.feed||[]).length); setCnt('c-mod',riskTot+(p.escalation_count||0)); setCnt('c-tr',DATA.periods.length); setCnt('c-in',(p.daily_recs||[]).length); setCnt('c-pf',(p.content_perf||[]).length);
   let h;
   if(view==='dashboard') h=viewDashboard(p,q,cmp);
   else if(view==='mentions') h=viewMentions(p);
   else if(view==='moderation') h=viewModeration(p,q,cmp);
   else if(view==='insights') h=viewInsights(p);
+  else if(view==='performance') h=viewPerformance(p);
   else h=viewTrends(p,q,cmp);
   $('#view').innerHTML=h;
   if(p.custom){
