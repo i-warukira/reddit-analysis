@@ -300,21 +300,97 @@ def mark_comment_completeness(periods):
 
 mark_comment_completeness(PERIODS)
 
-# ---------------------------------------------------------------- rolling custom windows
-# Ad-hoc ranges (e.g. "Last 16 days") that supervisors can read as a single period.
-# Kept OUT of PERIODS so they don't pollute the weekly trends / annual baselines.
-def make_window(label, ndays):
+# ---------------------------------------------------------------- presets (Common Room–style)
+# The Period & Compare dropdowns offer these flexible windows alongside the
+# semi-monthly cohorts. Last 15 days subsumes the directed twice-monthly cadence.
+# Each preset carries a slim "prev" snapshot (same-length window immediately
+# before it) so KPIs can show an intrinsic "vs previous" delta even without an
+# explicit comparison selection.
+SLIM = ['posts', 'comments', 'posts_per_day', 'contributors', 'new_to_tracker',
+        'returning', 'comments_per_post', 'avg_upvote_ratio', 'resolution_rate',
+        'escalation_count', 'issues_tracked', 'avg_response_hrs']
+def slim(m):
+    d = {k: m.get(k) for k in SLIM}
+    d['sentiment_pos'] = m['sentiment']['pos']; d['sentiment_neg'] = m['sentiment']['neg']
+    return d
+
+for i in range(len(PERIODS)):
+    PERIODS[i]['prev'] = slim(PERIODS[i - 1]) if i > 0 else None
+
+def make_preset(label, ndays):
     end = LATEST
     start = end - timedelta(days=ndays - 1)
     m = metrics(start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
-    m['label'] = label
+    m['label'] = label; m['ndays'] = ndays
     cpp = m['comments'] / max(m['posts'], 1)
     hist = [p['comments'] / max(p['posts'], 1) for p in PERIODS if p['comments'] > 0][-8:]
     ref = float(np.median(hist)) if hist else cpp
     m['comment_data'] = bool(m['comments'] > 0 and cpp >= 0.5 * ref)
+    pstart, pend = start - timedelta(days=ndays), start - timedelta(days=1)
+    m['prev'] = slim(metrics(pstart.strftime('%Y-%m-%d'), pend.strftime('%Y-%m-%d'))) \
+        if pstart.date() >= EARLIEST.date() else None
     return m
 
-WINDOWS = [make_window('Last 16 days', 16)]
+PRESETS = [make_preset(l, n) for l, n in
+           [('Last 7 days', 7), ('Last 15 days', 15), ('Last 28 days', 28),
+            ('Last 12 weeks', 84), ('Last 6 months', 182), ('Last 365 days', 365)]]
+DEFAULT_PRESET = 1  # Last 15 days — matches the directed twice-monthly cadence
+
+# Daily aggregates: per-day atoms that can be summed in the browser to compute
+# any custom date range on the fly. Keep keys minimal — only what the headline
+# view needs. Risk/escalation/themes stay precomputed per cohort.
+def daily_bucket(d):
+    ds = datetime(d.year, d.month, d.day)
+    de = ds.replace(hour=23, minute=59, second=59)
+    pp = P[(P.created_utc >= ds) & (P.created_utc <= de)]
+    cp = C[(C.created_utc >= ds) & (C.created_utc <= de)]
+    pos = int((pp.get('sentiment_label') == 'positive').sum()) if 'sentiment_label' in pp else 0
+    neg = int((pp.get('sentiment_label') == 'negative').sum()) if 'sentiment_label' in pp else 0
+    ur_sum = float(pp['upvote_ratio'].sum()) if 'upvote_ratio' in pp and len(pp) else 0.0
+    ur_cnt = int(pp['upvote_ratio'].notna().sum()) if 'upvote_ratio' in pp else 0
+    authors_p = sorted(set(str(a) for a in pp['author'].dropna() if str(a) != '[deleted]'))
+    authors_c = sorted(set(str(a) for a in cp['author'].dropna() if str(a) != '[deleted]'))
+    type_mix = {}
+    if 'post_type' in pp:
+        type_mix = {k: int(v) for k, v in pp['post_type'].value_counts().items()}
+    top_p = []
+    if len(pp):
+        for _, r in pp.nlargest(3, 'score').iterrows():
+            top_p.append({'author': str(r.get('author', '')), 'date': str(r['created_utc'])[:16],
+                          'title': str(r.get('title', ''))[:140], 'score': int(r.get('score', 0)),
+                          'comments': int(r.get('num_comments', 0)), 'link': str(r.get('permalink', '')),
+                          'sentiment': str(r.get('sentiment_label', 'neutral'))})
+    # per-author post counts for aggregable top-author lists
+    author_counts = {}
+    if len(pp):
+        for a, sub in pp.groupby('author'):
+            if str(a) == '[deleted]': continue
+            author_counts[str(a)] = {'posts': int(len(sub)), 'score': int(sub['score'].sum())}
+    return {
+        'p': len(pp), 'c': len(cp), 'sp': pos, 'sn': neg,
+        'urs': round(ur_sum, 2), 'urc': ur_cnt,
+        'ap': authors_p, 'ac': authors_c, 'tm': type_mix,
+        'tp': top_p, 'au': author_counts,
+    }
+
+DAILY = {}
+_d = EARLIEST
+while _d.date() <= LATEST.date():
+    key = _d.strftime('%Y-%m-%d')
+    DAILY[key] = daily_bucket(_d)
+    _d += timedelta(days=1)
+
+# Tracker-wide author set so JS can compute new-vs-returning for custom ranges
+# Author-first-seen index: author -> first date observed (post or comment).
+AUTHOR_FIRST_SEEN = {}
+for col_df, _ in [(P, 'p'), (C, 'c')]:
+    sub = col_df.dropna(subset=['author', 'created_utc']).copy()
+    sub['d'] = sub['created_utc'].dt.strftime('%Y-%m-%d')
+    for a, g in sub.groupby('author'):
+        if str(a) == '[deleted]': continue
+        d0 = g['d'].min()
+        if a not in AUTHOR_FIRST_SEEN or d0 < AUTHOR_FIRST_SEEN[a]:
+            AUTHOR_FIRST_SEEN[a] = d0
 
 # ---------------------------------------------------------------- annual baselines
 # "Week vs annual average" needs a per-year baseline. We average each metric across
@@ -351,7 +427,10 @@ def annual_baselines(periods):
 ANNUAL = annual_baselines(PERIODS)
 
 DATA = {'tracker_start': TRACKER_START, 'generated': datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
-        'periods': PERIODS, 'annual': ANNUAL, 'annual_metrics': ANNUAL_METRICS}
+        'periods': PERIODS, 'presets': PRESETS, 'default_preset': DEFAULT_PRESET,
+        'daily': DAILY, 'author_first_seen': AUTHOR_FIRST_SEEN,
+        'earliest': EARLIEST.strftime('%Y-%m-%d'), 'latest': LATEST.strftime('%Y-%m-%d'),
+        'annual': ANNUAL, 'annual_metrics': ANNUAL_METRICS}
 
 # ---------------------------------------------------------------- saved aggregate artifact
 # Compact, reusable rollup so future dashboard work doesn't re-parse the full CSVs and
@@ -377,7 +456,14 @@ TEMPLATE = r"""<!DOCTYPE html>
 <style>
 :root{--bg:#f3f5fa;--panel:#ffffff;--ink:#1d2540;--mut:#7a85a3;--line:#e7ebf3;
 --accent:#3b82f6;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;--blue:#3b82f6;
---sb:#1e2746;--sb-ink:#c3cce4;}
+--sb:#1e2746;--sb-ink:#c3cce4;--topbar:#ffffff;--btn-alt:#eef2fb;--hover:#eef2fb;
+--shadow:0 1px 3px rgba(20,30,60,.05);--shadow-lg:0 12px 40px rgba(20,30,60,.18);}
+html[data-theme="dark"]{--bg:#0f1217;--panel:#181c24;--ink:#e6e9f0;--mut:#8b95a8;--line:#262b35;
+--btn-alt:#262b35;--hover:#262b35;--topbar:#161a21;--sb:#13161c;--sb-ink:#a8b1c4;
+--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 16px 50px rgba(0,0,0,.6);}
+@media (prefers-color-scheme: dark){html:not([data-theme="light"]){--bg:#0f1217;--panel:#181c24;--ink:#e6e9f0;--mut:#8b95a8;--line:#262b35;
+--btn-alt:#262b35;--hover:#262b35;--topbar:#161a21;--sb:#13161c;--sb-ink:#a8b1c4;
+--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 16px 50px rgba(0,0,0,.6);}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
 .app{display:flex;min-height:100vh}
 .sidebar{width:218px;flex-shrink:0;background:var(--sb);color:var(--sb-ink);position:sticky;top:0;height:100vh;padding:22px 0;overflow:auto}
@@ -391,10 +477,42 @@ TEMPLATE = r"""<!DOCTYPE html>
 .nav .cnt{margin-left:auto;background:rgba(255,255,255,.1);border-radius:999px;padding:1px 9px;font-size:11px}
 .sbnote{color:#8b95b6;font-size:11px;padding:18px 22px;border-top:1px solid rgba(255,255,255,.08);margin-top:14px}
 .main{flex:1;min-width:0}
-.topbar{display:flex;align-items:center;gap:10px;padding:14px 26px;background:#fff;border-bottom:1px solid var(--line);flex-wrap:wrap;position:sticky;top:0;z-index:30}
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 26px;background:var(--topbar);border-bottom:1px solid var(--line);flex-wrap:wrap;position:sticky;top:0;z-index:30}
 .topbar h2{font-size:16px;margin:0;font-weight:600;margin-right:auto}
-select{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px}
+select{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px}
 label.lbl{color:var(--mut);font-size:12px}
+/* Common Room-style range picker button */
+.rangebtn{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 12px;font:600 13px system-ui;cursor:pointer;transition:all 120ms}
+.rangebtn:hover{border-color:var(--accent);color:var(--accent)}.rangebtn.active{border-color:var(--accent);background:var(--accent);color:#fff}
+.rangebtn .rb-i{width:15px;height:15px;color:var(--accent)}.rangebtn.active .rb-i{color:#fff}
+.rangebtn .rb-c{width:14px;height:14px;opacity:.65}
+.theme-toggle{background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.theme-toggle svg{width:16px;height:16px}.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+/* Range popover */
+.rpop{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);padding:10px;min-width:220px;z-index:200;font-size:13px}
+.rpop-presets button{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;border:none;color:var(--ink);padding:8px 12px;border-radius:6px;cursor:pointer;font:500 13px system-ui;text-align:left}
+.rpop-presets button:hover{background:var(--hover)}.rpop-presets button.sel{background:var(--accent);color:#fff}
+.rpop-presets .div{height:1px;background:var(--line);margin:6px 0}
+.rpop-cal{margin-top:6px;border-top:1px solid var(--line);padding-top:10px;min-width:540px}
+.rpop-tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--hover);padding:3px;border-radius:6px;margin-bottom:10px}
+.rpop-tab{background:transparent;border:none;color:var(--mut);padding:7px 0;font:600 12px system-ui;border-radius:5px;cursor:pointer}
+.rpop-tab.active{background:var(--panel);color:var(--accent);box-shadow:var(--shadow)}
+.rpop-cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.rpop-cal-nav button{background:transparent;border:1px solid var(--line);color:var(--ink);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:18px;line-height:0}
+.rpop-cal-nav button:hover{background:var(--hover)}
+.rpop-months{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.rpop-m{font-size:12px}
+.rpop-m h4{margin:0 0 6px;text-align:center;font-size:13px;color:var(--ink);font-weight:600}
+.rpop-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:11px;text-align:center}
+.rpop-dh{color:var(--mut);font-weight:600;padding:4px 0;font-size:10px}
+.rpop-d{padding:7px 0;border-radius:4px;cursor:pointer;color:var(--ink);user-select:none}
+.rpop-d:hover{background:var(--hover)}
+.rpop-d.out{color:var(--mut);opacity:.5}.rpop-d.dis{color:var(--mut);opacity:.3;cursor:not-allowed}
+.rpop-d.in-range{background:rgba(59,130,246,.15);border-radius:0}
+.rpop-d.sel{background:var(--accent);color:#fff;font-weight:600}
+.rpop-actions{display:flex;justify-content:flex-end;margin-top:10px;gap:6px}
+.rpop-apply{background:var(--accent);color:#fff;border:none;padding:7px 16px;border-radius:6px;cursor:pointer;font:600 12px system-ui}
+.rpop-apply:disabled{opacity:.5;cursor:not-allowed}
 .content{padding:22px 26px 70px;max-width:1200px}
 .sub{color:var(--mut);font-size:12px}
 .grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
@@ -416,7 +534,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);font-
 .s-Medium,.s-MODERATE,.s-MEDIUM{background:#fef3c7;color:#92600a}
 .s-High,.s-HIGH{background:#fee2e2;color:#b91c1c}
 a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
-.muted{color:var(--mut)}.tag{display:inline-block;background:#eef2fb;border:1px solid var(--line);border-radius:6px;padding:3px 8px;margin:2px;font-size:12px}
+.muted{color:var(--mut)}.tag{display:inline-block;background:var(--btn-alt);border:1px solid var(--line);border-radius:6px;padding:3px 8px;margin:2px;font-size:12px}
 details{margin-top:6px}summary{cursor:pointer;color:var(--blue);font-size:12px}
 .ev{font-size:12px;color:var(--mut);border-left:2px solid var(--line);padding:4px 0 4px 10px;margin:6px 0}
 svg text{fill:var(--mut);font-size:10px}
@@ -424,7 +542,7 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 .legend{font-size:11px;color:var(--mut);display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
 .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 15px;font-weight:600;cursor:pointer;font-size:13px;text-decoration:none}
-.btn.alt{background:#eef2fb;color:var(--ink)}.btn:hover{filter:brightness(1.05)}
+.btn.alt{background:var(--btn-alt);color:var(--ink)}.btn:hover{filter:brightness(1.05)}
 /* donut */
 .donut{display:flex;align-items:center;gap:18px}.lcol{font-size:13px}.lcol .lg{margin:5px 0}
 /* word cloud */
@@ -433,14 +551,14 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 .heat{display:flex;flex-direction:column;gap:3px}.hrow{display:flex;align-items:center;gap:3px}
 .hlab{width:30px;font-size:10px;color:var(--mut)}.hcell{flex:1;height:13px;border-radius:2px}
 /* author bars */
-.abar{height:7px;background:#eef2fb;border-radius:4px;overflow:hidden}.abar span{display:block;height:100%;background:var(--accent)}
+.abar{height:7px;background:var(--btn-alt);border-radius:4px;overflow:hidden}.abar span{display:block;height:100%;background:var(--accent)}
 /* mentions feed */
 .mention{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}.mention:last-child{border:none}
 .av{width:34px;height:34px;border-radius:50%;flex-shrink:0;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;position:relative;overflow:hidden}
 .av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .mb{min-width:0}.mh{font-size:12px;font-weight:600}.mt{margin:2px 0}.mm{font-size:11px}
 .sdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:5px;vertical-align:middle}
-.bar{height:8px;border-radius:4px;background:#eef2fb;overflow:hidden;display:flex}
+.bar{height:8px;border-radius:4px;background:var(--btn-alt);overflow:hidden;display:flex}
 #tip{position:absolute;display:none;z-index:60;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12px;pointer-events:none;box-shadow:0 8px 24px rgba(20,30,60,.16);max-width:220px}
 #tip .nm{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
 #tip .vv{font-size:18px;font-weight:700;color:var(--ink)}#tip .wn{color:var(--blue);font-size:12px}
@@ -461,11 +579,23 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
   <div class="main">
     <div class="topbar">
       <h2 id="viewTitle">Dashboard</h2>
-      <label class="lbl">Period</label><select id="periodSel"></select>
-      <label class="lbl">Compare</label><select id="compareSel"></select>
-      <span class="sub" id="winLabel"></span>
+      <span class="sub" id="periodHint"></span>
+      <button class="rangebtn" id="periodBtn" data-role="period"><svg class="rb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="rb-l">Period</span><svg class="rb-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <span class="sub" id="compareHint"></span>
+      <button class="rangebtn" id="compareBtn" data-role="compare"><svg class="rb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 12h12M10 18h4"/></svg><span class="rb-l">Compare</span><svg class="rb-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <button class="theme-toggle" id="themeBtn" title="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
       <a class="btn alt" href="weekly.html">📋 Weekly</a>
       <button class="btn" onclick="exportPDF()">⬇ PDF</button>
+    </div>
+    <!-- Common Room–style range picker, used by BOTH Period and Compare buttons -->
+    <div id="rangePop" class="rpop" style="display:none">
+      <div class="rpop-presets" id="rpopPresets"></div>
+      <div class="rpop-cal" id="rpopCal" style="display:none">
+        <div class="rpop-tabs"><button class="rpop-tab active" data-tab="start">Start</button><button class="rpop-tab" data-tab="end">End</button></div>
+        <div class="rpop-cal-nav"><button id="rpopPrev" aria-label="Previous">‹</button><button id="rpopNext" aria-label="Next">›</button></div>
+        <div id="rpopMonths" class="rpop-months"></div>
+        <div class="rpop-actions"><button id="rpopApply" class="rpop-apply">Apply</button></div>
+      </div>
     </div>
     <div class="content"><div id="view"></div>
       <p class="sub" style="margin-top:24px">Soft/keyword metrics (risk, themes, sentiment) are regex proxies over titles + comment bodies — not verified mod actions. Bans/reports/peak-online require the Reddit mod dashboard.</p>
@@ -478,19 +608,96 @@ const $ = s => document.querySelector(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const rlink = p => p && p!=='nan' && p!=='' ? 'https://reddit.com'+p : null;
 
-function opts(sel){ DATA.periods.forEach((p,i)=>{ const o=document.createElement('option'); o.value=i;
-  o.textContent=p.start+' → '+p.end+(p.comment_data?'':'  ⚠ partial'); sel.appendChild(o);}); }
-opts($('#periodSel')); opts($('#compareSel'));
-// Allow viewing a single period on its own (no deltas) — a "none" compare option.
-(function(){const o=document.createElement('option');o.value=-1;o.textContent='— No comparison —';
-  $('#compareSel').insertBefore(o,$('#compareSel').firstChild);})();
-// Default to the latest COMPLETE week (comment data present) so the landing view is
-// trustworthy — partial trailing/archive-gap weeks would otherwise show false drops.
-const complete = DATA.periods.map((p,i)=>p.comment_data?i:-1).filter(i=>i>=0);
-const defPeriod = complete.length?complete[complete.length-1]:DATA.periods.length-1;
-const defCompare = complete.length>1?complete[complete.length-2]:Math.max(0,defPeriod-1);
-$('#periodSel').value = defPeriod;
-$('#compareSel').value = defCompare;
+// -------------------------------------------------- Common Room–style range picker
+// Selection model: each "slot" (period / compare) holds either
+//   { kind:'preset', idx:i }                        → DATA.presets[i]
+//   { kind:'custom', start:'YYYY-MM-DD', end:... }  → computeRange(start,end)
+//   { kind:'none' }   (compare slot only)
+const FMT = d => { const dt = new Date(d+'T12:00:00'); return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); };
+const DAY = ms => Math.round(ms/86400000);
+const dayStr = d => d.toISOString().slice(0,10);
+function dur(s,e){ return DAY(new Date(e)-new Date(s))+1; }
+
+// Build a metrics-shaped object from daily buckets for any [start..end] range.
+function computeRange(start, end){
+  const dates = [], a = new Date(start+'T12:00:00'), b = new Date(end+'T12:00:00');
+  for(let t = +a; t <= +b; t += 86400000) dates.push(dayStr(new Date(t)));
+  let posts=0, comments=0, sp=0, sn=0, urs=0, urc=0;
+  const authP = new Set(), authC = new Set(), tm = {}, daily = [], heatTemp = Array(7).fill(0).map(()=>Array(24).fill(0));
+  const authorAgg = {}; const topAll = [];
+  dates.forEach(d => {
+    const b = DATA.daily[d]; if(!b) { daily.push({d: d.slice(5), c: 0}); return; }
+    posts += b.p; comments += b.c; sp += b.sp; sn += b.sn; urs += b.urs; urc += b.urc;
+    b.ap.forEach(a => authP.add(a)); b.ac.forEach(a => authC.add(a));
+    Object.entries(b.tm).forEach(([k,v]) => tm[k] = (tm[k]||0) + v);
+    Object.entries(b.au || {}).forEach(([a,v]) => {
+      if(!authorAgg[a]) authorAgg[a] = {author:a, posts:0, score:0};
+      authorAgg[a].posts += v.posts; authorAgg[a].score += v.score;
+    });
+    (b.tp||[]).forEach(p => topAll.push(p));
+    daily.push({d: d.slice(5), c: b.p});
+    // heatmap: parse date weekday + bucket by approximate hour distribution
+    // Without per-post timestamps we'd need them; the bucket carries day-level activity only.
+    // (For custom ranges we render a coarser heatmap; precomputed periods still have full detail.)
+    const wd = new Date(d+'T12:00:00').getUTCDay(); const dow = (wd + 6) % 7; // Mon=0..Sun=6
+    // Distribute the day's posts to noon-bucket as a sane fallback
+    if(b.p) heatTemp[dow][12] += b.p;
+  });
+  authC.delete('[deleted]'); authP.delete('[deleted]');
+  const contribs = new Set([...authP, ...authC]);
+  // new vs returning: author NOT seen before this window's start
+  let newCount = 0; const startISO = start;
+  contribs.forEach(a => {
+    const fs = DATA.author_first_seen[a]; if(fs && fs >= startISO) newCount++;
+  });
+  const returning = contribs.size - newCount;
+  const totP = Math.max(posts, 1);
+  // top posts across range
+  topAll.sort((x,y) => y.score - x.score);
+  // top authors aggregated
+  const topAuthors = Object.values(authorAgg).sort((x,y) => y.posts - x.posts || y.score - x.score).slice(0, 8);
+  // type_mix as array
+  const heatMax = Math.max(...heatTemp.flat(), 0);
+  return {
+    start, end, days: dates.length, label: FMT(start)+' – '+FMT(end),
+    posts, comments,
+    posts_per_day: Math.round((posts/dates.length)*10)/10,
+    comments_per_post: posts ? Math.round((comments/posts)*10)/10 : 0,
+    avg_upvote_ratio: urc ? Math.round((urs/urc)*1000)/10 : 0,
+    contributors: contribs.size, new_to_tracker: newCount, returning,
+    sentiment: {pos: Math.round(sp/totP*100), neu: Math.round((totP-sp-sn)/totP*100), neg: Math.round(sn/totP*100)},
+    type_mix: tm,
+    daily, heat: heatTemp, heat_max: heatMax,
+    top_authors: topAuthors,
+    top_posts: topAll.slice(0,5), top_post: topAll[0] || null,
+    theme_weights: [], feed: topAll.slice(0,16).map(p => ({author:p.author,date:p.date,title:p.title,score:p.score,comments:p.comments,link:p.link,sentiment:p.sentiment,avatar:''})),
+    issues_tracked: 0, resolved: 0, resolution_rate: 0, escalation_count: 0, escalation_rows: [], avg_response_hrs: null,
+    sdk_questions: 0, code_posts: 0, docs_links: 0, github_links: 0, ai_studio: 0, hackathon: 0,
+    recurring: [], gaps: [], risks: [], risk_evidence: {}, posts_removed: 0,
+    health: 'MODERATE', risk_level: 'LOW',
+    pct_zero: 0, growth_pct: 0, avg_post_upvotes: 0, avg_post_comments: 0, mod_upvoted_100: false,
+    themes: [], comment_data: true, custom: true,
+  };
+}
+
+// Resolve a selection into a "scope" object compatible with the views
+let periodSel = {kind:'preset', idx: DATA.default_preset};
+let compareSel = {kind:'none'};
+function scopeOf(sel){
+  if(!sel || sel.kind === 'none') return null;
+  if(sel.kind === 'preset') return DATA.presets[sel.idx];
+  if(sel.kind === 'custom') return computeRange(sel.start, sel.end);
+  return null;
+}
+function selLabel(sel){
+  if(!sel || sel.kind==='none') return 'No comparison';
+  if(sel.kind==='preset') return DATA.presets[sel.idx].label;
+  if(sel.kind==='custom') return FMT(sel.start)+' – '+FMT(sel.end);
+}
+function selHint(sel){
+  const s = scopeOf(sel); if(!s) return '';
+  return s.start+' → '+s.end;
+}
 
 function delta(cur,prev,goodUp=true,pct=false){
   if(prev===null||prev===undefined||prev===0||cur===null) return '';
@@ -715,23 +922,143 @@ let view='dashboard';
 const TITLES={dashboard:'Dashboard',mentions:'Mentions',moderation:'Moderation',trends:'Trends'};
 function setCnt(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
 function render(){
-  const i=+$('#periodSel').value, j=+$('#compareSel').value; const cmp=j>=0;
-  const p=DATA.periods[i], q=cmp?DATA.periods[j]:{};
-  $('#winLabel').textContent=`${p.days} days`+(cmp?` · vs ${q.start} → ${q.end}`:' · single period');
-  $('#viewTitle').textContent=TITLES[view];
-  const riskTot=(p.risks||[]).reduce((a,r)=>a+r.count,0);
-  setCnt('c-dash',p.posts); setCnt('c-ment',(p.feed||[]).length); setCnt('c-mod',riskTot+p.escalation_count); setCnt('c-tr',DATA.periods.length);
+  const p = scopeOf(periodSel);
+  const q = scopeOf(compareSel) || {};
+  const cmp = compareSel.kind !== 'none';
+  // Topbar labels
+  $('#periodBtn').querySelector('.rb-l').textContent = selLabel(periodSel);
+  $('#periodHint').textContent = selHint(periodSel);
+  $('#compareBtn').querySelector('.rb-l').textContent = compareSel.kind==='none' ? 'Compare' : selLabel(compareSel);
+  $('#compareHint').textContent = cmp ? 'vs ' + selHint(compareSel) : '';
+  $('#viewTitle').textContent = TITLES[view];
+  const riskTot = (p.risks||[]).reduce((a,r)=>a+(r.count||0),0);
+  setCnt('c-dash', p.posts); setCnt('c-ment', (p.feed||[]).length); setCnt('c-mod', riskTot + (p.escalation_count||0)); setCnt('c-tr', DATA.periods.length);
   let h;
   if(view==='dashboard') h=viewDashboard(p,q,cmp);
   else if(view==='mentions') h=viewMentions(p);
   else if(view==='moderation') h=viewModeration(p,q,cmp);
   else h=viewTrends(p,q,cmp);
   $('#view').innerHTML=h;
+  // Banner: custom-range views miss some precomputed fields (risk/themes/escalation)
+  if(p.custom){
+    const note=document.createElement('div');note.className='warnbox';
+    note.innerHTML='<b>Custom date range.</b> <span class="muted">Some deep-analytics panels (risk breakdown, escalation queue, topic cloud) are only computed for the semi-monthly cohorts and not for arbitrary ranges. Headline KPIs, sentiment, top authors, top posts and the activity series above are computed live from daily aggregates.</span>';
+    $('#view').insertBefore(note, $('#view').firstChild);
+  }
 }
 document.querySelectorAll('#nav a').forEach(a=>a.onclick=()=>{
   view=a.dataset.v; document.querySelectorAll('#nav a').forEach(x=>x.classList.toggle('active',x===a)); render();
 });
-$('#periodSel').onchange=render; $('#compareSel').onchange=render; render();
+
+// -------------------------------------------------- Range picker popover
+const rpop = $('#rangePop');
+let pickerRole = null; // 'period' | 'compare'
+let calTab = 'start'; let calStart = null, calEnd = null;
+let calBaseMonth = null; // anchor month for the two-month view
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function renderPresets(){
+  const wrap = $('#rpopPresets'); wrap.innerHTML='';
+  const cur = pickerRole==='period' ? periodSel : compareSel;
+  if(pickerRole==='compare'){
+    const b=document.createElement('button');b.textContent='No comparison';b.className=cur.kind==='none'?'sel':'';
+    b.onclick=()=>{compareSel={kind:'none'};closePop();render()};wrap.appendChild(b);
+    const div=document.createElement('div');div.className='div';wrap.appendChild(div);
+  }
+  DATA.presets.forEach((p,i)=>{
+    const b=document.createElement('button');b.textContent=p.label;b.className=(cur.kind==='preset'&&cur.idx===i)?'sel':'';
+    b.onclick=()=>{ if(pickerRole==='period') periodSel={kind:'preset',idx:i}; else compareSel={kind:'preset',idx:i}; closePop(); render(); };
+    wrap.appendChild(b);
+  });
+  const div=document.createElement('div');div.className='div';wrap.appendChild(div);
+  const btn=document.createElement('button');btn.innerHTML='Date range <span style="opacity:.6">›</span>';btn.className=(cur.kind==='custom'?'sel':'');
+  btn.onclick=()=>openCalendar();wrap.appendChild(btn);
+}
+function positionPop(role){
+  const anchor = $('#'+role+'Btn'); const r = anchor.getBoundingClientRect();
+  rpop.style.display='block';
+  // Default placement: right of dashboard's right edge would clip; clamp to viewport
+  const wantsWide = $('#rpopCal').style.display !== 'none';
+  const w = wantsWide ? 600 : 240;
+  let left = r.left;
+  if(left + w > window.innerWidth - 12) left = Math.max(12, window.innerWidth - w - 12);
+  rpop.style.left = left + 'px'; rpop.style.top = (r.bottom + 6) + 'px';
+}
+function openPicker(role){
+  pickerRole = role; $('#rpopCal').style.display='none';
+  renderPresets(); positionPop(role);
+}
+function openCalendar(){
+  const cur = pickerRole==='period' ? periodSel : compareSel;
+  if(cur.kind==='custom'){ calStart=cur.start; calEnd=cur.end; }
+  else { calStart=null; calEnd=null; }
+  calTab='start';
+  // Anchor to a month that contains the latest data, two-month view shows it
+  calBaseMonth = new Date(DATA.latest.slice(0,7)+'-01T12:00:00');
+  calBaseMonth.setMonth(calBaseMonth.getMonth()-1); // show two months ending at latest
+  $('#rpopCal').style.display='block'; renderCalendar(); positionPop(pickerRole);
+}
+function renderCalendar(){
+  $$('.rpop-tab').forEach(t => t.classList.toggle('active', t.dataset.tab===calTab));
+  const earliest = DATA.earliest, latest = DATA.latest;
+  const months = [calBaseMonth, new Date(calBaseMonth.getFullYear(), calBaseMonth.getMonth()+1, 1)];
+  $('#rpopMonths').innerHTML = months.map(m => {
+    const y = m.getFullYear(), mi = m.getMonth();
+    const first = new Date(y, mi, 1); const last = new Date(y, mi+1, 0);
+    const startOffset = first.getDay(); // Sun=0
+    let cells = '';
+    ['S','M','T','W','T','F','S'].forEach(d => cells += `<div class="rpop-dh">${d}</div>`);
+    for(let i=0;i<startOffset;i++) cells += '<div></div>';
+    for(let d=1; d<=last.getDate(); d++){
+      const ds = `${y}-${String(mi+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const disabled = ds < earliest || ds > latest;
+      let cls = 'rpop-d';
+      if(disabled) cls += ' dis';
+      if(ds === calStart || ds === calEnd) cls += ' sel';
+      else if(calStart && calEnd && ds > Math.min(calStart,calEnd) && ds < Math.max(calStart,calEnd)) cls += ' in-range';
+      cells += `<div class="${cls}" data-d="${ds}">${d}</div>`;
+    }
+    return `<div class="rpop-m"><h4>${MONTHS_FULL[mi]} ${y}</h4><div class="rpop-grid">${cells}</div></div>`;
+  }).join('');
+  $$('.rpop-d:not(.dis)').forEach(d => d.onclick = ()=>pickDate(d.dataset.d));
+  $('#rpopApply').disabled = !(calStart && calEnd);
+}
+const $$ = s => document.querySelectorAll(s);
+function pickDate(ds){
+  if(calTab==='start'){ calStart = ds; if(calEnd && calEnd < calStart) calEnd = null; calTab='end'; }
+  else { if(calStart && ds < calStart){ calEnd = calStart; calStart = ds; } else calEnd = ds; }
+  renderCalendar();
+}
+$$('.rpop-tab').forEach(t => t.onclick = ()=>{ calTab=t.dataset.tab; renderCalendar(); });
+$('#rpopPrev').onclick = ()=>{ calBaseMonth = new Date(calBaseMonth.getFullYear(), calBaseMonth.getMonth()-1, 1); renderCalendar(); };
+$('#rpopNext').onclick = ()=>{ calBaseMonth = new Date(calBaseMonth.getFullYear(), calBaseMonth.getMonth()+1, 1); renderCalendar(); };
+$('#rpopApply').onclick = ()=>{
+  if(!calStart || !calEnd) return;
+  const [s,e] = calStart <= calEnd ? [calStart, calEnd] : [calEnd, calStart];
+  const sel = {kind:'custom', start:s, end:e};
+  if(pickerRole==='period') periodSel = sel; else compareSel = sel;
+  closePop(); render();
+};
+function closePop(){ rpop.style.display='none'; pickerRole=null; }
+$('#periodBtn').onclick = e => { e.stopPropagation(); if(pickerRole==='period') closePop(); else openPicker('period'); };
+$('#compareBtn').onclick = e => { e.stopPropagation(); if(pickerRole==='compare') closePop(); else openPicker('compare'); };
+document.addEventListener('click', e => { if(!rpop.contains(e.target)) closePop(); });
+
+// -------------------------------------------------- Theme toggle (light/dark)
+const themeKey = 'hintel-theme';
+function applyTheme(t){
+  if(t==='dark' || t==='light') document.documentElement.setAttribute('data-theme', t);
+  else document.documentElement.removeAttribute('data-theme');
+}
+applyTheme(localStorage.getItem(themeKey) || 'auto');
+$('#themeBtn').onclick = ()=>{
+  const cur = localStorage.getItem(themeKey) || 'auto';
+  const next = cur==='auto' ? 'dark' : (cur==='dark' ? 'light' : 'auto');
+  localStorage.setItem(themeKey, next); applyTheme(next);
+};
+
+render();
 
 // Hover tooltip for trend charts — read each period's value as the cursor moves.
 const tip=document.createElement('div'); tip.id='tip'; document.body.appendChild(tip);
@@ -748,10 +1075,9 @@ document.addEventListener('mousemove',e=>{
 
 // Export: expand all evidence so it prints, then open the print/PDF dialog.
 function exportPDF(){
-  const p=DATA.periods[+$('#periodSel').value];
-  const opened=[...document.querySelectorAll('details')];
-  opened.forEach(d=>d.open=true);
-  const t=document.title; document.title='Hedera_Mod_Dashboard_'+p.start+'_to_'+p.end;
+  const p=scopeOf(periodSel);
+  [...document.querySelectorAll('details')].forEach(d=>d.open=true);
+  const t=document.title; document.title='hIntel_'+p.start+'_to_'+p.end;
   setTimeout(()=>{ window.print(); document.title=t; }, 150);
 }
 </script></body></html>"""
