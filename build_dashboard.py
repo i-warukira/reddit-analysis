@@ -148,9 +148,10 @@ def metrics(start, end):
         top_post = {'title': str(pp.loc[ti, 'title'])[:80], 'score': int(pp.loc[ti, 'score']),
                     'comments': int(pp.loc[ti, 'num_comments']), 'link': str(pp.loc[ti, 'permalink'])}
         type_mix = (pp['post_type'].value_counts() / n_posts * 100).round(0).astype(int).to_dict()
-        top5 = pp.nlargest(5, 'score')[['title', 'score', 'num_comments', 'permalink']]
-        top_posts = [{'title': str(r.title)[:70], 'score': int(r.score), 'comments': int(r.num_comments),
-                      'link': str(r.permalink)} for r in top5.itertuples()]
+        top5 = pp.nlargest(5, 'score')[['title', 'score', 'num_comments', 'permalink', 'created_utc', 'author']]
+        top_posts = [{'title': str(r.title)[:90], 'score': int(r.score), 'comments': int(r.num_comments),
+                      'link': str(r.permalink), 'date': str(r.created_utc)[:16],
+                      'author': str(getattr(r, 'author', ''))} for r in top5.itertuples()]
         pct_zero = len(pp[(pp['score'] <= 1) & (pp['num_comments'] == 0)]) / n_posts * 100
         avg_up, avg_cm = pp['score'].mean(), pp['num_comments'].mean()
         mod100 = int((pp['score'] >= 100).sum())
@@ -167,7 +168,8 @@ def metrics(start, end):
     old_sup = sup[sup['created_utc'] <= now - timedelta(hours=24)]
     escalation = old_sup[~old_sup['id'].astype(str).isin(commented)]
     escalation_rows = [{'date': str(r['created_utc'])[:16], 'author': str(r['author']),
-                        'title': str(r['title'])[:80], 'link': str(r['permalink'])}
+                        'title': str(r['title'])[:90], 'link': str(r['permalink']),
+                        'score': int(r.get('score', 0)), 'comments': int(r.get('num_comments', 0))}
                        for _, r in escalation.iterrows()]
     # response time
     rts = []
@@ -677,12 +679,26 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 .hlab{width:30px;font-size:10px;color:var(--mut)}.hcell{flex:1;min-width:7px;height:14px;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(40,55,90,.08)}
 /* author bars */
 .abar{height:7px;background:var(--btn-alt);border-radius:4px;overflow:hidden}.abar span{display:block;height:100%;background:var(--accent)}
-/* mentions feed */
+/* mentions feed (legacy avatar style, kept for any remaining uses) */
 .mention{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}.mention:last-child{border:none}
 .av{width:34px;height:34px;border-radius:50%;flex-shrink:0;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;position:relative;overflow:hidden}
 .av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .mb{min-width:0}.mh{font-size:12px;font-weight:600}.mt{margin:2px 0}.mm{font-size:11px}
-.sdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:5px;vertical-align:middle}
+.sdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:7px;vertical-align:middle}
+/* Reddit-style post rows (Top posts / Mentions / Escalation queue) */
+.plist{display:flex;flex-direction:column}
+.prow{display:flex;gap:12px;padding:13px 2px;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:none}
+.prflame{flex-shrink:0;width:18px;height:18px;color:var(--accent);margin-top:1px}
+.prflame svg{width:18px;height:18px}
+.prbody{min-width:0;flex:1}
+.prtitle{font:600 14px Inter,system-ui;line-height:1.4;color:var(--ink);letter-spacing:-.005em}
+.prtitle a{color:var(--ink)}.prtitle a:hover{color:var(--accent);text-decoration:none}
+.prmeta{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:6px;color:var(--mut);font-size:12.5px}
+.prmeta span{display:inline-flex;align-items:center;gap:5px}
+.prmeta svg{width:13px;height:13px}
+.prmeta .pm-up{color:var(--accent)}
+.prmeta .pm-a{font-weight:500}
 .bar{height:8px;border-radius:4px;background:var(--btn-alt);overflow:hidden;display:flex}
 /* GitHub-style hover tooltip — dark capsule, single-line, with caret arrow */
 #tip{position:absolute;display:none;z-index:60;background:#1f242e;color:#f1f3f7;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:7px 11px;font:500 12px Inter,system-ui;letter-spacing:-.005em;pointer-events:none;box-shadow:0 6px 22px rgba(0,0,0,.35);max-width:260px;white-space:nowrap}
@@ -1151,20 +1167,36 @@ function authorsList(a){
     <td style="width:46%"><div class="abar"><span style="width:${Math.round(x.posts/mx*100)}%"></span></div></td>
     <td class="num">${x.posts}</td><td class="muted" style="text-align:right">${x.score}↑</td></tr>`).join('')+'</tbody></table>';
 }
+// Compact upvote count: 1100 -> 1.1K, 17000 -> 17K
+function fmtK(n){ n=+n||0; if(n<1000) return ''+n; const v=n/1000; return (v>=10?Math.round(v):v.toFixed(1)).toString().replace(/\.0$/,'')+'K'; }
+// "2026-06-29 18:01" -> "Jun 29, 2026 · 6:01 PM" (UTC)
+function fmtPostDate(s){ if(!s) return ''; const d=new Date(String(s).replace(' ','T')+'Z'); if(isNaN(d)) return esc(s);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'})+' · '+
+         d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'UTC'}); }
+const ICON_FLAME='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>';
+const ICON_CHAT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+const SENT_COL={positive:'#22c55e',negative:'#ef4444',neutral:'#94a3b8'};
+// Reddit-style post row: teal flame marker + bold title + meta (upvotes · comments · author · date)
+function postRow(r){
+  const l=rlink(r.link);
+  const title=l?`<a href="${l}" target="_blank">${esc(r.title)}</a>`:esc(r.title);
+  const meta=[];
+  if(r.score!=null) meta.push(`<span class="pm-up">${ICON_FLAME}${fmtK(r.score)}</span>`);
+  if(r.comments!=null) meta.push(`<span class="pm-c">${ICON_CHAT}${r.comments}</span>`);
+  if(r.author && r.author!=='nan') meta.push(`<span class="pm-a">u/${esc(r.author)}</span>`);
+  if(r.date) meta.push(`<span class="pm-d">${fmtPostDate(r.date)}</span>`);
+  const dot=r.sentiment?`<span class="sdot" style="background:${SENT_COL[r.sentiment]||'#94a3b8'}"></span>`:'';
+  return `<div class="prow"><span class="prflame">${ICON_FLAME}</span>
+    <div class="prbody"><div class="prtitle">${title}${dot}</div>
+    <div class="prmeta">${meta.join('')}</div></div></div>`;
+}
 function feedList(feed){
   if(!feed||!feed.length) return '<div class="muted">No mentions.</div>';
-  const sc={positive:'#22c55e',negative:'#ef4444',neutral:'#94a3b8'};
-  return feed.map(f=>{const l=rlink(f.link);const nm=(f.author||'?').replace('[deleted]','?');
-    const img=f.avatar?`<img src="${esc(f.avatar)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:'';
-    return `<div class="mention"><div class="av" style="background:${avColor(nm)}">${esc(nm.slice(0,1).toUpperCase())}${img}</div>
-    <div class="mb"><div class="mh">u/${esc(f.author)} <span class="muted">· ${esc(f.date)}</span><span class="sdot" style="background:${sc[f.sentiment]||'#94a3b8'}"></span></div>
-    <div class="mt">${l?`<a href="${l}" target="_blank">${esc(f.title)}</a>`:esc(f.title)}</div>
-    <div class="mm muted">${f.score}↑ · ${f.comments}💬</div></div></div>`;}).join('');
+  return '<div class="plist">'+feed.map(postRow).join('')+'</div>';
 }
 function topPostsTable(p){
   if(!(p.top_posts||[]).length) return '<div class="muted">No posts.</div>';
-  return '<table><thead><tr><th>Title</th><th style="text-align:right">↑</th><th style="text-align:right">💬</th></tr></thead><tbody>'+
-    p.top_posts.map(r=>{const l=rlink(r.link);return `<tr><td>${l?`<a href="${l}" target="_blank">${esc(r.title)}</a>`:esc(r.title)}</td><td class="num">${r.score}</td><td class="num">${r.comments}</td></tr>`;}).join('')+'</tbody></table>';
+  return '<div class="plist">'+p.top_posts.map(postRow).join('')+'</div>';
 }
 function partialBanner(p,q,cmp){
   if(p.comment_data && !(cmp&&!q.comment_data)) return '';
@@ -1225,8 +1257,8 @@ function viewModeration(p,q,cmp){
   h+=`<tr><td>Posts removed (deleted/removed)</td><td>—</td><td class="num">${p.posts_removed}</td><td class="muted">Review removal reasons; confirm against mod log.</td></tr>`;
   h+='</tbody></table></div>';
   h+=`<div class="card" style="margin-top:14px"><h3>Escalation queue — unanswered question-posts &gt;24h (${p.escalation_count})</h3>`;
-  if(p.escalation_rows.length){h+='<table><thead><tr><th>Date</th><th>Author</th><th>Question post</th></tr></thead><tbody>';
-    p.escalation_rows.forEach(r=>{const l=rlink(r.link);h+=`<tr><td>${esc(r.date)}</td><td>u/${esc(r.author)}</td><td>${l?`<a href="${l}" target="_blank">${esc(r.title)}</a>`:esc(r.title)}</td></tr>`;});h+='</tbody></table>';}
+  if(p.escalation_rows.length){h+='<div class="plist">'+
+    p.escalation_rows.map(r=>postRow({title:r.title,link:r.link,author:r.author,date:r.date,score:r.score,comments:r.comments})).join('')+'</div>';}
   else h+='<div class="muted">Nothing pending — all tracked questions received a reply.</div>';
   h+=`<div class="sub" style="margin-top:8px">“Answered” = received ≥1 captured comment. Avg first-response: ${p.avg_response_hrs!==null?p.avg_response_hrs+' hrs':'n/a'}.</div></div>`;
   h+='<div class="card" style="margin-top:14px"><h3>Gaps identified</h3>'+(p.gaps.length?'<table><tbody>'+p.gaps.map(g=>`<tr><td><b>${esc(g.gap)}</b><div class="muted">${esc(g.detail)}</div></td><td class="muted">${esc(g.action)}</td></tr>`).join('')+'</tbody></table>':'<div class="muted">No major gaps flagged.</div>')+'</div>';
