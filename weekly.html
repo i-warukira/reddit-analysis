@@ -1,34 +1,57 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ℏIntel — Weekly Staff Update</title><link rel="icon" href="public/log.png"><style>
-:root{--bg:#f3f5fa;--card:#ffffff;--ink:#1d2540;--mut:#7a85a3;--line:#e7ebf3;--accent:#3b82f6;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;--blue:#3b82f6}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;letter-spacing:-.005em}
+:root{--bg:#f3f5fa;--card:#ffffff;--ink:#1d2540;--mut:#7a85a3;--line:#e7ebf3;--accent:#3b82f6;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;--blue:#3b82f6;--tag-bg:#eef2fb;--pill-bg:#fef3c7;--pill-ink:#92600a;--note-bg:#fff7e6;--note-ink:#1d2540;--bad-h:#b91c1c;--logo-bg:#fff}
+html[data-theme="dark"]{--bg:#0f1217;--card:#181c24;--ink:#e6e9f0;--mut:#8b95a8;--line:#262b35;--tag-bg:#262b35;--pill-bg:#3b2a0e;--pill-ink:#fbbf24;--note-bg:#2a1f0a;--note-ink:#e6e9f0;--bad-h:#f87171;--logo-bg:#262b35}
+@media (prefers-color-scheme: dark){html:not([data-theme="light"]){--bg:#0f1217;--card:#181c24;--ink:#e6e9f0;--mut:#8b95a8;--line:#262b35;--tag-bg:#262b35;--pill-bg:#3b2a0e;--pill-ink:#fbbf24;--note-bg:#2a1f0a;--note-ink:#e6e9f0;--bad-h:#f87171;--logo-bg:#262b35}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,Segoe UI,Roboto,sans-serif}
+.theme-toggle{background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;margin-left:8px}
+.theme-toggle svg{width:16px;height:16px}.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+::view-transition-old(root){animation:none;z-index:1}
+::view-transition-new(root){animation:hi-wipe-corner 720ms cubic-bezier(.65,.05,.36,1);z-index:2}
+@keyframes hi-wipe-corner{from{clip-path:circle(0% at 100% 0%)}to{clip-path:circle(150% at 100% 0%)}}
+@media (prefers-reduced-motion: reduce){::view-transition-new(root){animation-duration:.01ms}}
 .wrap{max-width:880px;margin:0 auto;padding:30px 26px 80px}
 .top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:8px}
 h1{font-size:28px;font-weight:600;letter-spacing:-.01em;margin:0}
 .meta{color:var(--mut);font-size:13px;margin-bottom:18px}
 .back{margin-left:auto;background:var(--accent);color:#fff;text-decoration:none;border-radius:8px;padding:9px 16px;font-weight:600;font-size:13px}
-.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:36px 0 0;border-top:1px solid var(--line);padding-top:22px}
-.sec-title{font:700 19px Inter,system-ui;letter-spacing:-.015em;margin:6px 0 14px;color:var(--ink)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;box-shadow:0 1px 3px rgba(20,30,60,.05)}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:34px 0 0;border-top:1px solid var(--line);padding-top:20px}
+.sec-title{font-size:20px;font-weight:600;margin:6px 0 13px;color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(20,30,60,.05)}
 .muted{color:var(--mut)}.row{padding:7px 0;border-bottom:1px solid var(--line)}.row:last-child{border:none}
 table{width:100%;border-collapse:collapse}td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 td.num{color:var(--ink);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
 a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
-.tag{display:inline-block;background:#eef2fb;border:1px solid var(--line);border-radius:6px;padding:3px 9px;margin:2px;font-size:13px}
-.pill{display:inline-block;background:#fef3c7;color:#92600a;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700;margin-right:6px}
-.risk-h{color:#b91c1c;margin:10px 0 4px;font-size:14px;font-weight:600}.risk-h:first-child{margin-top:0}
+.tag{display:inline-block;background:var(--tag-bg);border:1px solid var(--line);border-radius:6px;padding:3px 9px;margin:2px;font-size:13px}
+.pill{display:inline-block;background:var(--pill-bg);color:var(--pill-ink);border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700;margin-right:6px}
+.risk-h{color:var(--bad-h);margin:10px 0 4px;font-size:14px;font-weight:600}.risk-h:first-child{margin-top:0}
 .tldr li{margin:6px 0}.tldr{margin:0;padding-left:18px}
-.note{background:#fff7e6;border:1px solid var(--warn);border-radius:12px;padding:13px 15px;margin:6px 0 4px;font-size:14px;color:#1d2540}
+.note{background:var(--note-bg);border:1px solid var(--warn);border-radius:12px;padding:13px 15px;margin:6px 0 4px;font-size:14px;color:var(--note-ink)}
 .foot{color:var(--mut);font-size:12px;margin-top:34px;border-top:1px solid var(--line);padding-top:16px}
-</style></head><body><div class="wrap">
-<div class="top"><img src="public/log.png" alt="ℏIntel" style="width:34px;height:34px;border-radius:8px;background:#fff;padding:3px;object-fit:contain">
+</style>
+<script>
+(function(){
+  var k='hintel-theme';
+  function apply(v){if(v==='dark'||v==='light')document.documentElement.setAttribute('data-theme',v);else document.documentElement.removeAttribute('data-theme');}
+  apply(localStorage.getItem(k)||'auto');
+  document.addEventListener('DOMContentLoaded',function(){
+    var b=document.getElementById('themeBtn');if(!b)return;
+    b.onclick=function(){var c=localStorage.getItem(k)||'auto';var n=c==='auto'?'dark':(c==='dark'?'light':'auto');localStorage.setItem(k,n);if(document.startViewTransition)document.startViewTransition(function(){apply(n);});else apply(n);};
+  });
+  // keep in sync if the theme is changed on the dashboard tab while this page is open
+  window.addEventListener('storage',function(e){if(e.key===k)apply(e.newValue||'auto');});
+})();
+</script>
+</head><body><div class="wrap">
+<div class="top"><img src="public/log.png" alt="ℏIntel" style="width:34px;height:34px;border-radius:8px;background:var(--logo-bg);padding:3px;object-fit:contain">
 <h1><span style="font-weight:400">ℏ</span>Intel <span style="color:var(--mut);font-weight:400;font-size:20px">— Weekly Staff Update</span></h1>
+<button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme" aria-label="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
 <a class="back" href="index.html">← Dashboard</a></div>
-<div class="meta">Period covered: <b>Tue 23 Jun 2026 → Tue 30 Jun 2026</b> · 8 days, since last meeting · prepared 2026-06-29 22:12 UTC</div>
+<div class="meta">Period covered: <b>Tue 23 Jun 2026 → Mon 29 Jun 2026</b> · 7 days, since last meeting · prepared 2026-06-30 13:12 UTC</div>
 
-<div class="eyebrow">TL;DR</div><div class="sec-title">At a glance</div><div class="card"><ul class="tldr"><li><b>63 new posts</b> (7.9/day) (-20% vs prior 8d)</li><li><b>211 active contributors</b> — 30 new, 181 returning</li><li><b>92%</b> avg upvote ratio</li><li><b>6 question-posts</b>, 2 look unanswered</li><li>Risk: Compliance-sensitive (SEC/legal) (1)</li></ul></div>
-<div class="eyebrow">Activity</div><div class="sec-title">Submission volume</div><div class="card"><table><tbody><tr><td>New posts</td><td class="num">63</td><td class="muted">prior 8d: 79</td></tr><tr><td>Posts / day</td><td class="num">7.9</td><td class="muted">prior 8d: 9.9</td></tr><tr><td>Avg upvote ratio</td><td class="num">92%</td><td></td></tr><tr><td>Active contributors</td><td class="num">211</td><td class="muted">30 new</td></tr><tr><td>Archived comments in window</td><td class="num">700</td><td></td></tr></tbody></table></div>
+<div class="eyebrow">TL;DR</div><div class="sec-title">At a glance</div><div class="card"><ul class="tldr"><li><b>63 new posts</b> (9.0/day) (-7% vs prior 7d)</li><li><b>211 active contributors</b> — 30 new, 181 returning</li><li><b>92%</b> avg upvote ratio</li><li><b>6 question-posts</b>, 2 look unanswered</li><li>Risk: Compliance-sensitive (SEC/legal) (1)</li></ul></div>
+<div class="eyebrow">Activity</div><div class="sec-title">Submission volume</div><div class="card"><table><tbody><tr><td>New posts</td><td class="num">63</td><td class="muted">prior 7d: 68</td></tr><tr><td>Posts / day</td><td class="num">9.0</td><td class="muted">prior 7d: 9.7</td></tr><tr><td>Avg upvote ratio</td><td class="num">92%</td><td></td></tr><tr><td>Active contributors</td><td class="num">211</td><td class="muted">30 new</td></tr><tr><td>Archived comments in window</td><td class="num">700</td><td></td></tr></tbody></table></div>
 <div class="eyebrow">Top content</div><div class="sec-title">Top posts this period</div><div class="card"><table><tbody><tr><td class="num">101↑ · 11💬</td><td><a href="https://reddit.com/r/Hedera/comments/1udmdwe/hbar_listed_on_kanga_exchange_poland/" target="_blank">HBAR listed on Kanga Exchange (Poland)</a></td></tr><tr><td class="num">100↑ · 26💬</td><td><a href="https://reddit.com/r/Hedera/comments/1uequ9e/us_house_financial_services_committee_chairman/" target="_blank">US House Financial Services Committee Chairman French Hill says -the Clarity Act has bipartisan support to pas</a></td></tr><tr><td class="num">89↑ · 9💬</td><td><a href="https://reddit.com/r/Hedera/comments/1ugdlhy/ibm_expands_entrepreneur_partnership_with_the/" target="_blank">IBM expands entrepreneur partnership with The Hashgraph Group (IDTrust)</a></td></tr><tr><td class="num">79↑ · 11💬</td><td><a href="https://reddit.com/r/Hedera/comments/1uh5sg5/ibm_lists_idtrust_a_hederabased_selfsovereign/" target="_blank">IBM Lists IDTrust, a Hedera-Based Self-Sovereign Identity Platform, in Its Enterprise Catalog</a></td></tr><tr><td class="num">69↑ · 27💬</td><td><a href="https://reddit.com/r/Hedera/comments/1ufvjni/commerce_is_global_trust_is_local_with_fedex_tech/" target="_blank">Commerce is Global, Trust is Local with FedEx | Tech Demo Day on the Hill 2026</a></td></tr></tbody></table></div>
 <div class="eyebrow">Themes</div><div class="sec-title">What people were talking about</div><div class="card"><div><span class="tag">blockchain</span> <span class="tag">trust</span> <span class="tag">order</span> <span class="tag">real</span> <span class="tag">first</span> <span class="tag">quantum</span> <span class="tag">world</span> <span class="tag">chain</span></div><div style="margin-top:12px"><div class="muted">No repeated question topics.</div></div></div>
 <div class="eyebrow">Queue</div><div class="sec-title">Support queue — 2 need a look</div><div class="card"><div class="row"><span class="muted">24 Jun</span> · u/hank194 — <a href="https://reddit.com/r/Hedera/comments/1uellna/will_hedera_be_relevant_like_ever/" target="_blank">Will Hedera be relevant, like, ever?</a></div><div class="row"><span class="muted">25 Jun</span> · u/DocumentFair4693 — <a href="https://reddit.com/r/Hedera/comments/1ufk262/can_hbars_enterprise_push_finally_pay_off_before/" target="_blank">Can HBAR’s Enterprise Push Finally Pay Off Before December 2026?</a></div></div>
