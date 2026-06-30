@@ -670,6 +670,7 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
 .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 15px;font-weight:600;cursor:pointer;font-size:13px;text-decoration:none}
 .btn.alt{background:var(--btn-alt);color:var(--ink)}.btn:hover{filter:brightness(1.05)}
+.btn-ico{display:inline-flex;align-items:center;gap:7px}.btn-ico svg{width:15px;height:15px}
 /* donut */
 .donut{display:flex;align-items:center;gap:18px}.lcol{font-size:13px}.lcol .lg{margin:5px 0}
 /* word cloud */
@@ -839,8 +840,8 @@ html[data-theme="dark"] .infobox .ibchip.on{color:#86efac}
         <span class="sub" id="compareHint"></span>
         <button class="rangebtn" id="compareBtn" type="button"><svg class="rb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 12h12M10 18h4"/></svg><span class="rb-l">Compare</span><svg class="rb-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
         <button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme" aria-label="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
-        <a class="btn alt" href="weekly.html">📋 Weekly</a>
-        <button class="btn" onclick="exportPDF()">⬇ PDF</button>
+        <a class="btn alt btn-ico" href="weekly.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/></svg>Weekly</a>
+        <button class="btn btn-ico" onclick="exportPDF()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF</button>
       </div>
     </div>
     <div id="rangePop" class="rpop" style="display:none">
