@@ -1269,31 +1269,48 @@ function renderContentPerf(ct){
   return h;
 }
 
-// SVG pie chart with leader lines (Recharts style)
+// SVG pie chart with leader lines (Recharts style) + vertical label de-collision
 function renderPie(ct, total){
-  const W = 480, H = 360, cx = W/2, cy = H/2 + 8, r = 105, lr = 130;
+  const W = 560, H = 380, cx = W/2, cy = H/2, r = 108;
+  // pass 1: slice geometry + ideal label position
   let acc = -Math.PI/2;   // start at top
-  const slices = ct.map(s => {
+  const arcs = ct.map(s => {
     const ang = (s.count / total) * 2 * Math.PI;
-    const a0 = acc, a1 = acc + ang;
-    acc = a1;
-    const x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0);
-    const x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
-    const large = ang > Math.PI ? 1 : 0;
+    const a0 = acc, a1 = acc + ang; acc = a1;
     const mid = (a0 + a1) / 2;
-    const lx = cx + lr * Math.cos(mid), ly = cy + lr * Math.sin(mid);
-    const tx = cx + (lr + 22) * Math.cos(mid), ty = cy + (lr + 22) * Math.sin(mid);
-    const anchor = Math.cos(mid) > 0 ? 'start' : 'end';
-    const labelX = anchor === 'start' ? tx + 4 : tx - 4;
-    const col = TYPE_COL[s.type] || '#94a3b8';
+    const large = ang > Math.PI ? 1 : 0;
+    const x0 = cx + r*Math.cos(a0), y0 = cy + r*Math.sin(a0);
+    const x1 = cx + r*Math.cos(a1), y1 = cy + r*Math.sin(a1);
     const path = `M${cx},${cy} L${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${large} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z`;
-    const leader = `M${(cx + r*Math.cos(mid)).toFixed(1)},${(cy + r*Math.sin(mid)).toFixed(1)} L${lx.toFixed(1)},${ly.toFixed(1)} L${tx.toFixed(1)},${ty.toFixed(1)}`;
+    const side = Math.cos(mid) >= 0 ? 1 : -1;        // right (+1) or left (-1)
+    const ex = cx + r*Math.cos(mid), ey = cy + r*Math.sin(mid);   // point on the arc edge
     const cap = s.type.charAt(0).toUpperCase() + s.type.slice(1);
-    return `<g><path d="${path}" fill="${col}" stroke="var(--panel)" stroke-width="2" data-rx="pie" data-val="${s.count} posts (${Math.round(s.count/total*100)}%)" data-name="${esc(cap)}"/>
-      <path d="${leader}" fill="none" stroke="${col}" stroke-width="1.2"/>
-      <text x="${labelX.toFixed(1)}" y="${(ty+4).toFixed(1)}" text-anchor="${anchor}" style="fill:${col};font:600 13px Inter,system-ui">${esc(cap)} (${s.count})</text></g>`;
+    return { col: TYPE_COL[s.type] || '#94a3b8', cap, path, side, ex, ey,
+             idealY: cy + (r+20)*Math.sin(mid), labelY: 0,
+             count: s.count, pct: Math.round(s.count/total*100), type: s.type };
+  });
+  // pass 2: spread labels vertically per side so they never overlap
+  const GAP = 17;
+  [-1, 1].forEach(side => {
+    const labs = arcs.filter(a => a.side === side).sort((a,b) => a.idealY - b.idealY);
+    if(!labs.length) return;
+    labs.forEach(l => l.labelY = l.idealY);
+    for(let i=1;i<labs.length;i++) if(labs[i].labelY - labs[i-1].labelY < GAP) labs[i].labelY = labs[i-1].labelY + GAP;
+    const overflow = labs[labs.length-1].labelY - (H - 12);
+    if(overflow > 0) labs.forEach(l => l.labelY -= overflow);          // shift stack up if it ran off the bottom
+    if(labs[0].labelY < 14){ const up = 14 - labs[0].labelY; labs.forEach(l => l.labelY += up); }
+  });
+  // pass 3: render slices + leader lines to the de-collided labels
+  const slices = arcs.map(a => {
+    const elbowX = cx + a.side*(r+16);
+    const textX  = cx + a.side*(r+26);
+    const anchor = a.side === 1 ? 'start' : 'end';
+    const leader = `M${a.ex.toFixed(1)},${a.ey.toFixed(1)} L${elbowX.toFixed(1)},${a.labelY.toFixed(1)} L${textX.toFixed(1)},${a.labelY.toFixed(1)}`;
+    return `<g><path d="${a.path}" fill="${a.col}" stroke="var(--panel)" stroke-width="2" data-rx="pie" data-val="${a.count} posts (${a.pct}%)" data-name="${esc(a.cap)}"/>
+      <path d="${leader}" fill="none" stroke="${a.col}" stroke-width="1.2"/>
+      <text x="${(textX + a.side*4).toFixed(1)}" y="${(a.labelY+4).toFixed(1)}" text-anchor="${anchor}" style="fill:${a.col};font:600 12.5px Inter,system-ui">${esc(a.cap)} (${a.count})</text></g>`;
   }).join('');
-  return `<div class="rxpie"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:520px">${slices}</svg></div>`;
+  return `<div class="rxpie"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:560px">${slices}</svg></div>`;
 }
 
 // Vertical bar chart with grid + axes (Title Length)
