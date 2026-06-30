@@ -243,28 +243,11 @@ def metrics(start, end):
                          'avatar': AVATARS.get(au, '')})
 
     # ---------------- Insights tab atoms ----------------
-    # Daily Recommendations: for each day-of-week, find the hour with the highest
-    # AVERAGE post score and rank days by that best-hour score.
-    daily_recs = []
-    if n_posts:
-        DOW_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
-        pp2 = pp.copy()
-        pp2['dow'] = pp2['created_utc'].dt.weekday
-        pp2['hr']  = pp2['created_utc'].dt.hour
-        grouped = pp2.groupby(['dow','hr'])['score'].agg(['mean','count']).reset_index()
-        for dow_i in range(7):
-            sub = grouped[grouped['dow'] == dow_i]
-            if not len(sub): continue
-            # Prefer hours with >=2 posts so a single fluke post can't win the slot;
-            # fall back to all hours only if that day never had a repeated hour.
-            pool = sub[sub['count'] >= 2]
-            if not len(pool): pool = sub
-            best = pool.loc[pool['mean'].idxmax()]
-            daily_recs.append({'day': DOW_NAMES[dow_i],
-                               'hour': int(best['hr']),
-                               'avg_score': round(float(best['mean']), 1),
-                               'sample': int(best['count'])})
-        daily_recs.sort(key=lambda r: -r['avg_score'])
+    # NOTE: Daily Recommendations are computed ONCE over full history (see
+    # DAILY_RECS below), not per-period — a 15-day window has only ~2 of each
+    # weekday, far too few to recommend posting times. The per-period panels
+    # below (content mix, title length, hourly engagement) describe the current
+    # window and have enough posts to be meaningful.
 
     # Content Type Performance: per post_type, count + avg upvotes + avg comments
     content_perf = []
@@ -334,7 +317,7 @@ def metrics(start, end):
         'risks': risks, 'risk_evidence': risk_evidence, 'posts_removed': removed,
         'health': health, 'risk_level': risk_word,
         # Insights tab
-        'daily_recs': daily_recs, 'content_perf': content_perf,
+        'content_perf': content_perf,
         'title_impact': title_impact, 'by_hour': by_hour,
     }
 
@@ -436,6 +419,37 @@ for col_df in (P, C):
         if a not in AUTHOR_FIRST_SEEN or d0 < AUTHOR_FIRST_SEEN[a]:
             AUTHOR_FIRST_SEEN[a] = d0
 
+# ---------------------------------------------------------------- Daily Recommendations (global)
+# Best hour to post on each weekday, ranked by average upvote score. Computed over
+# the FULL post history (not a single period) because "best posting time" is a
+# structural pattern that needs a large sample: in any cell (weekday x hour) the
+# full history holds ~50 posts vs ~1 for a 15-day window, so this is trustworthy.
+# Only hours with >= MIN_CELL posts can win a day, and we surface the sample size.
+def global_daily_recs(min_cell=5):
+    DOW = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+    pp = P.dropna(subset=['created_utc']).copy()
+    pp['dow'] = pp['created_utc'].dt.weekday
+    pp['hr']  = pp['created_utc'].dt.hour
+    g = pp.groupby(['dow', 'hr'])['score'].agg(['mean', 'median', 'count']).reset_index()
+    out = []
+    for dow_i in range(7):
+        sub = g[g['dow'] == dow_i]
+        if not len(sub): continue
+        pool = sub[sub['count'] >= min_cell]
+        if not len(pool): pool = sub[sub['count'] >= 2]
+        if not len(pool): pool = sub
+        best = pool.loc[pool['mean'].idxmax()]
+        out.append({'day': DOW[dow_i], 'hour': int(best['hr']),
+                    'avg_score': round(float(best['mean']), 1),
+                    'median_score': round(float(best['median']), 1),
+                    'sample': int(best['count']),
+                    'day_total': int(sub['count'].sum())})
+    out.sort(key=lambda r: -r['avg_score'])
+    return out
+
+DAILY_RECS = global_daily_recs()
+DAILY_RECS_TOTAL = int(len(P))
+
 # ---------------------------------------------------------------- annual baselines
 # "Week vs annual average" needs a per-year baseline. We average each metric across
 # all weekly cohorts that fall in a given calendar year (mean of weeks), plus carry
@@ -473,6 +487,7 @@ ANNUAL = annual_baselines(PERIODS)
 DATA = {'tracker_start': TRACKER_START, 'generated': datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
         'periods': PERIODS, 'presets': PRESETS, 'default_preset': DEFAULT_PRESET,
         'daily': DAILY, 'author_first_seen': AUTHOR_FIRST_SEEN,
+        'daily_recs': DAILY_RECS, 'daily_recs_total': DAILY_RECS_TOTAL,
         'earliest': EARLIEST.strftime('%Y-%m-%d'), 'latest': LATEST.strftime('%Y-%m-%d'),
         'annual': ANNUAL, 'annual_metrics': ANNUAL_METRICS}
 
@@ -710,6 +725,7 @@ html[data-theme="dark"] .recbest{color:#2dd4bf}
 .recbar span{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#2dd4bf,#0d9488)}
 .recfoot{display:flex;align-items:baseline;justify-content:space-between;font-size:12.5px;color:var(--mut)}
 .recfoot b{color:var(--ink);font:700 16px Inter,system-ui;font-variant-numeric:tabular-nums}
+.recn{font-size:11px;opacity:.7}
 .recfoot b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
 
 /* Content type cards + pie */
@@ -1222,14 +1238,13 @@ function fmtN(n){return n.toLocaleString('en-US',{maximumFractionDigits:1});}
 
 // -------- Insights tab: ONLY Daily Recommendations --------
 function viewInsights(p){
-  if(p.custom) return `<div class="card"><h3>Insights</h3><div class="muted">Switch Period to a preset (e.g. <b>Last 15 days</b>) to see Daily Recommendations.</div></div>`;
-  const recs = p.daily_recs || [];
+  const recs = DATA.daily_recs || [];   // global: computed over full history, not the selected period
   const maxScore = Math.max(...recs.map(r=>r.avg_score), 1);
   const clock = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>';
   let h = `<div class="rxcard">
     <div class="rxtitle">Daily Recommendations</div>
-    <div class="rxsub">Best hour to post on each day, ranked by average upvote score. The bar shows each day relative to the strongest.</div>`;
-  if(!recs.length) h += '<div class="muted">No posts in this period.</div>';
+    <div class="rxsub">Best hour to post on each weekday, ranked by average upvote score across <b style="color:var(--ink)">all ${(DATA.daily_recs_total||0).toLocaleString()} tracked posts</b> (UTC). The bar shows each day relative to the strongest.</div>`;
+  if(!recs.length) h += '<div class="muted">No posts tracked.</div>';
   else h += '<div class="recgrid">' + recs.map((r,i)=>{
     const pct = Math.round(r.avg_score / maxScore * 100);
     return `<div class="reccard${i===0?' best':''}">
@@ -1240,9 +1255,10 @@ function viewInsights(p){
       </div>
       <div class="recday">${esc(r.day)}</div>
       <div class="recbar"><span style="width:${pct}%"></span></div>
-      <div class="recfoot"><span>Avg score</span><b>${fmtN(r.avg_score)}</b></div>
+      <div class="recfoot"><span>Avg score <span class="recn">· ${r.sample} posts</span></span><b>${fmtN(r.avg_score)}</b></div>
     </div>`;
   }).join('') + '</div>';
+  h += '<div class="rxnote">Computed over full history (each weekday/hour cell holds tens of posts) — a single period is far too small to recommend posting times. "Best hour" is the highest-scoring hour with enough samples; the post count under each is that hour’s sample size. Times are UTC; treat as a guide, not a guarantee.</div>';
   h += '</div>';
   return h;
 }
