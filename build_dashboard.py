@@ -692,12 +692,24 @@ html[data-theme="dark"] #rxtip .rxv{color:#2dd4bf}
 .recgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
 @media(max-width:980px){.recgrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.recgrid{grid-template-columns:1fr}}
-.reccard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 16px 0;display:flex;flex-direction:column;overflow:hidden}
-.recpill{background:#2dd4bf;color:#fff;font:600 13px Inter,system-ui;text-align:center;border-radius:6px;padding:6px 0;letter-spacing:.01em}
-.recbody{padding:16px 0 14px;text-align:center}
-.recday{font:700 18px Inter,system-ui;color:var(--ink);letter-spacing:-.01em;margin-bottom:4px}
-.rectime{color:var(--mut);font-size:14px}
-.recfoot{border-top:1px solid var(--line);padding:11px 0;font-size:12.5px;color:var(--mut);text-align:center;margin:0 -16px;background:transparent}
+.reccard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 16px;display:flex;flex-direction:column;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+.reccard:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:rgba(45,212,191,.45)}
+.reccard.best{border-color:rgba(45,212,191,.5);background:linear-gradient(180deg,rgba(45,212,191,.07),transparent)}
+.rechead{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.recrank{font:700 11.5px Inter,system-ui;color:var(--mut);background:var(--btn-alt);border-radius:999px;padding:3px 9px;letter-spacing:.02em}
+.reccard.best .recrank{color:#0d9488;background:rgba(45,212,191,.18)}
+html[data-theme="dark"] .reccard.best .recrank{color:#2dd4bf}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) .reccard.best .recrank{color:#2dd4bf}}
+.recbest{font:700 10px Inter,system-ui;text-transform:uppercase;letter-spacing:.06em;color:#0d9488}
+html[data-theme="dark"] .recbest{color:#2dd4bf}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) .recbest{color:#2dd4bf}}
+.rectime{margin-left:auto;display:inline-flex;align-items:center;gap:5px;color:var(--mut);font:500 12.5px Inter,system-ui}
+.rectime svg{width:13px;height:13px;opacity:.8}
+.recday{font:700 21px Inter,system-ui;color:var(--ink);letter-spacing:-.02em;margin-bottom:14px}
+.recbar{height:6px;border-radius:3px;background:var(--btn-alt);overflow:hidden;margin-bottom:11px}
+.recbar span{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#2dd4bf,#0d9488)}
+.recfoot{display:flex;align-items:baseline;justify-content:space-between;font-size:12.5px;color:var(--mut)}
+.recfoot b{color:var(--ink);font:700 16px Inter,system-ui;font-variant-numeric:tabular-nums}
 .recfoot b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
 
 /* Content type cards + pie */
@@ -1212,19 +1224,25 @@ function fmtN(n){return n.toLocaleString('en-US',{maximumFractionDigits:1});}
 function viewInsights(p){
   if(p.custom) return `<div class="card"><h3>Insights</h3><div class="muted">Switch Period to a preset (e.g. <b>Last 15 days</b>) to see Daily Recommendations.</div></div>`;
   const recs = p.daily_recs || [];
+  const maxScore = Math.max(...recs.map(r=>r.avg_score), 1);
+  const clock = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>';
   let h = `<div class="rxcard">
     <div class="rxtitle">Daily Recommendations</div>
-    <div class="rxsub">Use the overall best times to get a viral post and reach the hot page.</div>`;
+    <div class="rxsub">Best hour to post on each day, ranked by average upvote score. The bar shows each day relative to the strongest.</div>`;
   if(!recs.length) h += '<div class="muted">No posts in this period.</div>';
-  else h += '<div class="recgrid">' + recs.map((r,i)=>`
-    <div class="reccard">
-      <div class="recpill">#${i+1}</div>
-      <div class="recbody">
-        <div class="recday">${esc(r.day)}</div>
-        <div class="rectime">${fmt12(r.hour)}</div>
+  else h += '<div class="recgrid">' + recs.map((r,i)=>{
+    const pct = Math.round(r.avg_score / maxScore * 100);
+    return `<div class="reccard${i===0?' best':''}">
+      <div class="rechead">
+        <span class="recrank">#${i+1}</span>
+        ${i===0?'<span class="recbest">Best time</span>':''}
+        <span class="rectime">${clock}${fmt12(r.hour)}</span>
       </div>
-      <div class="recfoot">Avg Score: <b>${fmtN(r.avg_score)}</b></div>
-    </div>`).join('') + '</div>';
+      <div class="recday">${esc(r.day)}</div>
+      <div class="recbar"><span style="width:${pct}%"></span></div>
+      <div class="recfoot"><span>Avg score</span><b>${fmtN(r.avg_score)}</b></div>
+    </div>`;
+  }).join('') + '</div>';
   h += '</div>';
   return h;
 }
