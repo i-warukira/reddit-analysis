@@ -698,12 +698,16 @@ html[data-theme="dark"] #rxtip .rxv{color:#2dd4bf}
 .rxcursor{stroke:var(--mut);stroke-opacity:.35;stroke-width:1}
 .rxfocus{fill:#2dd4bf;stroke:var(--panel);stroke-width:2;filter:drop-shadow(0 1px 3px rgba(20,30,60,.25))}
 .rxchart svg, .rxpie svg{transition:none}
-/* Charts "slither" in: the stroke draws itself (dashoffset) while fills + dots fade up */
+/* Charts "slither" in when scrolled into view (chart-in added by IntersectionObserver):
+   the stroke draws itself (dashoffset) while fills + dots fade up. Hidden until then. */
 @keyframes cdraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
 @keyframes cfillin{from{opacity:0}to{opacity:1}}
-.cdraw{stroke-dasharray:1;stroke-dashoffset:1;animation:cdraw 1.15s cubic-bezier(.45,.05,.2,1) forwards}
-.cfill,.ptg .pt{opacity:0;animation:cfillin 1.2s ease forwards}
-@media (prefers-reduced-motion: reduce){.cdraw{stroke-dasharray:none;stroke-dashoffset:0;animation:none}.cfill,.ptg .pt{opacity:1;animation:none}}
+.cdraw{stroke-dasharray:1;stroke-dashoffset:1}
+.cfill,.ptg .pt{opacity:0}
+.chart-in .cdraw{animation:cdraw 1.15s cubic-bezier(.45,.05,.2,1) forwards}
+.chart-in .cfill,.chart-in .ptg .pt{animation:cfillin 1.2s ease forwards}
+@media (prefers-reduced-motion: reduce){.cdraw{stroke-dasharray:none;stroke-dashoffset:0}.cfill,.ptg .pt{opacity:1}.chart-in .cdraw,.chart-in .cfill,.chart-in .ptg .pt{animation:none}}
+@media print{.cdraw{stroke-dashoffset:0!important}.cfill,.ptg .pt{opacity:1!important}}
 .warnbox{border:1px solid var(--warn);background:#fff7e6;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:13px}
 /* --- Insights & Performance tabs (Recharts-style cards) --- */
 .rxcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow)}
@@ -1475,6 +1479,23 @@ function render(){
       </div>`;
     $('#view').insertBefore(note, $('#view').firstChild);
   }
+  revealCharts();   // arm the scroll-into-view draw animation for this view's charts
+}
+// Reveal each chart's draw animation only when it scrolls into the viewport.
+let chartIO = null;
+function revealCharts(){
+  if(!('IntersectionObserver' in window)){
+    document.querySelectorAll('#view svg').forEach(s=>s.classList.add('chart-in')); return;
+  }
+  if(chartIO) chartIO.disconnect();
+  chartIO = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      // reveal when it enters view, OR if it's already been scrolled past (fast jump)
+      const passed = e.rootBounds && e.boundingClientRect.bottom <= e.rootBounds.top;
+      if(e.isIntersecting || passed){ e.target.classList.add('chart-in'); chartIO.unobserve(e.target); }
+    });
+  }, {threshold:0.18, rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('#view svg').forEach(svg=>{ if(svg.querySelector('.cdraw')) chartIO.observe(svg); });
 }
 document.querySelectorAll('#nav a').forEach(a=>a.onclick=()=>{
   view=a.dataset.v; document.querySelectorAll('#nav a').forEach(x=>x.classList.toggle('active',x===a)); render();
