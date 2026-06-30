@@ -127,7 +127,7 @@ if len(top):
     for r in top.itertuples():
         link = rlink(r.permalink)
         title = str(r.title)[:90].replace('|', '\\|')
-        L.append(f"- **{int(r.score)}↑ / {int(r.num_comments)}💬** — " + (f"[{title}]({link})" if link else title))
+        L.append(f"- **{int(r.score)} upvotes · {int(r.num_comments)} comments** — " + (f"[{title}]({link})" if link else title))
     L.append("")
 
 L.append("## What people were talking about")
@@ -194,7 +194,7 @@ tldr = "".join(f'<li>{x}</li>' for x in [
 ])
 
 top_html = "<table><tbody>" + "".join(
-    f'<tr><td class="num">{int(r.score)}↑ · {int(r.num_comments)}💬</td><td>{alink(r.permalink, str(r.title)[:110])}</td></tr>'
+    f'<tr><td class="num">{int(r.score)} upvotes · {int(r.num_comments)} comments</td><td>{alink(r.permalink, str(r.title)[:110])}</td></tr>'
     for r in top.itertuples()) + "</tbody></table>" if len(top) else '<div class="muted">No posts.</div>'
 
 themes_html = " ".join(f'<span class="tag">{esc(t)}</span>' for t in themes)
@@ -219,7 +219,7 @@ if not risk_html:
 
 note = ""
 if COMMENTS_THROUGH < start:
-    note = (f'<div class="note">⚠ <b>Data note:</b> the comment archive runs only through '
+    note = (f'<div class="note"><svg style="width:15px;height:15px;vertical-align:-2px;margin-right:6px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><b>Data note:</b> the comment archive runs only through '
             f'<b>{COMMENTS_THROUGH:%d %b %Y}</b> — this window has <b>no archived comment data yet</b> (backfills on a lag). '
             f'Figures cover <b>submissions (posts)</b>, complete through {P["created_utc"].max():%d %b}. '
             f'Reply-based metrics fill in at the next refresh.</div>')

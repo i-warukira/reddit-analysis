@@ -726,6 +726,7 @@ html[data-theme="dark"] #rxtip .rxv{color:#2dd4bf}
 @media (prefers-reduced-motion: reduce){.cdraw{stroke-dasharray:none;stroke-dashoffset:0}.cfill,.ptg .pt{opacity:1}.chart-in .cdraw,.chart-in .cfill,.chart-in .ptg .pt{animation:none}}
 @media print{.cdraw{stroke-dashoffset:0!important}.cfill,.ptg .pt{opacity:1!important}}
 .warnbox{border:1px solid var(--warn);background:#fff7e6;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:13px}
+.wbico{width:15px;height:15px;vertical-align:-2px;margin-right:6px}
 /* --- Insights & Performance tabs (Recharts-style cards) --- */
 .rxcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow)}
 .rxtitle{font:700 17px Inter,system-ui;color:var(--ink);letter-spacing:-.01em;margin:0 0 4px}
@@ -1202,7 +1203,7 @@ function topPostsTable(p){
 function partialBanner(p,q,cmp){
   if(p.comment_data && !(cmp&&!q.comment_data)) return '';
   const which=[!p.comment_data?'selected period':null,(cmp&&!q.comment_data)?'comparison period':null].filter(Boolean).join(' & ');
-  return `<div class="warnbox"><b style="color:#b45309">⚠ Partial data — interpret with care.</b>
+  return `<div class="warnbox"><b style="color:#b45309"><svg class="wbico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Partial data — interpret with care.</b>
     <span class="muted">The ${which} has incomplete archived comments (Arctic-Shift gap / still backfilling), so comment-based metrics
     (Comments, Comments/post, Resolution, Escalations) read low and are <b>not</b> a real decline. Post & upvote metrics remain reliable.</span></div>`;
 }
