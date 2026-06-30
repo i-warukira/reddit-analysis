@@ -698,6 +698,12 @@ html[data-theme="dark"] #rxtip .rxv{color:#2dd4bf}
 .rxcursor{stroke:var(--mut);stroke-opacity:.35;stroke-width:1}
 .rxfocus{fill:#2dd4bf;stroke:var(--panel);stroke-width:2;filter:drop-shadow(0 1px 3px rgba(20,30,60,.25))}
 .rxchart svg, .rxpie svg{transition:none}
+/* Charts "slither" in: the stroke draws itself (dashoffset) while fills + dots fade up */
+@keyframes cdraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes cfillin{from{opacity:0}to{opacity:1}}
+.cdraw{stroke-dasharray:1;stroke-dashoffset:1;animation:cdraw 1.15s cubic-bezier(.45,.05,.2,1) forwards}
+.cfill,.ptg .pt{opacity:0;animation:cfillin 1.2s ease forwards}
+@media (prefers-reduced-motion: reduce){.cdraw{stroke-dasharray:none;stroke-dashoffset:0;animation:none}.cfill,.ptg .pt{opacity:1;animation:none}}
 .warnbox{border:1px solid var(--warn);background:#fff7e6;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:13px}
 /* --- Insights & Performance tabs (Recharts-style cards) --- */
 .rxcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow)}
@@ -1034,7 +1040,7 @@ function trend(metricFn, label, color, suffix=''){
     const meta=`data-name="${esc(label)}" data-win="${p.start} → ${p.end}" data-val="${v}${suffix}"`;
     return `<g class="ptg"><circle class="pt-hit" cx="${X(i)}" cy="${Y(v)}" r="10" ${meta}/><circle class="pt" cx="${X(i)}" cy="${Y(v)}" r="2.4" fill="${color}" ${meta} pointer-events="none"/></g>`;
   }).join('');
-  return `<div class="card"><h3 style="font-size:13.5px;margin-bottom:8px">${label}</h3><svg viewBox="0 0 ${W} ${H}" width="100%"><defs><linearGradient id="${gid}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${fill}" fill="url(#${gid})"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${groups}</svg></div>`;
+  return `<div class="card"><h3 style="font-size:13.5px;margin-bottom:8px">${label}</h3><svg viewBox="0 0 ${W} ${H}" width="100%"><defs><linearGradient id="${gid}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${fill}" fill="url(#${gid})" class="cfill"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="cdraw"/>${groups}</svg></div>`;
 }
 // "This week vs annual average" — one card per metric: week value, the year's
 // mean, and the % gap so a mod instantly sees if a week is above/below the norm.
@@ -1070,7 +1076,7 @@ function yoy(metricFn,label,suffix=''){
     if(arr.length){const pts=arr.map(([w,v])=>[X(w),Y(v)]);
       let pa=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
       for(let i=1;i<pts.length;i++){const[px,py]=pts[i-1],[x,yy]=pts[i],cx=(px+x)/2;pa+=` C${cx.toFixed(1)},${py.toFixed(1)} ${cx.toFixed(1)},${yy.toFixed(1)} ${x.toFixed(1)},${yy.toFixed(1)}`;}
-      lines+=`<path d="${pa}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;}
+      lines+=`<path d="${pa}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="cdraw"/>`;}
     arr.forEach(([w,v,lbl])=>{const meta=`data-name="${esc(label)} ${y}" data-win="${lbl} · ${y}" data-val="${v}${suffix}"`;
       grp+=`<g class="ptg"><circle class="pt-hit" cx="${X(w)}" cy="${Y(v)}" r="9" ${meta}/><circle class="pt" cx="${X(w)}" cy="${Y(v)}" r="2.4" fill="${c}" ${meta} pointer-events="none"/></g>`;});
     leg+=`<span><span class="dot" style="background:${c}"></span>${y}</span>`;});
@@ -1105,7 +1111,7 @@ function area(daily){
   const labs=daily.map((d,i)=>i%Math.ceil(daily.length/8||1)===0?`<text x="${X(i)}" y="${H-8}" text-anchor="middle" style="fill:var(--mut);font-size:10px">${esc(d.d)}</text>`:'').join('');
   return `<svg viewBox="0 0 ${W} ${H}" width="100%"><defs><linearGradient id="ag" x1="0" x2="0" y1="0" y2="1">
     <stop offset="0" stop-color="#3b82f6" stop-opacity=".26"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>${grid}
-    <path d="${fill}" fill="url(#ag)"/><path d="${line}" fill="none" stroke="#3b82f6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>${grp}${labs}</svg>`;
+    <path d="${fill}" fill="url(#ag)" class="cfill"/><path d="${line}" fill="none" stroke="#3b82f6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="cdraw"/>${grp}${labs}</svg>`;
 }
 function donut(title,segs,centerVal,centerSub){
   const total=segs.reduce((a,s)=>a+s.value,0)||1; const R=40,C=2*Math.PI*R; let off=0;
@@ -1410,7 +1416,7 @@ function renderHourLine(bh){
     const cx=X(i), cy=Y(d.ratio); const bx=Math.max(padL, cx-seg/2); const bw2=Math.min(W-padR, cx+seg/2)-bx;
     return `<rect x="${bx.toFixed(1)}" y="${padT}" width="${bw2.toFixed(1)}" height="${(H-padT-padB).toFixed(1)}" fill="transparent" data-rx="line" data-val="${d.ratio.toFixed(3)}" data-win="${d.hr}:00" data-cx="${cx.toFixed(1)}" data-cy="${cy.toFixed(1)}"/>`;
   }).join('');
-  return `<div class="rxchart"><svg viewBox="0 0 ${W} ${H}" width="100%">${grid}<line x1="${padL}" x2="${W-padR}" y1="${H-padB}" y2="${H-padB}" stroke="var(--line)"/><line x1="${padL}" x2="${padL}" y1="${padT}" y2="${H-padB}" stroke="var(--line)"/><line class="rxcursor" x1="0" x2="0" y1="${padT}" y2="${H-padB}" style="display:none"/><path d="${path}" fill="none" stroke="${TEAL}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/><circle class="rxfocus" r="4" style="display:none"/>${bands}${xlabs}</svg></div>`;
+  return `<div class="rxchart"><svg viewBox="0 0 ${W} ${H}" width="100%">${grid}<line x1="${padL}" x2="${W-padR}" y1="${H-padB}" y2="${H-padB}" stroke="var(--line)"/><line x1="${padL}" x2="${padL}" y1="${padT}" y2="${H-padB}" stroke="var(--line)"/><line class="rxcursor" x1="0" x2="0" y1="${padT}" y2="${H-padB}" style="display:none"/><path d="${path}" fill="none" stroke="${TEAL}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" pathLength="1" class="cdraw"/><circle class="rxfocus" r="4" style="display:none"/>${bands}${xlabs}</svg></div>`;
 }
 
 function viewTrends(p,q,cmp){
