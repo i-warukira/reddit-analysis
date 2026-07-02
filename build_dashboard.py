@@ -425,7 +425,13 @@ def tracker_seed(pp, risks, risk_evidence, escalation_rows):
         for _, r in strong_neg.head(14).iterrows():
             add(r['created_utc'], 'negative', r.get('title', ''), r.get('permalink', ''),
                 'Negative sentiment', r.get('author', ''))
-    return out[:45]
+        # Positive highlights: strongest positive posts worth logging/amplifying,
+        # ranked by upvotes so the log records what the community actually embraced.
+        strong_pos = pp[pp['sentiment_label'] == 'positive'].nlargest(8, 'score')
+        for _, r in strong_pos.iterrows():
+            add(r['created_utc'], 'positive', r.get('title', ''), r.get('permalink', ''),
+                'Positive highlight', r.get('author', ''))
+    return out[:53]
 
 EARLIEST = min(P['created_utc'].min(), C['created_utc'].min())
 LATEST = max(P['created_utc'].max(), C['created_utc'].max())
