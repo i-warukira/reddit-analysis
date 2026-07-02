@@ -73,10 +73,17 @@ try:
                'stuck': -1.3, 'stagnant': -1.5, 'vaporware': -2.4, 'abandoned': -1.9,
                'shitcoin': -2.6, 'ponzi': -2.8, 'irrelevant': -1.6}
     _va.lexicon.update(_DOMAIN)
-    _NEG_PHRASES = re.compile(
-        r'lost project|divests? from|continues? to fail|keeps? failing|'
-        r'anything left to look forward|stuck token|token .{0,14}stuck|sad truth|'
-        r'sadly .{0,32}(sink|drop|dump|fall)|got (scammed|drained)|is (this|it) a scam|scam post', re.I)
+    # TITLE-only rules: headline-level claims. Body mentions of these are often
+    # transient/quoted context (bullish TA saying a token "has been stuck under
+    # resistance" is not a complaint).
+    _NEG_TITLE = re.compile(
+        r'divests? from|continues? to fail|keeps? failing|'
+        r'anything left to look forward|stuck token|token .{0,14}stuck|sad truth', re.I)
+    # Anywhere rules, negation-aware: "nor/not ... a scam" is a DEFENSE, so the
+    # scam-question rule requires the actual question mark and no negation.
+    _NEG_ANY = re.compile(
+        r'lost project|sadly .{0,32}(sink|drop|dump|fall)|got (scammed|drained)|'
+        r'(?<!nor )(?<!not )is (this|it) a scam\?|(?<!not a )scam post', re.I)
     _QSTART = re.compile(r'^(how|what|which|where|when|who)\b', re.I)
     # finance idioms VADER misreads as violence/negativity — neutralize before scoring
     _IDIOMS = [(re.compile(r'war\s+chest', re.I), 'cash reserve')]
@@ -86,7 +93,7 @@ try:
         for pat, repl in _IDIOMS:
             t = pat.sub(repl, t); b = pat.sub(repl, b)
         txt = (t + ' ' + b)[:900]
-        if _NEG_PHRASES.search(txt):
+        if _NEG_TITLE.search(t) or _NEG_ANY.search(txt):
             return 'negative', -0.99
         ct = _va.polarity_scores(t[:500])['compound']
         cb = _va.polarity_scores(b[:600])['compound'] if b.strip() else ct
@@ -219,8 +226,19 @@ def metrics(start, end):
     else:
         top_post, type_mix, top_posts, pct_zero, avg_up, avg_cm, mod100 = {}, {}, [], 0, 0, 0, 0
 
-    # support / dev funnel
-    sup_mask = pp['title'].fillna('').str.contains(r'how|help|issue|error|problem|question|\?', case=False, regex=True)
+    # support / dev funnel — genuine question/help posts only. The old substring mask
+    # ('how' in "Show", 'help' in "Help Desk", any '?' inside long news blobs) flagged
+    # announcements as unanswered questions. Now require: an explicit help phrase, OR a
+    # short title ending in '?', OR an interrogative opener with a '?' somewhere.
+    _t = pp['title'].fillna('').astype(str)
+    HELP_RE = (r'\b(?:need help|please help|help me|can (?:someone|anyone|anybody)|'
+               r'(?:anyone|anybody) know|having (?:an? )?(?:issue|problem)|'
+               r'(?:issue|problem|error|trouble) with)\b')
+    Q_OPEN = (r'^\s*(?:how|what|why|where|when|who|which|is|are|am|can|could|does|do|did|'
+              r'will|would|should|anyone|anybody)\b')
+    sup_mask = (_t.str.contains(HELP_RE, case=False, regex=True)
+                | (_t.str.strip().str.endswith('?') & (_t.str.len() <= 120))
+                | (_t.str.contains(Q_OPEN, case=False, regex=True) & _t.str.contains(r'\?', regex=True)))
     sup = pp[sup_mask]
     commented = set(cp['post_id'].astype(str))
     resolved = len(set(sup['id'].astype(str)) & commented)
@@ -405,16 +423,27 @@ def tracker_seed(pp, risks, risk_evidence, escalation_rows):
     def add(date, sentiment, copy, link, why, author=''):
         link = link if isinstance(link, str) and link.startswith('/') else ''
         key = link or str(copy)[:40]
-        if key in seen: return
-        seen.add(key)
+        # also dedupe near-identical copy (reposters submit the same text under new links)
+        ckey = re.sub(r'[^a-z0-9]', '', str(copy).lower())[:60]
+        if key in seen or (ckey and ckey in seen): return
+        seen.add(key); seen.add(ckey)
         out.append({'date': str(date)[:16], 'source': 'Reddit · r/Hedera', 'audience': 'r/Hedera',
                     'sentiment': sentiment, 'copy': str(copy)[:140], 'link': link,
                     'why': why, 'author': str(author)})
+    # Sentiment on risk rows is the EVENT polarity a moderator would log, not the text's
+    # tone: scam/impersonation attempts are attacks -> negative even when written as
+    # cheery promo spam ("win free HBAR!"). Other risk categories (FUD/misinfo/compliance)
+    # keep their tone but are capped at neutral — evidence is often bystanders discussing.
+    ATTACKS = {'scam', 'impersonation'}
     for r in risks:
         if r['count'] and risk_evidence.get(r['key']):
             for ev in risk_evidence[r['key']][:4]:
                 lk = ev.get('link', '')
-                sent = sent_by_link.get(str(lk), ('neutral', 0))[0]     # real tone, not assumed
+                sent = sent_by_link.get(str(lk), ('neutral', 0))[0]
+                if r['key'] in ATTACKS:
+                    sent = 'negative'
+                elif sent == 'positive':
+                    sent = 'neutral'
                 add(ev.get('date', ''), sent, ev.get('text', ''), lk, r['label'], ev.get('author', ''))
     for e in escalation_rows[:10]:
         add(e.get('date', ''), 'neutral', e.get('title', ''), e.get('link', ''),
