@@ -896,6 +896,12 @@ html[data-theme="dark"] .recbest{color:#2dd4bf}
 /* --- Action Tracker --- */
 .trk-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px}
 .trk-tools{display:flex;gap:8px;flex-shrink:0}
+.trk-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.trk-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:999px;padding:6px 13px;font:600 12.5px Inter,system-ui;cursor:pointer;transition:all 120ms}
+.trk-chip:hover{border-color:var(--accent);color:var(--accent)}
+.trk-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.trk-chip-n{background:rgba(0,0,0,.14);border-radius:999px;padding:1px 8px;font-size:11px}
+.trk-chip:not(.on) .trk-chip-n{background:var(--btn-alt);color:var(--mut)}
 .trk-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
 table.trk{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;min-width:1050px}
 table.trk th{position:sticky;top:0;background:var(--btn-alt);color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;text-align:left;padding:10px 12px;white-space:nowrap;border-bottom:1px solid var(--line)}
@@ -1633,7 +1639,7 @@ function trkSaveEdits(o){ localStorage.setItem('hintel-trk-edits',JSON.stringify
 function trkManual(){ try{return JSON.parse(localStorage.getItem('hintel-trk-manual')||'[]')}catch(e){return []} }
 function trkSaveManual(a){ localStorage.setItem('hintel-trk-manual',JSON.stringify(a)); }
 function trkSeeds(p){ return (p.tracker||[]).map(t=>({...t,id:t.link||('s:'+String(t.copy).slice(0,28)),manual:false})); }
-function updateTrkCount(){ const p=scopeOf(periodSel); setCnt('c-trk',((p.tracker||[]).length)+trkManual().length); }
+function updateTrkCount(){ const p=scopeOf(periodSel); setCnt('c-trk',((p.tracker||[]).filter(t=>t.sentiment==='negative').length)+trkManual().length); }
 function trkIn(f,val,ph){ return `<input class="trk-in" data-f="${f}" value="${esc(val||'')}" placeholder="${ph||''}" oninput="trkChange(this)">`; }
 function trkSel(f,val,opts){ return `<select class="trk-in" data-f="${f}" onchange="trkChange(this)">`+opts.map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('')+`</select>`; }
 function trkStatus(val){ return `<select class="st-sel ${TRK_CLS[val]||''}" data-f="status" onchange="trkChange(this)">`+TRK_STATUSES.map(s=>`<option${s===val?' selected':''}>${s}</option>`).join('')+`</select>`; }
@@ -1657,17 +1663,39 @@ function trkCSV(){
   const blob=new Blob([lines.join('\r\n')],{type:'text/csv;charset=utf-8'}); const a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download='hIntel_action_tracker_'+p.end+'.csv'; a.click();
 }
+// Tracker filter — DEFAULT is the negative/action queue: negatives (which now
+// include every scam/impersonation row) are what need a moderator's attention.
+// Questions/positives stay one chip away instead of cluttering the default view.
+function trkFilter(){ return localStorage.getItem('hintel-trk-filter')||'negative'; }
+function trkSetFilter(f){ localStorage.setItem('hintel-trk-filter',f); render(); }
+function trkMatch(r,f){
+  if(r.manual) return true;                                   // your own rows always show
+  if(f==='all') return true;
+  if(f==='negative') return r.sentiment==='negative';
+  if(f==='questions') return (r.why||'').startsWith('Unanswered');
+  if(f==='positive') return r.why==='Positive highlight';
+  return true;
+}
 function viewTracker(p){
   const edits=trkEdits();
-  const rows=[...trkManual().map(m=>({...m,manual:true})), ...trkSeeds(p)];
+  const all=[...trkManual().map(m=>({...m,manual:true})), ...trkSeeds(p)];
+  const f=trkFilter();
+  const rows=all.filter(r=>trkMatch(r,f));
+  const counts={negative:0,questions:0,positive:0};
+  all.forEach(r=>{ if(r.manual) return;
+    if(r.sentiment==='negative') counts.negative++;
+    if((r.why||'').startsWith('Unanswered')) counts.questions++;
+    if(r.why==='Positive highlight') counts.positive++; });
+  const chip=(id,label,n)=>`<button class="trk-chip${f===id?' on':''}" onclick="trkSetFilter('${id}')">${label}${n!==undefined?` <span class="trk-chip-n">${n}</span>`:''}</button>`;
   let h=`<div class="card"><div class="trk-head">
-    <div><h3 style="margin:0 0 4px">Action tracker</h3><div class="muted" style="font-size:13px">Flagged mentions to action — auto-seeded from risks, unanswered questions and negative posts for <b style="color:var(--ink)">${p.start} → ${p.end}</b>. Add your own rows too. <b style="color:var(--ink)">Raised by · Action · Status</b> save in this browser.</div></div>
+    <div><h3 style="margin:0 0 4px">Action tracker</h3><div class="muted" style="font-size:13px">Mentions that need attention for <b style="color:var(--ink)">${p.start} → ${p.end}</b> — defaults to <b style="color:var(--ink)">negative</b> (incl. scams &amp; impersonation). Add your own rows too. <b style="color:var(--ink)">Raised by · Action · Status</b> save in this browser.</div></div>
     <div class="trk-tools"><button class="btn alt btn-ico" onclick="trkAdd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add row</button>
     <button class="btn btn-ico" onclick="trkCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV</button></div>
     </div>
+    <div class="trk-chips">${chip('negative','Needs attention',counts.negative)}${chip('questions','Unanswered questions',counts.questions)}${chip('positive','Positive highlights',counts.positive)}${chip('all','All',all.length)}</div>
     <div class="trk-wrap"><table class="trk"><thead><tr>
     <th>Date</th><th>Source / Channel</th><th>Audience</th><th>Sentiment</th><th>Copy</th><th>Post link</th><th>Raised by</th><th>Action needed</th><th>Status</th><th></th></tr></thead><tbody>`;
-  if(!rows.length) h+=`<tr><td colspan="10" class="muted" style="text-align:center;padding:26px">Nothing flagged for this period. Click <b>Add row</b> to log one.</td></tr>`;
+  if(!rows.length) h+=`<tr><td colspan="10" class="muted" style="text-align:center;padding:26px">Nothing in this view for the period. Try another filter or click <b>Add row</b>.</td></tr>`;
   rows.forEach(r=>{
     const e=r.manual?r:(edits[r.id]||{}); const link=rlink(r.link);
     h+=`<tr data-id="${esc(r.id)}" data-manual="${r.manual?1:0}">
@@ -1716,7 +1744,7 @@ function render(){
   $('#compareHint').textContent = cmp ? 'vs ' + selHint(compareSel) : '';
   $('#viewTitle').textContent = TITLES[view];
   const riskTot=(p.risks||[]).reduce((a,r)=>a+(r.count||0),0);
-  setCnt('c-dash',p.posts); setCnt('c-ment',(p.feed||[]).length); setCnt('c-mod',riskTot+(p.escalation_count||0)); setCnt('c-tr',DATA.periods.length); setCnt('c-in',(p.daily_recs||[]).length); setCnt('c-pf',(p.content_perf||[]).length); setCnt('c-trk',((p.tracker||[]).length)+trkManual().length);
+  setCnt('c-dash',p.posts); setCnt('c-ment',(p.feed||[]).length); setCnt('c-mod',riskTot+(p.escalation_count||0)); setCnt('c-tr',DATA.periods.length); setCnt('c-in',(p.daily_recs||[]).length); setCnt('c-pf',(p.content_perf||[]).length); setCnt('c-trk',((p.tracker||[]).filter(t=>t.sentiment==='negative').length)+trkManual().length);
   let h;
   if(view==='dashboard') h=viewDashboard(p,q,cmp);
   else if(view==='mentions') h=viewMentions(p);
