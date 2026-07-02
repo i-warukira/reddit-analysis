@@ -48,6 +48,41 @@ P = P.dropna(subset=['created_utc'])
 C = C.dropna(subset=['created_utc'])
 TRACKER_START = min(P['created_utc'].min(), C['created_utc'].min()).strftime('%Y-%m-%d')
 
+# ---------------------------------------------------------------- sentiment (VADER)
+# The CSV's sentiment_label came from a tiny bag-of-words counter with no negation
+# handling that over-weighted short titles (a lone "avoid"/"wrong"/"waste" flipped a
+# neutral question to negative). Recompute with VADER (social-media tuned, handles
+# negation/intensifiers/emoticons) on a title-weighted blend of title + body. Falls
+# back to the existing labels if vaderSentiment isn't installed, so builds never break.
+# Thresholds: |compound| >= 0.5 -> pos/neg, else neutral. A stricter -0.6 is used for
+# the Action Tracker so only clearly-negative posts surface there.
+NEG_THRESHOLD = -0.6
+try:
+    from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+    _va = SentimentIntensityAnalyzer()
+    def _sent_compound(title, body):
+        t = str(title or '')
+        b = str(body) if isinstance(body, str) else ''
+        ct = _va.polarity_scores(t[:500])['compound']
+        cb = _va.polarity_scores(b[:600])['compound'] if b.strip() else ct
+        return (2 * ct + cb) / 3          # headline sentiment dominates
+    def _relabel(df, text_col_body='selftext'):
+        body = df[text_col_body] if text_col_body in df else pd.Series([''] * len(df), index=df.index)
+        comp = [ _sent_compound(t, b) for t, b in zip(df.get('title', df.get('body', '')), body) ]
+        df['sentiment_score'] = [round(c, 3) for c in comp]
+        df['sentiment_label'] = ['positive' if c >= 0.5 else 'negative' if c <= -0.5 else 'neutral' for c in comp]
+        return df
+    P = _relabel(P, 'selftext')
+    # comments: score on the body text
+    if 'body' in C:
+        cb = [ _va.polarity_scores(str(x)[:500])['compound'] for x in C['body'] ]
+        C['sentiment_score'] = [round(c, 3) for c in cb]
+        C['sentiment_label'] = ['positive' if c >= 0.5 else 'negative' if c <= -0.5 else 'neutral' for c in cb]
+    print('Sentiment: recomputed with VADER.')
+except Exception as _e:
+    print(f'Sentiment: VADER unavailable ({str(_e)[:60]}) — using existing CSV labels.')
+    if 'sentiment_score' not in P: P['sentiment_score'] = 0.0
+
 # Optional avatar cache (author -> icon URL), populated by fetch_avatars.py wherever
 # Reddit is reachable. Absent/empty on this host (Reddit is IP-blocked) — the feed then
 # falls back to colored initials, so the dashboard still works fully offline.
@@ -321,7 +356,50 @@ def metrics(start, end):
         # Insights tab
         'content_perf': content_perf,
         'title_impact': title_impact, 'by_hour': by_hour,
+        # Action Tracker seed (flagged items to action; workflow fields filled in the UI)
+        'tracker': tracker_seed(pp, risks, risk_evidence, escalation_rows),
     }
+
+def tracker_seed(pp, risks, risk_evidence, escalation_rows):
+    """Rows worth actioning, pulled from risk hits, unanswered questions, and
+    genuinely negative posts. Data columns auto-filled; Raised by / Action / Status
+    are left for the moderator to complete in the UI (persisted client-side).
+
+    Sentiment is the VADER label of the *actual post* — scam/spam is usually
+    promotional (positive/neutral), so we no longer hardcode risk rows as negative;
+    the "why flagged" column carries the reason. The negative-sentiment source uses a
+    STRICT compound threshold so low-effort/neutral posts don't slip in as 'negative'."""
+    out, seen = [], set()
+    # map permalink -> (sentiment_label, compound) so risk-evidence rows show real tone
+    sent_by_link = {}
+    if 'permalink' in pp:
+        for _, r in pp.iterrows():
+            sent_by_link[str(r.get('permalink', ''))] = (str(r.get('sentiment_label', 'neutral')),
+                                                          float(r.get('sentiment_score', 0) or 0))
+    def add(date, sentiment, copy, link, why, author=''):
+        link = link if isinstance(link, str) and link.startswith('/') else ''
+        key = link or str(copy)[:40]
+        if key in seen: return
+        seen.add(key)
+        out.append({'date': str(date)[:16], 'source': 'Reddit · r/Hedera', 'audience': 'r/Hedera',
+                    'sentiment': sentiment, 'copy': str(copy)[:140], 'link': link,
+                    'why': why, 'author': str(author)})
+    for r in risks:
+        if r['count'] and risk_evidence.get(r['key']):
+            for ev in risk_evidence[r['key']][:4]:
+                lk = ev.get('link', '')
+                sent = sent_by_link.get(str(lk), ('neutral', 0))[0]     # real tone, not assumed
+                add(ev.get('date', ''), sent, ev.get('text', ''), lk, r['label'], ev.get('author', ''))
+    for e in escalation_rows[:10]:
+        add(e.get('date', ''), 'neutral', e.get('title', ''), e.get('link', ''),
+            'Unanswered question >24h', e.get('author', ''))
+    # Genuinely-negative posts only: strict VADER compound, ranked most-negative first.
+    if 'sentiment_score' in pp and len(pp):
+        strong_neg = pp[pp['sentiment_score'] <= NEG_THRESHOLD].sort_values('sentiment_score')
+        for _, r in strong_neg.head(12).iterrows():
+            add(r['created_utc'], 'negative', r.get('title', ''), r.get('permalink', ''),
+                'Negative sentiment', r.get('author', ''))
+    return out[:45]
 
 EARLIEST = min(P['created_utc'].min(), C['created_utc'].min())
 LATEST = max(P['created_utc'].max(), C['created_utc'].max())
@@ -754,6 +832,34 @@ html[data-theme="dark"] .recbest{color:#2dd4bf}
 .recfoot{display:flex;align-items:baseline;justify-content:space-between;font-size:12.5px;color:var(--mut)}
 .recfoot b{color:var(--ink);font:700 16px Inter,system-ui;font-variant-numeric:tabular-nums}
 .recn{font-size:11px;opacity:.7}
+/* --- Action Tracker --- */
+.trk-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.trk-tools{display:flex;gap:8px;flex-shrink:0}
+.trk-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table.trk{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;min-width:1050px}
+table.trk th{position:sticky;top:0;background:var(--btn-alt);color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;text-align:left;padding:10px 12px;white-space:nowrap;border-bottom:1px solid var(--line)}
+table.trk td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--ink)}
+table.trk tr:last-child td{border-bottom:none}
+table.trk tbody tr:hover{background:var(--hover)}
+.trk-date{white-space:nowrap;color:var(--mut);font-variant-numeric:tabular-nums}
+.trk-copy{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trk-link a{white-space:nowrap}
+.trk-in{width:100%;min-width:90px;background:transparent;border:1px solid transparent;border-radius:6px;padding:5px 7px;color:var(--ink);font:inherit;font-size:13px}
+.trk-in:hover{border-color:var(--line)}
+.trk-in:focus{outline:none;border-color:var(--accent);background:var(--panel)}
+.trk-sent{display:inline-flex;align-items:center;gap:6px;text-transform:capitalize;color:var(--mut)}
+.trk-sent .dot{width:8px;height:8px;border-radius:50%}
+.st-sel{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font:600 12px Inter,system-ui;cursor:pointer;-webkit-appearance:none;appearance:none;background-position:right 6px center}
+.st-sel.st-new{background:rgba(59,130,246,.14);color:#2563eb;border-color:transparent}
+.st-sel.st-prog{background:rgba(245,158,11,.16);color:#b45309;border-color:transparent}
+.st-sel.st-wait{background:var(--btn-alt);color:var(--mut);border-color:transparent}
+.st-sel.st-done{background:rgba(34,197,94,.16);color:#15803d;border-color:transparent}
+.st-sel.st-ign{background:transparent;color:var(--mut)}
+html[data-theme="dark"] .st-sel.st-new{color:#93c5fd}html[data-theme="dark"] .st-sel.st-prog{color:#fbbf24}html[data-theme="dark"] .st-sel.st-done{color:#86efac}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) .st-sel.st-new{color:#93c5fd}html:not([data-theme="light"]) .st-sel.st-prog{color:#fbbf24}html:not([data-theme="light"]) .st-sel.st-done{color:#86efac}}
+.trk-why{font-size:11px;color:var(--mut);background:var(--btn-alt);border-radius:999px;padding:2px 8px;white-space:nowrap}
+.trk-del{width:24px;height:24px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--mut);cursor:pointer;font-size:16px;line-height:1}
+.trk-del:hover{border-color:var(--bad);color:var(--bad)}
 .recfoot b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
 
 /* Content type cards + pie */
@@ -827,6 +933,7 @@ html[data-theme="dark"] .infobox .ibchip.on{color:#86efac}
       <a data-v="trends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg><span class="t">Trends</span> <span class="cnt" id="c-tr"></span></a>
       <a data-v="insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg><span class="t">Insights</span> <span class="cnt" id="c-in"></span></a>
       <a data-v="performance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="3" x2="3" y2="21"/><line x1="3" y1="21" x2="21" y2="21"/><rect x="7" y="13" width="3" height="5" rx=".5"/><rect x="12" y="8" width="3" height="10" rx=".5"/><rect x="17" y="4" width="3" height="14" rx=".5"/></svg><span class="t">Performance</span> <span class="cnt" id="c-pf"></span></a>
+      <a data-v="tracker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg><span class="t">Tracker</span> <span class="cnt" id="c-trk"></span></a>
     </nav>
     <div id="sbCtrlMount" class="sbctrls"></div>
     <div class="sbnote">intels.app · r/Hedera community intelligence<br>Source: Arctic-Shift archive<br>Generated __GENERATED__ · since __TRACKERSTART__</div>
@@ -1457,6 +1564,68 @@ function renderHourLine(bh){
   return `<div class="rxchart"><svg viewBox="0 0 ${W} ${H}" width="100%">${grid}<line x1="${padL}" x2="${W-padR}" y1="${H-padB}" y2="${H-padB}" stroke="var(--line)"/><line x1="${padL}" x2="${padL}" y1="${padT}" y2="${H-padB}" stroke="var(--line)"/><line class="rxcursor" x1="0" x2="0" y1="${padT}" y2="${H-padB}" style="display:none"/><path d="${path}" fill="none" stroke="${TEAL}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" pathLength="1" class="cdraw"/><circle class="rxfocus" r="4" style="display:none"/>${bands}${xlabs}</svg></div>`;
 }
 
+// ---------------- Action Tracker (editable, localStorage-persisted, CSV export) ----------------
+const TRK_STATUSES=['New','In progress','Waiting','Resolved','Ignored'];
+const TRK_CLS={'New':'st-new','In progress':'st-prog','Waiting':'st-wait','Resolved':'st-done','Ignored':'st-ign'};
+function trkEdits(){ try{return JSON.parse(localStorage.getItem('hintel-trk-edits')||'{}')}catch(e){return {}} }
+function trkSaveEdits(o){ localStorage.setItem('hintel-trk-edits',JSON.stringify(o)); }
+function trkManual(){ try{return JSON.parse(localStorage.getItem('hintel-trk-manual')||'[]')}catch(e){return []} }
+function trkSaveManual(a){ localStorage.setItem('hintel-trk-manual',JSON.stringify(a)); }
+function trkSeeds(p){ return (p.tracker||[]).map(t=>({...t,id:t.link||('s:'+String(t.copy).slice(0,28)),manual:false})); }
+function updateTrkCount(){ const p=scopeOf(periodSel); setCnt('c-trk',((p.tracker||[]).length)+trkManual().length); }
+function trkIn(f,val,ph){ return `<input class="trk-in" data-f="${f}" value="${esc(val||'')}" placeholder="${ph||''}" oninput="trkChange(this)">`; }
+function trkSel(f,val,opts){ return `<select class="trk-in" data-f="${f}" onchange="trkChange(this)">`+opts.map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('')+`</select>`; }
+function trkStatus(val){ return `<select class="st-sel ${TRK_CLS[val]||''}" data-f="status" onchange="trkChange(this)">`+TRK_STATUSES.map(s=>`<option${s===val?' selected':''}>${s}</option>`).join('')+`</select>`; }
+function sentTag(s){ const c={positive:'#22c55e',negative:'#ef4444',neutral:'#94a3b8'}[s]||'#94a3b8'; return `<span class="trk-sent"><span class="dot" style="background:${c}"></span>${esc(s||'—')}</span>`; }
+function trkChange(el){
+  const tr=el.closest('tr'); const id=tr.dataset.id; const manual=tr.dataset.manual==='1'; const f=el.dataset.f; const v=el.value;
+  if(manual){ const a=trkManual(); const row=a.find(x=>x.id===id); if(row){row[f]=v; trkSaveManual(a);} }
+  else { const e=trkEdits(); (e[id]=e[id]||{})[f]=v; trkSaveEdits(e); }
+  if(f==='status') el.className='st-sel '+(TRK_CLS[v]||'');
+}
+function trkAdd(){ const a=trkManual(); a.unshift({id:'m'+Date.now(),date:new Date().toISOString().slice(0,10),source:'',audience:'',sentiment:'neutral',copy:'',link:'',raised_by:'',action:'',status:'New',why:'Manual'}); trkSaveManual(a); render(); }
+function trkDel(id){ if(!confirm('Delete this row?'))return; trkSaveManual(trkManual().filter(x=>x.id!==id)); render(); }
+function trkCSV(){
+  const p=scopeOf(periodSel); const edits=trkEdits();
+  const rows=[...trkManual(), ...trkSeeds(p)];
+  const head=['Date','Source / Channel','Audience','Sentiment','Copy','Post Link','Raised by','Action needed','Status','Why flagged'];
+  const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+  const lines=[head.map(q).join(',')];
+  rows.forEach(r=>{ const e=r.manual?r:(edits[r.id]||{}); const link=r.link?('https://reddit.com'+r.link):'';
+    lines.push([r.date,r.source,r.audience,r.sentiment,r.copy,link,e.raised_by||'',e.action||'',(r.manual?r.status:(e.status||'New')),r.why||''].map(q).join(','));});
+  const blob=new Blob([lines.join('\r\n')],{type:'text/csv;charset=utf-8'}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='hIntel_action_tracker_'+p.end+'.csv'; a.click();
+}
+function viewTracker(p){
+  const edits=trkEdits();
+  const rows=[...trkManual().map(m=>({...m,manual:true})), ...trkSeeds(p)];
+  let h=`<div class="card"><div class="trk-head">
+    <div><h3 style="margin:0 0 4px">Action tracker</h3><div class="muted" style="font-size:13px">Flagged mentions to action — auto-seeded from risks, unanswered questions and negative posts for <b style="color:var(--ink)">${p.start} → ${p.end}</b>. Add your own rows too. <b style="color:var(--ink)">Raised by · Action · Status</b> save in this browser.</div></div>
+    <div class="trk-tools"><button class="btn alt btn-ico" onclick="trkAdd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add row</button>
+    <button class="btn btn-ico" onclick="trkCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV</button></div>
+    </div>
+    <div class="trk-wrap"><table class="trk"><thead><tr>
+    <th>Date</th><th>Source / Channel</th><th>Audience</th><th>Sentiment</th><th>Copy</th><th>Post link</th><th>Raised by</th><th>Action needed</th><th>Status</th><th></th></tr></thead><tbody>`;
+  if(!rows.length) h+=`<tr><td colspan="10" class="muted" style="text-align:center;padding:26px">Nothing flagged for this period. Click <b>Add row</b> to log one.</td></tr>`;
+  rows.forEach(r=>{
+    const e=r.manual?r:(edits[r.id]||{}); const link=rlink(r.link);
+    h+=`<tr data-id="${esc(r.id)}" data-manual="${r.manual?1:0}">
+      <td class="trk-date">${r.manual?trkIn('date',r.date,'YYYY-MM-DD'):esc(r.date)}</td>
+      <td>${r.manual?trkIn('source',r.source,'e.g. Reddit'):esc(r.source)}</td>
+      <td>${r.manual?trkIn('audience',r.audience,'segment'):esc(r.audience)}</td>
+      <td>${r.manual?trkSel('sentiment',r.sentiment,['positive','neutral','negative']):sentTag(r.sentiment)}</td>
+      <td class="trk-copy" title="${esc(r.copy)}">${r.manual?trkIn('copy',r.copy,'what was said'):esc(r.copy)}</td>
+      <td class="trk-link">${link?`<a href="${link}" target="_blank">open ↗</a>`:(r.manual?trkIn('link',r.link,'paste URL'):'—')}</td>
+      <td>${trkIn('raised_by',e.raised_by,'who')}</td>
+      <td>${trkIn('action',e.action,'next step')}</td>
+      <td>${trkStatus(r.manual?(r.status||'New'):(e.status||'New'))}</td>
+      <td class="trk-last">${r.manual?`<button class="trk-del" title="Delete" onclick="trkDel('${esc(r.id)}')">×</button>`:`<span class="trk-why" title="Why it was flagged">${esc(r.why||'')}</span>`}</td>
+    </tr>`;
+  });
+  h+='</tbody></table></div></div>';
+  return h;
+}
+
 function viewTrends(p,q,cmp){
   let h=''; const yr=p.end.slice(0,4); const ann=DATA.annual[yr];
   if(ann){const a=ann.avg;
@@ -1474,7 +1643,7 @@ function viewTrends(p,q,cmp){
 }
 
 let view='dashboard';
-const TITLES={dashboard:'Dashboard',mentions:'Mentions',moderation:'Moderation',trends:'Trends',insights:'Insights',performance:'Performance'};
+const TITLES={dashboard:'Dashboard',mentions:'Mentions',moderation:'Moderation',trends:'Trends',insights:'Insights',performance:'Performance',tracker:'Action Tracker'};
 function setCnt(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
 function render(){
   const p = scopeOf(periodSel);
@@ -1486,13 +1655,14 @@ function render(){
   $('#compareHint').textContent = cmp ? 'vs ' + selHint(compareSel) : '';
   $('#viewTitle').textContent = TITLES[view];
   const riskTot=(p.risks||[]).reduce((a,r)=>a+(r.count||0),0);
-  setCnt('c-dash',p.posts); setCnt('c-ment',(p.feed||[]).length); setCnt('c-mod',riskTot+(p.escalation_count||0)); setCnt('c-tr',DATA.periods.length); setCnt('c-in',(p.daily_recs||[]).length); setCnt('c-pf',(p.content_perf||[]).length);
+  setCnt('c-dash',p.posts); setCnt('c-ment',(p.feed||[]).length); setCnt('c-mod',riskTot+(p.escalation_count||0)); setCnt('c-tr',DATA.periods.length); setCnt('c-in',(p.daily_recs||[]).length); setCnt('c-pf',(p.content_perf||[]).length); setCnt('c-trk',((p.tracker||[]).length)+trkManual().length);
   let h;
   if(view==='dashboard') h=viewDashboard(p,q,cmp);
   else if(view==='mentions') h=viewMentions(p);
   else if(view==='moderation') h=viewModeration(p,q,cmp);
   else if(view==='insights') h=viewInsights(p);
   else if(view==='performance') h=viewPerformance(p);
+  else if(view==='tracker') h=viewTracker(p);
   else h=viewTrends(p,q,cmp);
   $('#view').innerHTML=h;
   if(p.custom){
