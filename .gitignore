@@ -4,3 +4,4 @@ __pycache__/
 .claude/
 logs/
 *.log
+notion_config.json
