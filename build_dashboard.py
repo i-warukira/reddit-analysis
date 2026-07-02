@@ -48,37 +48,59 @@ P = P.dropna(subset=['created_utc'])
 C = C.dropna(subset=['created_utc'])
 TRACKER_START = min(P['created_utc'].min(), C['created_utc'].min()).strftime('%Y-%m-%d')
 
-# ---------------------------------------------------------------- sentiment (VADER)
+# ---------------------------------------------------------------- sentiment (hybrid VADER)
 # The CSV's sentiment_label came from a tiny bag-of-words counter with no negation
 # handling that over-weighted short titles (a lone "avoid"/"wrong"/"waste" flipped a
-# neutral question to negative). Recompute with VADER (social-media tuned, handles
-# negation/intensifiers/emoticons) on a title-weighted blend of title + body. Falls
-# back to the existing labels if vaderSentiment isn't installed, so builds never break.
-# Thresholds: |compound| >= 0.5 -> pos/neg, else neutral. A stricter -0.6 is used for
-# the Action Tracker so only clearly-negative posts surface there.
-NEG_THRESHOLD = -0.6
+# neutral question to negative). Recompute with a hybrid classifier, hand-validated
+# against every post in the current window:
+#   1. VADER (social-media tuned: negation/intensifiers/emoticons) + a crypto/community
+#      domain lexicon ("cooked", "rugpull", "drained", "divests", "delisting", ...).
+#   2. Negative = min(title, body) compound <= -0.5 — negativity in EITHER place counts
+#      (catches "Price" titles whose complaint lives in the body: "HBAR cooked?").
+#   3. High-precision phrase rules force-negative contextual phrasing VADER can't see
+#      ("continues to fail", "stuck token", "divests from", "sad truth", scam questions).
+#   4. Question-softener: interrogative how/what/... questions with no crypto slang stay
+#      neutral ("How do you avoid wasting time in defi research?" is not a complaint).
+# Falls back to the existing CSV labels if vaderSentiment isn't installed.
+NEG_THRESHOLD = -0.5
 try:
     from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
     _va = SentimentIntensityAnalyzer()
-    def _sent_compound(title, body):
+    _DOMAIN = {'cooked': -2.2, 'rug': -2.5, 'rugpull': -3.0, 'rekt': -2.5, 'dump': -1.6,
+               'dumping': -1.9, 'dumped': -1.6, 'bagholder': -2.0, 'sinking': -1.8, 'sink': -1.4,
+               'tanked': -2.0, 'tanking': -2.0, 'bleeding': -1.8, 'crashing': -2.0, 'drained': -2.4,
+               'divest': -1.8, 'divests': -1.8, 'divesting': -1.8, 'delist': -2.0, 'delisting': -2.0,
+               'stuck': -1.3, 'stagnant': -1.5, 'vaporware': -2.4, 'abandoned': -1.9,
+               'shitcoin': -2.6, 'ponzi': -2.8, 'irrelevant': -1.6}
+    _va.lexicon.update(_DOMAIN)
+    _NEG_PHRASES = re.compile(
+        r'lost project|divests? from|continues? to fail|keeps? failing|'
+        r'anything left to look forward|stuck token|token .{0,14}stuck|sad truth|'
+        r'sadly .{0,32}(sink|drop|dump|fall)|got (scammed|drained)|is (this|it) a scam|scam post', re.I)
+    _QSTART = re.compile(r'^(how|what|which|where|when|who)\b', re.I)
+    def _classify(title, body):
         t = str(title or '')
         b = str(body) if isinstance(body, str) else ''
+        txt = (t + ' ' + b)[:900]
+        if _NEG_PHRASES.search(txt):
+            return 'negative', -0.99
         ct = _va.polarity_scores(t[:500])['compound']
         cb = _va.polarity_scores(b[:600])['compound'] if b.strip() else ct
-        return (2 * ct + cb) / 3          # headline sentiment dominates
-    def _relabel(df, text_col_body='selftext'):
-        body = df[text_col_body] if text_col_body in df else pd.Series([''] * len(df), index=df.index)
-        comp = [ _sent_compound(t, b) for t, b in zip(df.get('title', df.get('body', '')), body) ]
-        df['sentiment_score'] = [round(c, 3) for c in comp]
-        df['sentiment_label'] = ['positive' if c >= 0.5 else 'negative' if c <= -0.5 else 'neutral' for c in comp]
-        return df
-    P = _relabel(P, 'selftext')
-    # comments: score on the body text
+        mn, blend = min(ct, cb), (2 * ct + cb) / 3
+        if _QSTART.match(t.strip()) and not any(w in txt.lower() for w in _DOMAIN):
+            mn = max(mn, -0.4)
+        if mn <= -0.5:   return 'negative', round(mn, 3)
+        if blend >= 0.5: return 'positive', round(blend, 3)
+        return 'neutral', round(blend, 3)
+    _body = P['selftext'] if 'selftext' in P else pd.Series([''] * len(P), index=P.index)
+    _res = [_classify(t, b) for t, b in zip(P['title'], _body)]
+    P['sentiment_label'] = [r[0] for r in _res]
+    P['sentiment_score'] = [r[1] for r in _res]
     if 'body' in C:
-        cb = [ _va.polarity_scores(str(x)[:500])['compound'] for x in C['body'] ]
-        C['sentiment_score'] = [round(c, 3) for c in cb]
-        C['sentiment_label'] = ['positive' if c >= 0.5 else 'negative' if c <= -0.5 else 'neutral' for c in cb]
-    print('Sentiment: recomputed with VADER.')
+        _cres = [_classify('', x) for x in C['body']]
+        C['sentiment_label'] = [r[0] for r in _cres]
+        C['sentiment_score'] = [r[1] for r in _cres]
+    print('Sentiment: recomputed with hybrid VADER (+domain lexicon, phrase rules).')
 except Exception as _e:
     print(f'Sentiment: VADER unavailable ({str(_e)[:60]}) — using existing CSV labels.')
     if 'sentiment_score' not in P: P['sentiment_score'] = 0.0
@@ -393,10 +415,10 @@ def tracker_seed(pp, risks, risk_evidence, escalation_rows):
     for e in escalation_rows[:10]:
         add(e.get('date', ''), 'neutral', e.get('title', ''), e.get('link', ''),
             'Unanswered question >24h', e.get('author', ''))
-    # Genuinely-negative posts only: strict VADER compound, ranked most-negative first.
-    if 'sentiment_score' in pp and len(pp):
-        strong_neg = pp[pp['sentiment_score'] <= NEG_THRESHOLD].sort_values('sentiment_score')
-        for _, r in strong_neg.head(12).iterrows():
+    # Genuinely-negative posts only (hybrid classifier), ranked most-negative first.
+    if 'sentiment_label' in pp and len(pp):
+        strong_neg = pp[pp['sentiment_label'] == 'negative'].sort_values('sentiment_score')
+        for _, r in strong_neg.head(14).iterrows():
             add(r['created_utc'], 'negative', r.get('title', ''), r.get('permalink', ''),
                 'Negative sentiment', r.get('author', ''))
     return out[:45]
