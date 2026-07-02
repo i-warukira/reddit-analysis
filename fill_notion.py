@@ -54,7 +54,43 @@ def load_config(args):
     if not tok or not db:
         sys.exit('Missing credentials. Create notion_config.json (see docstring) '
                  'or pass --token and --db.')
-    return tok, re.sub(r'[^0-9a-fA-F]', '', db)[:32]
+    # accept a bare id, a dashed id, or a full Notion URL (id = last 32-hex run)
+    ids = re.findall(r'[0-9a-fA-F]{32}', db.replace('-', ''))
+    if not ids:
+        sys.exit(f'Could not find a 32-char Notion id in: {db!r}')
+    return tok, ids[-1]
+
+def resolve_database(tok, some_id):
+    """some_id may be a database id OR a page id containing an inline table.
+    If it's a page, walk its child blocks and use the child_database found."""
+    r = requests.get(f'{API}/databases/{some_id}', timeout=30,
+                     headers={'Authorization': f'Bearer {tok}', 'Notion-Version': NV})
+    if r.ok:
+        return some_id, r.json()
+    # not a database — try it as a page and look for inline databases inside
+    found, cursor = [], None
+    while True:
+        url = f'{API}/blocks/{some_id}/children?page_size=100' + (f'&start_cursor={cursor}' if cursor else '')
+        b = requests.get(url, timeout=30,
+                         headers={'Authorization': f'Bearer {tok}', 'Notion-Version': NV})
+        if not b.ok:
+            sys.exit(f'Notion: {some_id} is neither an accessible database nor a page '
+                     f'({b.status_code}). Is the "hintel" connection added to the page? {b.text[:200]}')
+        data = b.json()
+        for blk in data['results']:
+            if blk['type'] == 'child_database':
+                found.append((blk['id'], blk['child_database'].get('title', '(untitled)')))
+        if not data.get('has_more'): break
+        cursor = data['next_cursor']
+    if not found:
+        sys.exit('No inline database found on that page — paste the database link instead.')
+    if len(found) > 1:
+        print('Multiple tables found on the page:')
+        for i, (fid, t) in enumerate(found): print(f'  [{i}] {t}  ({fid})')
+        sys.exit('Re-run with --db <one of the ids above>.')
+    dbid = found[0][0].replace('-', '')
+    print(f'Resolved inline database: "{found[0][1]}" ({dbid})')
+    return dbid, notion(tok, 'GET', f'/databases/{dbid}')
 
 def tracker_rows():
     html = open('index.html', encoding='utf-8').read()
@@ -127,7 +163,7 @@ def main():
     args = ap.parse_args()
     tok, db = load_config(args)
 
-    schema = notion(tok, 'GET', f'/databases/{db}')
+    db, schema = resolve_database(tok, db)
     mapping, title_prop = map_columns(schema)
     print('Column mapping:', {k: v[0] for k, v in mapping.items()} or 'NONE')
     if 'link' not in mapping:
