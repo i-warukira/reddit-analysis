@@ -78,9 +78,13 @@ try:
         r'anything left to look forward|stuck token|token .{0,14}stuck|sad truth|'
         r'sadly .{0,32}(sink|drop|dump|fall)|got (scammed|drained)|is (this|it) a scam|scam post', re.I)
     _QSTART = re.compile(r'^(how|what|which|where|when|who)\b', re.I)
+    # finance idioms VADER misreads as violence/negativity — neutralize before scoring
+    _IDIOMS = [(re.compile(r'war\s+chest', re.I), 'cash reserve')]
     def _classify(title, body):
         t = str(title or '')
         b = str(body) if isinstance(body, str) else ''
+        for pat, repl in _IDIOMS:
+            t = pat.sub(repl, t); b = pat.sub(repl, b)
         txt = (t + ' ' + b)[:900]
         if _NEG_PHRASES.search(txt):
             return 'negative', -0.99
