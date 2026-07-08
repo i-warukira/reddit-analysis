@@ -29,7 +29,10 @@ html[data-theme="dark"]{--bg:#0f1217;--card:#181c24;--ink:#e6e9f0;--mut:#8b95a8;
 .top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:6px}
 h1{font-size:26px;font-weight:600;letter-spacing:-.01em;margin:0}
 .meta{color:var(--mut);font-size:13px;margin-bottom:20px}
-.back{margin-left:auto;background:var(--accent);color:#fff;text-decoration:none;border-radius:8px;padding:9px 16px;font-weight:600;font-size:13px}
+.pswitch{margin-left:auto;display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.pswitch a{padding:8px 15px;font:600 13px Inter,system-ui;color:var(--mut);text-decoration:none}
+.pswitch a:hover{background:var(--tag-bg);color:var(--ink)}
+.pswitch a.on{background:var(--accent);color:#fff}
 .theme-toggle{background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:7px;cursor:pointer;display:inline-flex;margin-left:8px}
 .theme-toggle svg{width:16px;height:16px}.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
 .grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
@@ -66,10 +69,10 @@ HEADER = """<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ℏIntel — Hedera Discord</title><link rel="icon" href="public/log.png">
 <style>{css}</style>{js}</head><body><div class="wrap">
-<div class="top"><img src="public/log.png" alt="ℏIntel" style="width:34px;height:34px;border-radius:8px;background:var(--logo-bg);padding:3px">
+<div class="top"><a href="index.html" title="ℏIntel hub"><img src="public/log.png" alt="ℏIntel" style="width:34px;height:34px;border-radius:8px;background:var(--logo-bg);padding:3px"></a>
 <h1><span style="font-weight:400">ℏ</span>Intel <span style="color:var(--mut);font-weight:400;font-size:19px">— Hedera Discord</span></h1>
-<button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
-<a class="back" href="index.html">← Reddit dashboard</a></div>
+<span class="pswitch"><a href="reddit.html">Reddit</a><a class="on" href="discord.html">Discord</a></span>
+<button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme" style="margin-left:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button></div>
 """
 
 def write(body):
@@ -89,6 +92,13 @@ def setup_page():
 <li>Save <b>discord_config.json</b> next to the scripts: <code>{"token":"BOT_TOKEN","guild_id":"SERVER_ID","channels":[]}</code></li>
 <li>Run <code>python -X utf8 fetch_discord.py</code> then <code>python -X utf8 build_discord_dashboard.py</code>.</li>
 </ol><div class="meta" style="margin-top:10px">Only the official Bot API is used — no user-token exports (Discord ToS).</div></div>""")
+    try:
+        os.makedirs('data/hub', exist_ok=True)
+        json.dump({'platform': 'discord', 'label': 'Hedera Discord', 'href': 'discord.html',
+                   'connected': False, 'window': 'Not connected yet', 'stats': []},
+                  open('data/hub/discord.json', 'w', encoding='utf-8'))
+    except Exception:
+        pass
 
 def area_svg(daily, color='#5865F2'):
     if not daily: return '<div class="meta">No data.</div>'
@@ -202,6 +212,18 @@ def main():
         b += '<div class="meta">No strongly negative messages in this window.</div>'
     b += '</div>'
     write(b)
+
+    # headline stats for the ℏIntel hub
+    try:
+        os.makedirs('data/hub', exist_ok=True)
+        json.dump({'platform': 'discord', 'label': 'Hedera Discord',
+                   'window': f'Last {args.days} days', 'generated': datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
+                   'href': 'discord.html', 'connected': True,
+                   'stats': [{'k': 'Messages', 'v': n}, {'k': 'Active members', 'v': members},
+                             {'k': 'Reactions', 'v': reacts}, {'k': 'Positive', 'v': f'{pp_:.0f}%'}]},
+                  open('data/hub/discord.json', 'w', encoding='utf-8'))
+    except Exception:
+        pass
 
 if __name__ == '__main__':
     main()

@@ -13,12 +13,12 @@ Out:  dashboard_hedera.html  (open in any browser)
 """
 import pandas as pd
 import numpy as np
-import re, json, html
+import re, json, html, os
 from datetime import datetime, timedelta
 
 POSTS_CSV = 'data/r_Hedera/posts.csv'
 COMMENTS_CSV = 'data/r_Hedera/comments.csv'
-OUT = 'index.html'   # single canonical file; Vercel serves it at the site root
+OUT = 'reddit.html'  # per-platform page; the ℏIntel hub (index.html) links here
 
 # Reporting cadence: TWICE A MONTH — a first-half cohort (1st–15th) and a
 # second-half cohort (16th–end of month). This matches the directed schedule of
@@ -648,6 +648,21 @@ try:
 except Exception as e:
     print('  (aggregates not written:', str(e)[:80], ')')
 
+# headline stats for the ℏIntel hub (uses the Last-15-days preset = dashboard default)
+try:
+    os.makedirs('data/hub', exist_ok=True)
+    hp = PRESETS[DEFAULT_PRESET]
+    json.dump({'platform': 'reddit', 'label': 'r/Hedera', 'window': hp['label'],
+               'generated': DATA['generated'], 'href': 'reddit.html',
+               'stats': [{'k': 'Posts', 'v': hp['posts']},
+                         {'k': 'Contributors', 'v': hp['contributors']},
+                         {'k': 'Comments', 'v': hp['comments']},
+                         {'k': 'Positive', 'v': str(hp['sentiment']['pos']) + '%'}]},
+              open('data/hub/reddit.json', 'w', encoding='utf-8'))
+    print('Hub stats written: data/hub/reddit.json')
+except Exception as e:
+    print('  (hub stats not written:', str(e)[:80], ')')
+
 # ---------------------------------------------------------------- HTML
 TEMPLATE = r"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
@@ -810,6 +825,11 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 15px;font-weight:600;cursor:pointer;font-size:13px;text-decoration:none}
 .btn.alt{background:var(--btn-alt);color:var(--ink)}.btn:hover{filter:brightness(1.05)}
 .btn-ico{display:inline-flex;align-items:center;gap:7px}.btn-ico svg{width:15px;height:15px}
+.pswitch{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.pswitch a{padding:7px 14px;font:600 13px Inter,system-ui;color:var(--mut);text-decoration:none}
+.pswitch a:hover{background:var(--hover);color:var(--ink)}
+.pswitch a.on{background:var(--accent);color:#fff}
+a.brand{text-decoration:none}
 /* donut */
 .donut{display:flex;align-items:center;gap:18px}.lcol{font-size:13px}.lcol .lg{margin:5px 0}
 /* word cloud */
@@ -991,7 +1011,7 @@ html[data-theme="dark"] .infobox .ibchip.on{color:#86efac}
   <aside class="sidebar">
     <div class="sbtop">
       <button id="sbToggle" class="sbtoggle" type="button" aria-label="Toggle sidebar" title="Collapse sidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg></button>
-      <div class="brand"><img class="logo" src="public/log.png" alt="ℏIntel"><span><span class="h">ℏ</span>Intel</span></div>
+      <a class="brand" href="index.html" title="ℏIntel hub"><img class="logo" src="public/log.png" alt="ℏIntel"><span><span class="h">ℏ</span>Intel</span></a>
     </div>
     <nav class="nav" id="nav">
       <a data-v="dashboard" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span class="t">Dashboard</span> <span class="cnt" id="c-dash"></span></a>
@@ -1016,7 +1036,7 @@ html[data-theme="dark"] .infobox .ibchip.on{color:#86efac}
         <button class="rangebtn" id="compareBtn" type="button"><svg class="rb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 12h12M10 18h4"/></svg><span class="rb-l">Compare</span><svg class="rb-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
         <button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme" aria-label="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
         <a class="btn alt btn-ico" href="weekly.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/></svg>Weekly</a>
-        <a class="btn alt btn-ico" href="discord.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 7.2C9 6.6 10.5 6.3 12 6.3s3 .3 4.5.9"/><path d="M8 17.7c-1.9-.4-3.5-1.2-4.6-2.2.2-3 1-5.9 2.6-8.5C7.2 6.2 8.6 5.7 10 5.5l.7 1.3"/><path d="M16 17.7c1.9-.4 3.5-1.2 4.6-2.2-.2-3-1-5.9-2.6-8.5-1.2-.8-2.6-1.3-4-1.5l-.7 1.3"/><path d="M8.5 16.5c1.1.4 2.3.6 3.5.6s2.4-.2 3.5-.6"/><circle cx="9" cy="12.5" r="1"/><circle cx="15" cy="12.5" r="1"/></svg>Discord</a>
+        <span class="pswitch"><a class="on" href="reddit.html">Reddit</a><a href="discord.html">Discord</a></span>
         <button class="btn btn-ico" onclick="exportPDF()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF</button>
       </div>
     </div>

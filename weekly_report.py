@@ -273,7 +273,7 @@ a{{color:var(--blue);text-decoration:none}}a:hover{{text-decoration:underline}}
 <div class="top"><img src="public/log.png" alt="ℏIntel" style="width:34px;height:34px;border-radius:8px;background:var(--logo-bg);padding:3px;object-fit:contain">
 <h1><span style="font-weight:400">ℏ</span>Intel <span style="color:var(--mut);font-weight:400;font-size:20px">— Weekly Staff Update</span></h1>
 <button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme" aria-label="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
-<a class="back" href="index.html">← Dashboard</a></div>
+<a class="back" href="reddit.html">← Dashboard</a></div>
 <div class="meta">Period covered: <b>{start:%a %d %b %Y} → {end:%a %d %b %Y}</b> · {days} days, since last meeting · prepared {datetime.utcnow():%Y-%m-%d %H:%M} UTC</div>
 {note}
 <div class="eyebrow">TL;DR</div><div class="sec-title">At a glance</div><div class="card"><ul class="tldr">{tldr}</ul></div>
@@ -288,7 +288,7 @@ a{{color:var(--blue);text-decoration:none}}a:hover{{text-decoration:underline}}
 {card_sec("Themes", "What people were talking about", f'<div>{themes_html}</div><div style="margin-top:12px">{rec_html}</div>')}
 {card_sec("Queue", f"Support queue — {len(escal)} need a look", queue_html)}
 {card_sec("Moderation", "Risk & moderation", risk_html)}
-<div class="foot">Soft/keyword metrics are regex proxies over titles — verify before acting. Full evaluation: the twice-monthly <a href="index.html">dashboard</a>.</div>
+<div class="foot">Soft/keyword metrics are regex proxies over titles — verify before acting. Full evaluation: the twice-monthly <a href="reddit.html">dashboard</a>.</div>
 </div></body></html>"""
 
 with open('weekly.html', 'w', encoding='utf-8') as f:

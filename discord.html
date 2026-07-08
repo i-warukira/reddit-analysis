@@ -10,7 +10,10 @@ html[data-theme="dark"]{--bg:#0f1217;--card:#181c24;--ink:#e6e9f0;--mut:#8b95a8;
 .top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:6px}
 h1{font-size:26px;font-weight:600;letter-spacing:-.01em;margin:0}
 .meta{color:var(--mut);font-size:13px;margin-bottom:20px}
-.back{margin-left:auto;background:var(--accent);color:#fff;text-decoration:none;border-radius:8px;padding:9px 16px;font-weight:600;font-size:13px}
+.pswitch{margin-left:auto;display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.pswitch a{padding:8px 15px;font:600 13px Inter,system-ui;color:var(--mut);text-decoration:none}
+.pswitch a:hover{background:var(--tag-bg);color:var(--ink)}
+.pswitch a.on{background:var(--accent);color:#fff}
 .theme-toggle{background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:7px;cursor:pointer;display:inline-flex;margin-left:8px}
 .theme-toggle svg{width:16px;height:16px}.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
 .grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
@@ -40,10 +43,10 @@ a(localStorage.getItem(k)||'auto');document.addEventListener('DOMContentLoaded',
 b.onclick=function(){var c=localStorage.getItem(k)||'auto';var n=c==='auto'?'dark':(c==='dark'?'light':'auto');localStorage.setItem(k,n);a(n);};});
 window.addEventListener('storage',function(e){if(e.key===k)a(e.newValue||'auto');});})();</script>
 </head><body><div class="wrap">
-<div class="top"><img src="public/log.png" alt="ℏIntel" style="width:34px;height:34px;border-radius:8px;background:var(--logo-bg);padding:3px">
+<div class="top"><a href="index.html" title="ℏIntel hub"><img src="public/log.png" alt="ℏIntel" style="width:34px;height:34px;border-radius:8px;background:var(--logo-bg);padding:3px"></a>
 <h1><span style="font-weight:400">ℏ</span>Intel <span style="color:var(--mut);font-weight:400;font-size:19px">— Hedera Discord</span></h1>
-<button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
-<a class="back" href="index.html">← Reddit dashboard</a></div>
+<span class="pswitch"><a href="reddit.html">Reddit</a><a class="on" href="discord.html">Discord</a></span>
+<button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme" style="margin-left:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button></div>
 
 <div class="meta">No Discord data yet — this page activates automatically once the bot feed lands.</div>
 <div class="card"><h3>Connect the Hedera Discord (one-time)</h3><ol class="setup">
