@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ℏIntel — Hedera Discord</title><link rel="icon" href="public/log.png">
+<style>
+:root{--bg:#f3f5fa;--card:#ffffff;--ink:#1d2540;--mut:#7a85a3;--line:#e7ebf3;--accent:#5865F2;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;--blue:#3b82f6;--tag-bg:#eef2fb;--logo-bg:#fff}
+html[data-theme="dark"]{--bg:#0f1217;--card:#181c24;--ink:#e6e9f0;--mut:#8b95a8;--line:#262b35;--tag-bg:#262b35;--logo-bg:#262b35}
+@media (prefers-color-scheme: dark){html:not([data-theme="light"]){--bg:#0f1217;--card:#181c24;--ink:#e6e9f0;--mut:#8b95a8;--line:#262b35;--tag-bg:#262b35;--logo-bg:#262b35}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.55 Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.005em}
+.wrap{max-width:1060px;margin:0 auto;padding:30px 26px 80px}
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+h1{font-size:26px;font-weight:600;letter-spacing:-.01em;margin:0}
+.meta{color:var(--mut);font-size:13px;margin-bottom:20px}
+.back{margin-left:auto;background:var(--accent);color:#fff;text-decoration:none;border-radius:8px;padding:9px 16px;font-weight:600;font-size:13px}
+.theme-toggle{background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:7px;cursor:pointer;display:inline-flex;margin-left:8px}
+.theme-toggle svg{width:16px;height:16px}.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:760px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(20,30,60,.05)}
+.card h3{margin:0 0 14px;font:700 15px Inter,system-ui;color:var(--ink)}
+.kpi .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--mut);font-size:12.5px;margin-top:2px}
+.delta{font-size:12px;font-weight:600;margin-left:7px}.up{color:var(--good)}.down{color:var(--bad)}
+.hbar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:13px}
+.hbar .nm{width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar .bar{flex:1;height:8px;border-radius:4px;background:var(--tag-bg);overflow:hidden}
+.hbar .bar span{display:block;height:100%;background:var(--accent);border-radius:4px}
+.hbar .n{width:56px;text-align:right;font-variant-numeric:tabular-nums;color:var(--mut)}
+.heat{display:flex;flex-direction:column;gap:3px}.hrow{display:flex;align-items:center;gap:3px}
+.hlab{width:32px;font-size:10px;color:var(--mut)}.hcell{flex:1;min-width:7px;height:14px;border-radius:2px}
+.sbar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--tag-bg);margin:6px 0 10px}
+.msg{padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}.msg:last-child{border:none}
+.msg .mh{color:var(--mut);font-size:12px;margin-bottom:3px}.msg .mh b{color:var(--ink)}
+.chip{display:inline-block;background:var(--tag-bg);border-radius:999px;padding:2px 9px;font-size:11px;color:var(--mut);margin-left:8px}
+.setup li{margin:8px 0}
+.foot{color:var(--mut);font-size:12px;margin-top:34px;border-top:1px solid var(--line);padding-top:16px}
+a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
+</style>
+<script>(function(){var k='hintel-theme';function a(v){if(v==='dark'||v==='light')document.documentElement.setAttribute('data-theme',v);else document.documentElement.removeAttribute('data-theme');}
+a(localStorage.getItem(k)||'auto');document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('themeBtn');if(!b)return;
+b.onclick=function(){var c=localStorage.getItem(k)||'auto';var n=c==='auto'?'dark':(c==='dark'?'light':'auto');localStorage.setItem(k,n);a(n);};});
+window.addEventListener('storage',function(e){if(e.key===k)a(e.newValue||'auto');});})();</script>
+</head><body><div class="wrap">
+<div class="top"><img src="public/log.png" alt="ℏIntel" style="width:34px;height:34px;border-radius:8px;background:var(--logo-bg);padding:3px">
+<h1><span style="font-weight:400">ℏ</span>Intel <span style="color:var(--mut);font-weight:400;font-size:19px">— Hedera Discord</span></h1>
+<button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+<a class="back" href="index.html">← Reddit dashboard</a></div>
+
+<div class="meta">No Discord data yet — this page activates automatically once the bot feed lands.</div>
+<div class="card"><h3>Connect the Hedera Discord (one-time)</h3><ol class="setup">
+<li>Create a bot at <b>discord.com/developers/applications</b> → New Application → Bot. Enable <b>Message Content Intent</b>. Copy the token.</li>
+<li>Invite it to the server (OAuth2 → URL Generator: scope <b>bot</b>; permissions <b>View Channels</b> + <b>Read Message History</b>). A server admin must accept — same as the Notion connection, ask Abdoul/the Discord admin.</li>
+<li>Save <b>discord_config.json</b> next to the scripts: <code>{"token":"BOT_TOKEN","guild_id":"SERVER_ID","channels":[]}</code></li>
+<li>Run <code>python -X utf8 fetch_discord.py</code> then <code>python -X utf8 build_discord_dashboard.py</code>.</li>
+</ol><div class="meta" style="margin-top:10px">Only the official Bot API is used — no user-token exports (Discord ToS).</div></div><div class="foot">ℏIntel · Discord data via official Bot API (fetch_discord.py) · sentiment uses the same hybrid classifier as the Reddit dashboard.</div></div></body></html>

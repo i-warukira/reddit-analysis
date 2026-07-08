@@ -5,3 +5,4 @@ __pycache__/
 logs/
 *.log
 notion_config.json
+discord_config.json
