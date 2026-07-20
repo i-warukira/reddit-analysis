@@ -652,12 +652,19 @@ except Exception as e:
 try:
     os.makedirs('data/hub', exist_ok=True)
     hp = PRESETS[DEFAULT_PRESET]
+    _h30 = make_preset('Last 30 days', 30)          # shared 30d window for cross-platform charts
     json.dump({'platform': 'reddit', 'label': 'r/Hedera', 'window': hp['label'],
-               'generated': DATA['generated'], 'href': 'reddit.html',
+               'generated': DATA['generated'], 'href': 'reddit.html', 'icon': 'public/reddit_icon.png',
                'stats': [{'k': 'Posts', 'v': hp['posts']},
                          {'k': 'Contributors', 'v': hp['contributors']},
                          {'k': 'Comments', 'v': hp['comments']},
-                         {'k': 'Positive', 'v': str(hp['sentiment']['pos']) + '%'}]},
+                         {'k': 'Positive', 'v': str(hp['sentiment']['pos']) + '%'}],
+               # cross-platform rollup (30d) for the ℏIntel hub
+               'roll': {'activity': _h30['posts'] + _h30['comments'], 'people': _h30['contributors'],
+                        'new_people': _h30['new_to_tracker'],
+                        'pos': _h30['sentiment']['pos'], 'neg': _h30['sentiment']['neg'],
+                        'attention': len([t for t in _h30.get('tracker', []) if t.get('sentiment') == 'negative'])},
+               'daily': [[d['d'], d['c']] for d in _h30['daily']]},
               open('data/hub/reddit.json', 'w', encoding='utf-8'))
     print('Hub stats written: data/hub/reddit.json')
 except Exception as e:

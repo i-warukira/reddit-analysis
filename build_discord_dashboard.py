@@ -9,7 +9,7 @@ With no data yet it writes a setup page, so the dashboard link never 404s.
 
 Run:  python -X utf8 build_discord_dashboard.py [--days 14]
 """
-import argparse, html, json, os
+import argparse, html, json, os, re
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -75,13 +75,56 @@ HEADER = """<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme" style="margin-left:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button></div>
 """
 
-def write(body):
+FOOT = ('<div class="foot">ℏIntel · Discord data via official Bot API (fetch_discord.py) · '
+        'sentiment uses the same hybrid classifier as the Reddit dashboard.</div>')
+
+def _page_password():
+    try:
+        return (json.load(open('discord_config.json', encoding='utf-8')).get('page_password') or '').strip()
+    except Exception:
+        return ''
+
+def _encrypt_gate(inner_html):
+    """AES-GCM encrypt the sensitive body; the page ships a lock screen + a Web-Crypto
+    decryptor. Without the password the source contains only ciphertext (real protection,
+    works on static hosting). PBKDF2-SHA256(210k) -> AES-256-GCM, matching SubtleCrypto."""
+    import base64, os as _os
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+    from cryptography.hazmat.primitives import hashes
+    pw = _page_password().encode()
+    salt, iv = _os.urandom(16), _os.urandom(12)
+    key = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=210000).derive(pw)
+    ct = AESGCM(key).encrypt(iv, inner_html.encode('utf-8'), None)
+    b64 = lambda x: base64.b64encode(x).decode()
+    blob = json.dumps({'s': b64(salt), 'i': b64(iv), 'c': b64(ct), 'n': 210000})
+    return ('<div id="lock" style="max-width:420px;margin:12vh auto;padding:0 20px;text-align:center">'
+            '<div style="font:600 18px Inter,system-ui;color:var(--ink);margin-bottom:6px">🔒 Moderators only</div>'
+            '<div class="meta" style="margin-bottom:18px">This Discord dashboard contains member names and messages. '
+            'Enter the moderator password to view.</div>'
+            '<input id="pw" type="password" placeholder="Password" style="width:100%;padding:11px 13px;border:1px solid var(--line);'
+            'border-radius:9px;background:var(--card);color:var(--ink);font:15px Inter,system-ui" '
+            'onkeydown="if(event.key===\'Enter\')unlock()">'
+            '<div id="err" style="color:var(--bad);font-size:13px;margin-top:8px;min-height:18px"></div>'
+            '<button onclick="unlock()" style="margin-top:6px;width:100%;padding:11px;border:none;border-radius:9px;'
+            'background:var(--accent);color:#fff;font:600 14px Inter,system-ui;cursor:pointer">Unlock</button></div>'
+            '<div id="content"></div>'
+            f'<script>var BLOB={blob};'
+            'async function unlock(){var pw=document.getElementById("pw").value;var e=document.getElementById("err");e.textContent="";'
+            'try{var dec=new TextDecoder(),enc=new TextEncoder();var b=function(s){return Uint8Array.from(atob(s),function(c){return c.charCodeAt(0)})};'
+            'var km=await crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveKey"]);'
+            'var key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b(BLOB.s),iterations:BLOB.n,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["decrypt"]);'
+            'var pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b(BLOB.i)},key,b(BLOB.c));'
+            'document.getElementById("lock").style.display="none";document.getElementById("content").innerHTML=dec.decode(pt);'
+            'try{sessionStorage.setItem("hintel-dpw",pw)}catch(_){}}catch(err){e.textContent="Wrong password."}}'
+            'var saved=sessionStorage.getItem("hintel-dpw");if(saved){document.getElementById("pw").value=saved;unlock();}'
+            '</script>')
+
+def write(body, gate=False):
+    inner = _encrypt_gate(body + FOOT) if gate else (body + FOOT)
     with open(OUT, 'w', encoding='utf-8') as f:
-        f.write(HEADER.format(css=THEME_CSS, js=THEME_JS) + body +
-                '<div class="foot">ℏIntel · Discord data via official Bot API (fetch_discord.py) · '
-                'sentiment uses the same hybrid classifier as the Reddit dashboard.</div>'
-                '</div></body></html>')
-    print(f'Dashboard written: {OUT}')
+        f.write(HEADER.format(css=THEME_CSS, js=THEME_JS) + inner + '</div></body></html>')
+    print(f'Dashboard written: {OUT}' + (' (password-protected)' if gate else ''))
 
 def setup_page():
     write("""
@@ -141,15 +184,25 @@ def main():
 
     if not os.path.exists(CSV_PATH):
         setup_page(); return
-    df = pd.read_csv(CSV_PATH, low_memory=False)
-    if not len(df):
+    raw = pd.read_csv(CSV_PATH, low_memory=False)
+    if not len(raw):
         setup_page(); return
-    df['created_utc'] = pd.to_datetime(df['created_utc'], errors='coerce')
-    df = df.dropna(subset=['created_utc'])
-    df = df[df['bot'] != 1]                                  # humans only
-    latest = df['created_utc'].max()
+    raw['created_utc'] = pd.to_datetime(raw['created_utc'], errors='coerce')
+    raw = raw.dropna(subset=['created_utc'])
+    raw['channel'] = raw['channel'].astype(str)
+    latest = raw['created_utc'].max()
     start = latest - timedelta(days=args.days - 1)
     prev_start = start - timedelta(days=args.days)
+
+    # New members: each entry in the join-log channel is one join (embed, no text).
+    JOIN_RE = raw['channel'].str.contains('join', case=False) & raw['channel'].str.contains('log', case=False)
+    joins = raw[JOIN_RE]
+    new_members = int(((joins['created_utc'] >= start)).sum())
+    prev_members_j = int(((joins['created_utc'] >= prev_start) & (joins['created_utc'] < start)).sum())
+
+    # Community view: humans only, and exclude bot-log / mod-internal / system channels
+    EXCLUDE = re.compile(r'log|dyno|carl-?bot|wick|mods?-chat|user-join|audit|closed-\d|capture-the-flag', re.I)
+    df = raw[(raw['bot'] != 1) & (~raw['channel'].str.contains(EXCLUDE))]
     w = df[df['created_utc'] >= start]
     pw = df[(df['created_utc'] >= prev_start) & (df['created_utc'] < start)]
 
@@ -181,11 +234,13 @@ def main():
     neu = n - pos - neg
     negs = w[w['_lab'] == 'negative'].sort_values('_sc').head(12)
 
-    b = f'<div class="meta">Window: <b>{start:%d %b %Y} → {latest:%d %b %Y}</b> ({args.days} days) · humans only, bots excluded · generated {datetime.utcnow():%Y-%m-%d %H:%M} UTC</div>'
+    b = (f'<div class="meta">Window: <b>{start:%d %b %Y} → {latest:%d %b %Y}</b> ({args.days} days) · '
+         f'community channels, humans only (bot-logs &amp; mod-internal channels excluded) · '
+         f'generated {datetime.utcnow():%Y-%m-%d %H:%M} UTC</div>')
     b += '<div class="grid g4">'
-    b += f'<div class="card kpi"><div class="v">{n:,}{delta(n,pn)}</div><div class="l">Messages</div></div>'
+    b += f'<div class="card kpi"><div class="v">{n:,}{delta(n,pn)}</div><div class="l">Messages · {per_day:.0f}/day</div></div>'
     b += f'<div class="card kpi"><div class="v">{members:,}{delta(members,pmembers)}</div><div class="l">Active members</div></div>'
-    b += f'<div class="card kpi"><div class="v">{per_day:,.0f}</div><div class="l">Messages / day</div></div>'
+    b += f'<div class="card kpi"><div class="v">{new_members:,}{delta(new_members,prev_members_j)}</div><div class="l">New members joined</div></div>'
     b += f'<div class="card kpi"><div class="v">{reacts:,}</div><div class="l">Reactions given</div></div>'
     b += '</div>'
     b += f'<div class="card" style="margin-top:14px"><h3>Daily activity</h3>{area_svg(daily)}</div>'
@@ -211,16 +266,23 @@ def main():
     else:
         b += '<div class="meta">No strongly negative messages in this window.</div>'
     b += '</div>'
-    write(b)
+    gate = bool(_page_password())
+    if not gate:
+        print('  WARNING: no "page_password" in discord_config.json — page will NOT be '
+              'encrypted. Set one before deploying (it contains member names/messages).')
+    write(b, gate=gate)
 
     # headline stats for the ℏIntel hub
     try:
         os.makedirs('data/hub', exist_ok=True)
         json.dump({'platform': 'discord', 'label': 'Hedera Discord',
                    'window': f'Last {args.days} days', 'generated': datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
-                   'href': 'discord.html', 'connected': True,
-                   'stats': [{'k': 'Messages', 'v': n}, {'k': 'Active members', 'v': members},
-                             {'k': 'Reactions', 'v': reacts}, {'k': 'Positive', 'v': f'{pp_:.0f}%'}]},
+                   'href': 'discord.html', 'connected': True, 'icon': 'public/discord_icon.png',
+                   'stats': [{'k': 'Messages', 'v': n}, {'k': 'Active', 'v': members},
+                             {'k': 'New members', 'v': new_members}, {'k': 'Positive', 'v': f'{pp_:.0f}%'}],
+                   'roll': {'activity': n, 'people': int(members), 'new_people': int(new_members),
+                            'pos': round(pp_), 'neg': round(np_), 'attention': int(len(negs))},
+                   'daily': [[d, c] for d, c in daily]},
                   open('data/hub/discord.json', 'w', encoding='utf-8'))
     except Exception:
         pass
