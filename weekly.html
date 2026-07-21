@@ -1,7 +1,13 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ℏIntel — Weekly Staff Update</title><link rel="icon" href="public/log.png"><style>
-:root{--bg:#f3f5fa;--card:#ffffff;--ink:#1d2540;--mut:#7a85a3;--line:#e7ebf3;--accent:#3b82f6;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;--blue:#3b82f6;--tag-bg:#eef2fb;--pill-bg:#fef3c7;--pill-ink:#92600a;--note-bg:#fff7e6;--note-ink:#1d2540;--bad-h:#b91c1c;--logo-bg:#fff}
+<title>ℏIntel — Weekly Staff Update</title><link rel="icon" href="public/log.png">
+<script>/* Apply the stored theme BEFORE the stylesheet parses. The toggle below runs after
+   the document, and by then the CSS has already resolved its var()-derived colours under
+   the prefers-color-scheme branch; those are not re-resolved on a later attribute change. */
+(function(){try{var t=localStorage.getItem('hintel-theme');
+if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<style>
+:root{--bg:#f6f7fc;--card:#ffffff;--ink:#1e2340;--mut:#8b90a8;--line:#eef0f7;--accent:#5b5bd6;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;--blue:#3b82f6;--tag-bg:#eef2fb;--pill-bg:#fef3c7;--pill-ink:#92600a;--note-bg:#fff7e6;--note-ink:#1d2540;--bad-h:#b91c1c;--logo-bg:#fff}
 html[data-theme="dark"]{--bg:#0f1217;--card:#181c24;--ink:#e6e9f0;--mut:#8b95a8;--line:#262b35;--tag-bg:#262b35;--pill-bg:#3b2a0e;--pill-ink:#fbbf24;--note-bg:#2a1f0a;--note-ink:#e6e9f0;--bad-h:#f87171;--logo-bg:#262b35}
 @media (prefers-color-scheme: dark){html:not([data-theme="light"]){--bg:#0f1217;--card:#181c24;--ink:#e6e9f0;--mut:#8b95a8;--line:#262b35;--tag-bg:#262b35;--pill-bg:#3b2a0e;--pill-ink:#fbbf24;--note-bg:#2a1f0a;--note-ink:#e6e9f0;--bad-h:#f87171;--logo-bg:#262b35}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,Segoe UI,Roboto,sans-serif}
@@ -18,7 +24,7 @@ h1{font-size:28px;font-weight:600;letter-spacing:-.01em;margin:0}
 .back{margin-left:auto;background:var(--accent);color:#fff;text-decoration:none;border-radius:8px;padding:9px 16px;font-weight:600;font-size:13px}
 .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:34px 0 0;border-top:1px solid var(--line);padding-top:20px}
 .sec-title{font-size:20px;font-weight:600;margin:6px 0 13px;color:var(--ink)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(20,30,60,.05)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 2px 12px rgba(30,35,64,.06)}
 .muted{color:var(--mut)}.row{padding:7px 0;border-bottom:1px solid var(--line)}.row:last-child{border:none}
 table{width:100%;border-collapse:collapse}td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 td.num{color:var(--ink);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -47,8 +53,8 @@ a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
 <div class="top"><img src="public/log.png" alt="ℏIntel" style="width:34px;height:34px;border-radius:8px;background:var(--logo-bg);padding:3px;object-fit:contain">
 <h1><span style="font-weight:400">ℏ</span>Intel <span style="color:var(--mut);font-weight:400;font-size:20px">— Weekly Staff Update</span></h1>
 <button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme" aria-label="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
-<a class="back" href="index.html">← Dashboard</a></div>
-<div class="meta">Period covered: <b>Tue 30 Jun 2026 → Wed 08 Jul 2026</b> · 9 days, since last meeting · prepared 2026-07-08 12:49 UTC</div>
+<a class="back" href="reddit.html">← Dashboard</a></div>
+<div class="meta">Period covered: <b>Tue 30 Jun 2026 → Wed 08 Jul 2026</b> · 9 days, since last meeting · prepared 2026-07-21 08:10 UTC</div>
 
 <div class="eyebrow">TL;DR</div><div class="sec-title">At a glance</div><div class="card"><ul class="tldr"><li><b>80 new posts</b> (8.9/day) (-2% vs prior 9d)</li><li><b>219 active contributors</b> — 24 new, 195 returning</li><li><b>95%</b> avg upvote ratio</li><li><b>14 question-posts</b>, 7 look unanswered</li><li>Risk: Compliance-sensitive (SEC/legal) (1)</li></ul></div>
 <div class="eyebrow">Activity</div><div class="sec-title">Submission volume</div><div class="card"><table><tbody><tr><td>New posts</td><td class="num">80</td><td class="muted">prior 9d: 82</td></tr><tr><td>Posts / day</td><td class="num">8.9</td><td class="muted">prior 9d: 9.1</td></tr><tr><td>Avg upvote ratio</td><td class="num">95%</td><td></td></tr><tr><td>Active contributors</td><td class="num">219</td><td class="muted">24 new</td></tr><tr><td>Archived comments in window</td><td class="num">910</td><td></td></tr></tbody></table></div>
@@ -56,5 +62,5 @@ a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
 <div class="eyebrow">Themes</div><div class="sec-title">What people were talking about</div><div class="card"><div><span class="tag">staking</span> <span class="tag">market</span> <span class="tag">trust</span> <span class="tag">dovu</span> <span class="tag">enterprise</span> <span class="tag">digital</span> <span class="tag">built</span> <span class="tag">july</span></div><div style="margin-top:12px"><div class="row"><span class="pill">×2</span> help</div><div class="row"><span class="pill">×2</span> need help</div></div></div>
 <div class="eyebrow">Queue</div><div class="sec-title">Support queue — 7 need a look</div><div class="card"><div class="row"><span class="muted">30 Jun</span> · u/hank194 — <a href="https://reddit.com/r/Hedera/comments/1ujsuw4/does_enterprise_even_know_of_the_existence_of/" target="_blank">Does enterprise even know of the existence of Hedera?</a></div><div class="row"><span class="muted">03 Jul</span> · u/Aye_Handsome — <a href="https://reddit.com/r/Hedera/comments/1um32uo/are_we_still_on_track_to_release_all_50_billion/" target="_blank">Are we still on track to release all 50 billion supply by 2027?</a></div><div class="row"><span class="muted">05 Jul</span> · u/Primary_Tune1436 — <a href="https://reddit.com/r/Hedera/comments/1uoexgm/staking_multipliers_for_more_trust/" target="_blank">Staking multipliers for more $TRUST?!</a></div><div class="row"><span class="muted">05 Jul</span> · u/Other-Lab1605 — <a href="https://reddit.com/r/Hedera/comments/1uog35w/need_help/" target="_blank">Need help</a></div><div class="row"><span class="muted">05 Jul</span> · u/Other-Lab1605 — <a href="https://reddit.com/r/Hedera/comments/1uog4bh/need_help/" target="_blank">Need help</a></div><div class="row"><span class="muted">05 Jul</span> · u/[deleted] — <a href="https://reddit.com/r/Hedera/comments/1uog5gx/help/" target="_blank">Help</a></div><div class="row"><span class="muted">07 Jul</span> · u/hank194 — <a href="https://reddit.com/r/Hedera/comments/1upqh2i/is_it_over/" target="_blank">Is it over?</a></div></div>
 <div class="eyebrow">Moderation</div><div class="sec-title">Risk & moderation</div><div class="card"><div class="risk-h">Compliance-sensitive (SEC/legal) — <b>1</b></div><div class="row"><span class="muted">06 Jul</span> · u/oak1337 — <a href="https://reddit.com/r/Hedera/comments/1uotzb9/wecan_30_is_now_building_toward_a_full_identity/" target="_blank">WeCan 3.0 is now building toward a full identity and compliance architecture on Hedera (via SEALSQ).</a></div></div>
-<div class="foot">Soft/keyword metrics are regex proxies over titles — verify before acting. Full evaluation: the twice-monthly <a href="index.html">dashboard</a>.</div>
+<div class="foot">Soft/keyword metrics are regex proxies over titles — verify before acting. Full evaluation: the twice-monthly <a href="reddit.html">dashboard</a>.</div>
 </div></body></html>

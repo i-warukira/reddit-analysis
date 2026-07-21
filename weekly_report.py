@@ -226,8 +226,14 @@ if COMMENTS_THROUGH < start:
 
 HTML = f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ℏIntel — Weekly Staff Update</title><link rel="icon" href="public/log.png"><style>
-:root{{--bg:#f3f5fa;--card:#ffffff;--ink:#1d2540;--mut:#7a85a3;--line:#e7ebf3;--accent:#3b82f6;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;--blue:#3b82f6;--tag-bg:#eef2fb;--pill-bg:#fef3c7;--pill-ink:#92600a;--note-bg:#fff7e6;--note-ink:#1d2540;--bad-h:#b91c1c;--logo-bg:#fff}}
+<title>ℏIntel — Weekly Staff Update</title><link rel="icon" href="public/log.png">
+<script>/* Apply the stored theme BEFORE the stylesheet parses. The toggle below runs after
+   the document, and by then the CSS has already resolved its var()-derived colours under
+   the prefers-color-scheme branch; those are not re-resolved on a later attribute change. */
+(function(){{try{{var t=localStorage.getItem('hintel-theme');
+if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}}catch(e){{}}}})();</script>
+<style>
+:root{{--bg:#f6f7fc;--card:#ffffff;--ink:#1e2340;--mut:#8b90a8;--line:#eef0f7;--accent:#5b5bd6;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;--blue:#3b82f6;--tag-bg:#eef2fb;--pill-bg:#fef3c7;--pill-ink:#92600a;--note-bg:#fff7e6;--note-ink:#1d2540;--bad-h:#b91c1c;--logo-bg:#fff}}
 html[data-theme="dark"]{{--bg:#0f1217;--card:#181c24;--ink:#e6e9f0;--mut:#8b95a8;--line:#262b35;--tag-bg:#262b35;--pill-bg:#3b2a0e;--pill-ink:#fbbf24;--note-bg:#2a1f0a;--note-ink:#e6e9f0;--bad-h:#f87171;--logo-bg:#262b35}}
 @media (prefers-color-scheme: dark){{html:not([data-theme="light"]){{--bg:#0f1217;--card:#181c24;--ink:#e6e9f0;--mut:#8b95a8;--line:#262b35;--tag-bg:#262b35;--pill-bg:#3b2a0e;--pill-ink:#fbbf24;--note-bg:#2a1f0a;--note-ink:#e6e9f0;--bad-h:#f87171;--logo-bg:#262b35}}}}
 *{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,Segoe UI,Roboto,sans-serif}}
@@ -244,7 +250,7 @@ h1{{font-size:28px;font-weight:600;letter-spacing:-.01em;margin:0}}
 .back{{margin-left:auto;background:var(--accent);color:#fff;text-decoration:none;border-radius:8px;padding:9px 16px;font-weight:600;font-size:13px}}
 .eyebrow{{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:34px 0 0;border-top:1px solid var(--line);padding-top:20px}}
 .sec-title{{font-size:20px;font-weight:600;margin:6px 0 13px;color:var(--ink)}}
-.card{{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(20,30,60,.05)}}
+.card{{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 2px 12px rgba(30,35,64,.06)}}
 .muted{{color:var(--mut)}}.row{{padding:7px 0;border-bottom:1px solid var(--line)}}.row:last-child{{border:none}}
 table{{width:100%;border-collapse:collapse}}td{{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}}
 td.num{{color:var(--ink);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}}

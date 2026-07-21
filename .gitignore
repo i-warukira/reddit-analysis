@@ -6,3 +6,7 @@ logs/
 *.log
 notion_config.json
 discord_config.json
+
+# derived sentiment label cache (rebuilt by build_dashboard.py)
+.sentiment_cache_*.csv
+data/**/.sentiment_cache_*.csv
