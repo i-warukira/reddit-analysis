@@ -13,7 +13,7 @@ Out:  dashboard_hedera.html  (open in any browser)
 """
 import pandas as pd
 import numpy as np
-import re, json, html, os
+import re, json, html, os, glob, hashlib
 from datetime import datetime, timedelta
 
 POSTS_CSV = 'data/r_Hedera/posts.csv'
@@ -103,15 +103,65 @@ try:
         if mn <= -0.5:   return 'negative', round(mn, 3)
         if blend >= 0.5: return 'positive', round(blend, 3)
         return 'neutral', round(blend, 3)
+    # ---- persistent label cache ------------------------------------------------
+    # Sentiment for a given text is deterministic, and 18 months of archived posts
+    # do not change between builds — yet every run re-scored all of them (~276k VADER
+    # passes, about half the total build time). Cache label+score by content hash.
+    #
+    # The cache is keyed on a fingerprint of the classifier itself (lexicon, phrase
+    # rules, question softener, idioms). Edit any rule and the fingerprint changes,
+    # so the old cache is simply missed rather than serving labels the current rules
+    # would not produce — these labels have been hand-validated, and silently stale
+    # ones would be worse than a slow build.
+    _cdir = os.path.dirname(POSTS_CSV) or '.'
+    _fp = hashlib.sha1(repr((
+        sorted(_DOMAIN.items()), _NEG_TITLE.pattern, _NEG_ANY.pattern,
+        _QSTART.pattern, [p.pattern for p, _ in _IDIOMS],
+    )).encode('utf-8')).hexdigest()[:12]
+    _cpath = os.path.join(_cdir, f'.sentiment_cache_{_fp}.csv')
+
+    def _key(t, b):
+        s = str(t or '') + '\x00' + (b if isinstance(b, str) else '')
+        return hashlib.blake2b(s.encode('utf-8', 'ignore'), digest_size=10).hexdigest()
+
+    _cache = {}
+    try:
+        _cdf = pd.read_csv(_cpath)
+        _cache = {k: (l, s) for k, l, s in zip(_cdf['k'], _cdf['label'], _cdf['score'])}
+    except Exception:
+        _cache = {}                      # missing, corrupt, or rules changed — rebuild
+    _stat = {'hit': 0, 'miss': 0}
+
+    def _cls(t, b):
+        k = _key(t, b)
+        v = _cache.get(k)
+        if v is not None:
+            _stat['hit'] += 1
+            return v
+        v = _classify(t, b)
+        _cache[k] = v
+        _stat['miss'] += 1
+        return v
+
     _body = P['selftext'] if 'selftext' in P else pd.Series([''] * len(P), index=P.index)
-    _res = [_classify(t, b) for t, b in zip(P['title'], _body)]
+    _res = [_cls(t, b) for t, b in zip(P['title'], _body)]
     P['sentiment_label'] = [r[0] for r in _res]
     P['sentiment_score'] = [r[1] for r in _res]
     if 'body' in C:
-        _cres = [_classify('', x) for x in C['body']]
+        _cres = [_cls('', x) for x in C['body']]
         C['sentiment_label'] = [r[0] for r in _cres]
         C['sentiment_score'] = [r[1] for r in _cres]
-    print('Sentiment: recomputed with hybrid VADER (+domain lexicon, phrase rules).')
+    try:
+        pd.DataFrame(((k, v[0], v[1]) for k, v in _cache.items()),
+                     columns=['k', 'label', 'score']).to_csv(_cpath, index=False)
+        for _old in glob.glob(os.path.join(_cdir, '.sentiment_cache_*.csv')):
+            if os.path.abspath(_old) != os.path.abspath(_cpath):
+                try: os.remove(_old)      # superseded by a classifier change
+                except OSError: pass
+    except Exception as _ce:
+        print(f'  (sentiment cache not written: {str(_ce)[:60]})')
+    print(f'Sentiment: hybrid VADER (+domain lexicon, phrase rules) — '
+          f'{_stat["hit"]:,} from cache, {_stat["miss"]:,} newly scored.')
 except Exception as _e:
     print(f'Sentiment: VADER unavailable ({str(_e)[:60]}) — using existing CSV labels.')
     if 'sentiment_score' not in P: P['sentiment_score'] = 0.0
@@ -673,15 +723,25 @@ except Exception as e:
 # ---------------------------------------------------------------- HTML
 TEMPLATE = r"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
-<title>ℏIntel — r/Hedera Community Intelligence</title>
-<link rel="icon" href="public/log.png">
+<title>ℏIntel — Reddit Dashboard</title>
+<link rel="icon" href="public/log.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>/* Set data-theme BEFORE the stylesheet is parsed. The theme toggle lives at the
+   end of this (very large) document; if the attribute is applied only there, the CSS
+   has already resolved every var()-derived colour under the prefers-color-scheme
+   branch, and those computed colours are not re-resolved when the attribute changes
+   later — the sidebar keeps its dark ink on a white panel. Running here also removes
+   the flash of the wrong theme on load. */
+(function(){try{var t=localStorage.getItem('hintel-theme')||'dark';
+if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <style>
-:root{--bg:#f3f5fa;--panel:#ffffff;--ink:#1d2540;--mut:#7a85a3;--line:#e7ebf3;
---accent:#3b82f6;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;--blue:#3b82f6;
+:root{--bg:#f7f8fd;--panel:#ffffff;--ink:#1e2340;--mut:#8b90a8;--line:#eceef6;--c1:#6366f1;--c2:#8b5cf6;--c3:#2dd4bf;--c4:#f59e0b;--c5:#ec4899;--c-idle:#cbd5e1;
+--accent:#6366f1;--good:#10b981;--warn:#f59e0b;--bad:#ef4444;--blue:#6366f1;
 --topbar:#ffffff;--btn-alt:#eef2fb;--hover:#eef2fb;
---sb:#ffffff;--sb-ink:#5d6275;--sb-brand:#1d2540;--sb-active-ink:#1d2540;
---sb-hover:rgba(0,0,0,.04);--sb-cnt-bg:rgba(0,0,0,.06);--sb-border:rgba(0,0,0,.06);--sb-note:#8b95a8;--sb-logo-bg:var(--btn-alt);
---shadow:0 1px 3px rgba(20,30,60,.05);--shadow-lg:0 12px 40px rgba(20,30,60,.18);}
+/* Sidebar stays dark in both themes: navy here for light mode (never a white
+   panel), near-black in the two dark blocks below. */
+--sb:#2A3A4A;--sb-ink:#aeb9c9;--sb-brand:#ffffff;--sb-active-ink:#ffffff;
+--sb-hover:rgba(255,255,255,.07);--sb-cnt-bg:rgba(255,255,255,.12);--sb-border:rgba(255,255,255,.09);--sb-note:#93a1b5;--sb-logo-bg:#ffffff;
+--shadow:0 2px 12px rgba(30,35,64,.06);--shadow-lg:0 12px 40px rgba(20,30,60,.18);}
 html[data-theme="dark"]{--bg:#0f1217;--panel:#181c24;--ink:#e6e9f0;--mut:#8b95a8;--line:#262b35;
 --btn-alt:#262b35;--hover:#262b35;--topbar:#161a21;
 --sb:#13161c;--sb-ink:#a8b1c4;--sb-brand:#ffffff;--sb-active-ink:#ffffff;
@@ -692,7 +752,7 @@ html[data-theme="dark"]{--bg:#0f1217;--panel:#181c24;--ink:#e6e9f0;--mut:#8b95a8
 --sb:#13161c;--sb-ink:#a8b1c4;--sb-brand:#ffffff;--sb-active-ink:#ffffff;
 --sb-hover:rgba(255,255,255,.06);--sb-cnt-bg:rgba(255,255,255,.1);--sb-border:rgba(255,255,255,.08);--sb-note:#8b95b6;--sb-logo-bg:#ffffff;
 --shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 16px 50px rgba(0,0,0,.6);}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif}
 .app{display:flex;min-height:100vh}
 .sidebar{width:218px;flex-shrink:0;background:var(--sb);color:var(--sb-ink);position:sticky;top:0;height:100vh;padding:22px 0;overflow:auto;border-right:1px solid var(--sb-border)}
 .brand{display:flex;align-items:center;gap:10px;padding:0 22px 22px;color:var(--sb-brand);font-weight:600;font-size:17px}
@@ -706,29 +766,68 @@ html[data-theme="dark"]{--bg:#0f1217;--panel:#181c24;--ink:#e6e9f0;--mut:#8b95a8
 .sbscrim{position:fixed;inset:0;background:rgba(8,12,24,.5);opacity:0;pointer-events:none;transition:opacity .25s;z-index:99}
 .app.sb-collapsed .sidebar{width:64px}
 .app.sb-collapsed .brand span,.app.sb-collapsed .nav a .t,.app.sb-collapsed .nav .cnt,.app.sb-collapsed .sbnote{display:none}
-.app.sb-collapsed .sbtop{justify-content:center}.app.sb-collapsed .sbtop .brand{display:none}
-.tbctrls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.app.sb-collapsed .nav a{justify-content:center;margin:2px 8px;padding:11px 0}
+/* ── Gemini-style sidebar header ──────────────────────────────────────────────
+   Collapsed shows the logo alone. Hovering the header fades the logo out and the
+   toggle in, in its place, so the control only appears when reached for. */
+.sidebar{transition:width .22s cubic-bezier(.4,0,.2,1)}
+.sbtop{position:relative}
+.brand,.sbtoggle{transition:opacity .15s ease}
+.app.sb-collapsed .sbtop{justify-content:center;padding-left:0;padding-right:0}
+.app.sb-collapsed .sbtop .brand{display:flex;opacity:1;flex:0 0 auto;justify-content:center;width:100%;margin:0;padding:0}
+.app.sb-collapsed .sbtoggle{position:absolute;left:50%;top:0;transform:translateX(-50%);opacity:0;pointer-events:none}
+.app.sb-collapsed .sbtop:hover .brand{opacity:0}
+.app.sb-collapsed .sbtop:hover .sbtoggle{opacity:1;pointer-events:auto}
+.sbtoggle .i-open{display:none}
+.app.sb-collapsed .sbtoggle .i-open{display:block}
+.app.sb-collapsed .sbtoggle .i-close{display:none}
+/* ── rail tooltips + toggle arrow ─────────────────────────────────────────────
+   The panel glyph sits empty at rest; the inner arrow only grows in on hover, and
+   points the way the click will move the panel. Tooltips are pills to the right of
+   the rail -- only useful while collapsed, since expanded shows the labels. */
+.nav a,.sbtoggle{position:relative}
+/* The rail tooltip cannot be a pseudo-element: .sidebar needs overflow:auto so it can
+   scroll on short viewports, and that clips anything reaching past its right edge.
+   It lives on <body> as a fixed-position node instead, placed by script on hover. */
+.railtip{position:fixed;left:0;top:0;transform:translateY(-50%) translateX(-5px);
+background:#e9eaee;color:#1f2330;font:500 13px Plus Jakarta Sans,Inter,system-ui,sans-serif;
+letter-spacing:-.005em;padding:7px 13px;border-radius:10px;white-space:nowrap;opacity:0;
+pointer-events:none;transition:opacity .14s ease,transform .14s ease;z-index:400;
+box-shadow:0 6px 20px rgba(0,0,0,.30)}
+.railtip.on{opacity:1;transform:translateY(-50%) translateX(0)}
+.sbtoggle .arr{opacity:0;transition:opacity .13s ease}
+.app.sb-collapsed .sbtoggle .arr-close{display:none}
+.app:not(.sb-collapsed) .sbtoggle .arr-open{display:none}
+.sbtoggle:hover .arr{opacity:1}
+.tbctrls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto}
 .sbctrls .tbctrls{flex-direction:column;align-items:stretch;gap:9px;padding:12px 14px 4px;margin-top:8px;border-top:1px solid var(--sb-border)}
 .sbctrls label.lbl{color:var(--sb-ink);font-size:11px;margin-bottom:-5px}
 .sbctrls select{width:100%}
 .sbctrls .sub{color:#8b95b6;font-size:11px}
 .sbctrls .btn{width:100%;display:block;text-align:center}
-.nav a{display:flex;align-items:center;gap:11px;padding:11px 22px;color:var(--sb-ink);text-decoration:none;font-size:14px;cursor:pointer;border-left:3px solid transparent}
+.nav a{display:flex;align-items:center;gap:12px;margin:2px 12px;padding:11px 14px;border-radius:12px;color:var(--sb-ink);text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;transition:background .14s,color .14s}
 .nav a svg{width:18px;height:18px;flex-shrink:0}
 .nav a:hover{background:var(--sb-hover);color:var(--sb-active-ink)}
-.nav a.active{background:rgba(59,130,246,.16);border-left-color:var(--accent);color:var(--accent)}
+.nav a.active{background:rgba(91,91,214,.10);color:var(--accent);font-weight:600}
+html[data-theme="dark"] .nav a.active{background:rgba(91,91,214,.20)}
 html[data-theme="dark"] .nav a.active{color:#fff}
 @media (prefers-color-scheme: dark){html:not([data-theme="light"]) .nav a.active{color:#fff}}
+/* light theme keeps the indigo-on-lavender pill */
+html[data-theme="light"] .nav a.active{color:var(--accent)}
+/* white chip under the count on the active pill — the tinted default only reaches 4.1:1.
+   Light theme only: in dark the active ink is #fff, which a white chip would swallow. */
+html[data-theme="light"] .nav a.active .cnt{background:#fff}
+@media (prefers-color-scheme: light){html:not([data-theme="dark"]) .nav a.active .cnt{background:#fff}}
 .nav .cnt{margin-left:auto;background:var(--sb-cnt-bg);border-radius:999px;padding:1px 9px;font-size:11px}
 .sbnote{color:var(--sb-note);font-size:11px;padding:18px 22px;border-top:1px solid var(--sb-border);margin-top:14px}
 .main{flex:1;min-width:0}
 .topbar{display:flex;align-items:center;gap:10px;padding:14px 26px;background:var(--topbar);border-bottom:1px solid var(--line);flex-wrap:wrap;position:sticky;top:0;z-index:30}
-.topbar h2{font-size:16px;margin:0;font-weight:600;margin-right:auto}
+.topbar h2{font-size:16px;margin:0;font-weight:600}
 select{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px}
 label.lbl{color:var(--mut);font-size:12px}
 /* Common Room–style range picker — Inter-stack, tighter, tinted blue trigger */
-body{font-feature-settings:"cv02","cv03","cv04","cv11";letter-spacing:-.005em;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-.rangebtn{display:inline-flex;align-items:center;gap:9px;background:rgba(59,130,246,.10);border:1px solid rgba(59,130,246,.32);color:var(--accent);border-radius:7px;padding:6px 11px 6px 10px;font:600 13px Inter,system-ui;cursor:pointer;transition:all 120ms;letter-spacing:-.01em}
+body{font-feature-settings:"cv02","cv03","cv04","cv11";letter-spacing:-.005em;font-family:Plus Jakarta Sans,Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.rangebtn{display:inline-flex;align-items:center;gap:9px;background:rgba(59,130,246,.10);border:1px solid rgba(59,130,246,.32);color:var(--accent);border-radius:7px;padding:6px 11px 6px 10px;font:600 13px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;cursor:pointer;transition:all 120ms;letter-spacing:-.01em}
 html[data-theme="dark"] .rangebtn{background:rgba(59,130,246,.13);border-color:rgba(59,130,246,.40);color:#dbeafe}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) .rangebtn{background:rgba(59,130,246,.13);border-color:rgba(59,130,246,.40);color:#dbeafe}}
 .rangebtn:hover{background:rgba(59,130,246,.18);border-color:var(--accent)}
@@ -740,10 +839,10 @@ html[data-theme="dark"] .rangebtn .rb-i{color:#93c5fd}
 .theme-toggle svg{width:15px;height:15px}.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
 
 /* Popover: tighter, slightly darker tone in dark mode, refined separators */
-.rpop{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow-lg);padding:6px;min-width:212px;z-index:200;font:400 13px Inter,system-ui;letter-spacing:-.005em}
+.rpop{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow-lg);padding:6px;min-width:212px;z-index:200;font:400 13px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.005em}
 html[data-theme="dark"] .rpop{background:#1a1d24;border-color:#2a2f3a}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) .rpop{background:#1a1d24;border-color:#2a2f3a}}
-.rpop-presets button{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;border:none;color:var(--ink);padding:8px 12px;border-radius:6px;cursor:pointer;font:500 13px Inter,system-ui;letter-spacing:-.005em;text-align:left}
+.rpop-presets button{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;border:none;color:var(--ink);padding:8px 12px;border-radius:6px;cursor:pointer;font:500 13px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.005em;text-align:left}
 .rpop-presets button:hover{background:var(--hover)}
 .rpop-presets button.sel{background:var(--accent);color:#fff}
 .rpop-presets .div{height:1px;background:var(--line);margin:5px 6px}
@@ -753,7 +852,7 @@ html[data-theme="dark"] .rpop{background:#1a1d24;border-color:#2a2f3a}
 
 /* Outlined Start/End tabs (segmented control) */
 .rpop-tabs{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:7px;overflow:hidden;margin:0 4px 12px}
-.rpop-tab{background:transparent;border:none;color:var(--mut);padding:8px 0;font:600 12.5px Inter,system-ui;letter-spacing:-.005em;cursor:pointer;border-right:1px solid var(--line)}
+.rpop-tab{background:transparent;border:none;color:var(--mut);padding:8px 0;font:600 12.5px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.005em;cursor:pointer;border-right:1px solid var(--line)}
 .rpop-tab:last-child{border-right:none}
 .rpop-tab:hover{color:var(--ink)}
 .rpop-tab.active{background:var(--hover);color:var(--accent)}
@@ -765,7 +864,7 @@ html[data-theme="dark"] .rpop-tab.active{background:#252932;color:#dbeafe;box-sh
 .rpop-cal-nav button:hover{background:var(--hover);color:var(--ink)}
 
 .rpop-months{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 4px}
-.rpop-m h4{margin:0 0 8px;text-align:center;font:500 13px Inter,system-ui;color:var(--ink);letter-spacing:-.01em}
+.rpop-m h4{margin:0 0 8px;text-align:center;font:500 13px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;color:var(--ink);letter-spacing:-.01em}
 .rpop-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;font-size:12px;text-align:center;font-variant-numeric:tabular-nums}
 .rpop-dh{color:var(--mut);font-weight:500;padding:4px 0;font-size:10.5px;text-transform:none}
 
@@ -779,7 +878,7 @@ html[data-theme="dark"] .rpop-d.in-range{background:rgba(59,130,246,.22)}
 .rpop-d.sel{background:var(--accent);color:#fff;font-weight:500;border-radius:5px}
 
 .rpop-actions{display:flex;justify-content:flex-end;margin:10px 4px 0;gap:6px}
-.rpop-apply{background:var(--accent);color:#fff;border:none;padding:7px 18px;border-radius:6px;cursor:pointer;font:600 12.5px Inter,system-ui;letter-spacing:-.005em}
+.rpop-apply{background:var(--accent);color:#fff;border:none;padding:7px 18px;border-radius:6px;cursor:pointer;font:600 12.5px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.005em}
 .rpop-apply:hover{filter:brightness(1.06)}
 .rpop-apply:disabled{opacity:.4;cursor:not-allowed}
 @media(max-width:640px){.rpop-cal{min-width:0}.rpop-months{grid-template-columns:1fr}.rpop{left:8px!important;right:8px;width:auto;max-width:calc(100vw - 16px)}}
@@ -805,8 +904,32 @@ html[data-theme="dark"] .rpop-d.in-range{background:rgba(59,130,246,.22)}
   .heat{overflow-x:auto}.hrow{min-width:max-content}
   table{min-width:0}
 }
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(20,30,60,.05)}
-.card h3{margin:0 0 14px;font:700 15px Inter,system-ui;letter-spacing:-.01em;color:var(--ink)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+/* ---- tinted KPI tiles: pastel field, uppercase key, big value, icon badge, delta ---- */
+.kpi{position:relative;border:none;border-radius:16px;padding:18px 20px;box-shadow:none}
+.kpi .kpi-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.kpi .kpi-k{font:700 11px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:.075em;text-transform:uppercase;color:var(--kpi-k,#7c85a3);margin-bottom:7px}
+.kpi .kpi-v{font:700 30px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.025em;color:var(--ink);line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi .kpi-ico{width:44px;height:44px;border-radius:50%;background:var(--kpi-ico-bg,#fff);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(30,35,64,.10)}
+.kpi .kpi-ico svg{width:20px;height:20px;stroke:var(--kpi-ico,#3b82f6);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.kpi .kpi-d{margin-top:14px;font-size:12px;color:var(--mut);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.kpi .kpi-d .delta{margin:0;font-size:12.5px}
+.kpi.t-blue{background:#eaf0ff;--kpi-ico:#3b82f6;--kpi-k:#5a678f}
+.kpi.t-violet{background:#efeaff;--kpi-ico:#7c5cf0;--kpi-k:#65588f}
+.kpi.t-green{background:#e6f7ef;--kpi-ico:#12b981;--kpi-k:#4d7264}
+.kpi.t-amber{background:#fff3e4;--kpi-ico:#f59e0b;--kpi-k:#806542}
+.kpi.t-rose{background:#ffecef;--kpi-ico:#f43f5e;--kpi-k:#875663}
+html[data-theme="dark"] .kpi.t-blue{background:#171f33;--kpi-ico-bg:#0f1420;--kpi-k:#7f8bb0}
+html[data-theme="dark"] .kpi.t-violet{background:#1e1a33;--kpi-ico-bg:#0f1420;--kpi-k:#8d80b8}
+html[data-theme="dark"] .kpi.t-green{background:#13241f;--kpi-ico-bg:#0f1420;--kpi-k:#6f9c8b}
+html[data-theme="dark"] .kpi.t-amber{background:#241d13;--kpi-ico-bg:#0f1420;--kpi-k:#a98d63}
+html[data-theme="dark"] .kpi.t-rose{background:#2a171d;--kpi-ico-bg:#0f1420;--kpi-k:#b57f8c}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) .kpi.t-blue{background:#171f33;--kpi-ico-bg:#0f1420}
+html:not([data-theme="light"]) .kpi.t-violet{background:#1e1a33;--kpi-ico-bg:#0f1420}
+html:not([data-theme="light"]) .kpi.t-green{background:#13241f;--kpi-ico-bg:#0f1420}
+html:not([data-theme="light"]) .kpi.t-amber{background:#241d13;--kpi-ico-bg:#0f1420}
+html:not([data-theme="light"]) .kpi.t-rose{background:#2a171d;--kpi-ico-bg:#0f1420}}
+.card h3{margin:0 0 14px;font:700 15px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.01em;color:var(--ink)}
 .kpi .v{font-size:30px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
 .kpi .l{color:var(--mut);font-size:12px;margin-top:2px}
 .delta{font-size:12px;font-weight:600;margin-left:8px}.up{color:var(--good)}.down{color:var(--bad)}.flat{color:var(--mut)}
@@ -814,10 +937,12 @@ html[data-theme="dark"] .rpop-d.in-range{background:rgba(59,130,246,.22)}
 .hero .hc svg{max-height:190px;display:block}
 .hero .hv{font-size:42px;font-weight:600;letter-spacing:-.02em;line-height:1.05;margin:4px 0}
 .donut{align-items:center}.donut svg{flex-shrink:0}
-table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:middle}
-th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{color:var(--mut);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.075em;padding-bottom:9px}
+tbody tr:last-child td{border-bottom:none}
 td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
-.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}.pill.warn{background:#fef3c7;color:#92600a}
+.pill{display:inline-block;padding:4px 11px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.01em}.pill.warn{background:#fff3e4;color:#a16207}
+html[data-theme="dark"] .pill.warn{background:#241d13;color:#eab308}
 .s-None,.s-Low,.s-HEALTHY,.s-LOW{background:#dcfce7;color:#15803d}
 .s-Medium,.s-MODERATE,.s-MEDIUM{background:#fef3c7;color:#92600a}
 .s-High,.s-HIGH{background:#fee2e2;color:#b91c1c}
@@ -833,12 +958,16 @@ g.ptg{cursor:pointer}g.ptg:hover .pt{r:5}.pt-hit{fill:transparent}
 .btn.alt{background:var(--btn-alt);color:var(--ink)}.btn:hover{filter:brightness(1.05)}
 .btn-ico{display:inline-flex;align-items:center;gap:7px}.btn-ico svg{width:15px;height:15px}
 .pswitch{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.pswitch a{padding:7px 14px;font:600 13px Inter,system-ui;color:var(--mut);text-decoration:none}
+.pswap{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--panel);margin-left:12px;flex-shrink:0;transition:border-color .14s,box-shadow .14s}
+.pswap:hover{border-color:var(--accent);box-shadow:0 2px 9px rgba(91,91,214,.20)}
+.pswap img{width:26px;height:26px;border-radius:7px;display:block}
+.pswitch a{padding:7px 14px;font:600 13px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;color:var(--mut);text-decoration:none}
 .pswitch a:hover{background:var(--hover);color:var(--ink)}
 .pswitch a.on{background:var(--accent);color:#fff}
 a.brand{text-decoration:none}
 /* donut */
-.donut{display:flex;align-items:center;gap:18px}.lcol{font-size:13px}.lcol .lg{margin:5px 0}
+.donut{display:flex;align-items:center;gap:18px}.lcol{font-size:13px}.lcol .lg{margin:6px 0}
+.lcol .lgn{color:var(--mut);margin-left:6px;font-variant-numeric:tabular-nums}
 /* word cloud */
 .wc-wrap{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;line-height:1.3}.wc{font-weight:600}
 /* heatmap */
@@ -859,7 +988,7 @@ a.brand{text-decoration:none}
 .prflame{flex-shrink:0;width:18px;height:18px;color:var(--accent);margin-top:1px}
 .prflame svg{width:18px;height:18px}
 .prbody{min-width:0;flex:1}
-.prtitle{font:600 14px Inter,system-ui;line-height:1.4;color:var(--ink);letter-spacing:-.005em}
+.prtitle{font:600 14px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.4;color:var(--ink);letter-spacing:-.005em}
 .prtitle a{color:var(--ink)}.prtitle a:hover{color:var(--accent);text-decoration:none}
 .prmeta{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:6px;color:var(--mut);font-size:12.5px}
 .prmeta span{display:inline-flex;align-items:center;gap:5px}
@@ -868,11 +997,11 @@ a.brand{text-decoration:none}
 .prmeta .pm-a{font-weight:500}
 .bar{height:8px;border-radius:4px;background:var(--btn-alt);overflow:hidden;display:flex}
 /* GitHub-style hover tooltip — dark capsule, single-line, with caret arrow */
-#tip{position:absolute;display:none;z-index:60;background:#1f242e;color:#f1f3f7;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:7px 11px;font:500 12px Inter,system-ui;letter-spacing:-.005em;pointer-events:none;box-shadow:0 6px 22px rgba(0,0,0,.35);max-width:260px;white-space:nowrap}
+#tip{position:absolute;display:none;z-index:60;background:#1f242e;color:#f1f3f7;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:7px 11px;font:500 12px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.005em;pointer-events:none;box-shadow:0 6px 22px rgba(0,0,0,.35);max-width:260px;white-space:nowrap}
 #tip::before{content:"";position:absolute;top:-5px;left:14px;width:9px;height:9px;background:#1f242e;border-top:1px solid rgba(255,255,255,.08);border-left:1px solid rgba(255,255,255,.08);transform:rotate(45deg)}
 #tip .vv{font-weight:600;color:#fff}#tip .wn{color:#a8b1c4}#tip .nm{display:none}/* GitHub style is a single line: "N posts on Wed 14:00" */
 /* Recharts-style tooltip for Performance charts — clean white/panel box, label + value */
-#rxtip{position:fixed;display:none;z-index:70;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:9px 13px;font:500 13px Inter,system-ui;letter-spacing:-.005em;pointer-events:none;box-shadow:0 8px 26px rgba(20,30,60,.16);opacity:0;transform:translateY(3px);transition:opacity .12s ease,transform .12s ease,left .08s linear,top .08s linear}
+#rxtip{position:fixed;display:none;z-index:70;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:9px 13px;font:500 13px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.005em;pointer-events:none;box-shadow:0 8px 26px rgba(20,30,60,.16);opacity:0;transform:translateY(3px);transition:opacity .12s ease,transform .12s ease,left .08s linear,top .08s linear}
 #rxtip.on{opacity:1;transform:translateY(0)}
 #rxtip .rxl{color:var(--ink);font-weight:600;margin-bottom:3px}
 #rxtip .rxv{color:#0d9488;font-weight:600}
@@ -895,7 +1024,7 @@ html[data-theme="dark"] #rxtip .rxv{color:#2dd4bf}
 .wbico{width:15px;height:15px;vertical-align:-2px;margin-right:6px}
 /* --- Insights & Performance tabs (Recharts-style cards) --- */
 .rxcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow)}
-.rxtitle{font:700 17px Inter,system-ui;color:var(--ink);letter-spacing:-.01em;margin:0 0 4px}
+.rxtitle{font:700 17px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;color:var(--ink);letter-spacing:-.01em;margin:0 0 4px}
 .rxsub{color:var(--mut);font-size:13.5px;margin-bottom:22px}
 .rxnote{margin-top:16px;padding:11px 14px;background:var(--btn-alt);border-radius:9px;color:var(--mut);font-size:12.5px;line-height:1.55;border-left:3px solid var(--accent)}
 .recgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
@@ -905,26 +1034,26 @@ html[data-theme="dark"] #rxtip .rxv{color:#2dd4bf}
 .reccard:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:rgba(45,212,191,.45)}
 .reccard.best{border-color:rgba(45,212,191,.5);background:linear-gradient(180deg,rgba(45,212,191,.07),transparent)}
 .rechead{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.recrank{font:700 11.5px Inter,system-ui;color:var(--mut);background:var(--btn-alt);border-radius:999px;padding:3px 9px;letter-spacing:.02em}
+.recrank{font:700 11.5px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;color:var(--mut);background:var(--btn-alt);border-radius:999px;padding:3px 9px;letter-spacing:.02em}
 .reccard.best .recrank{color:#0d9488;background:rgba(45,212,191,.18)}
 html[data-theme="dark"] .reccard.best .recrank{color:#2dd4bf}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) .reccard.best .recrank{color:#2dd4bf}}
-.recbest{font:700 10px Inter,system-ui;text-transform:uppercase;letter-spacing:.06em;color:#0d9488}
+.recbest{font:700 10px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:#0d9488}
 html[data-theme="dark"] .recbest{color:#2dd4bf}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) .recbest{color:#2dd4bf}}
-.rectime{margin-left:auto;display:inline-flex;align-items:center;gap:5px;color:var(--mut);font:500 12.5px Inter,system-ui}
+.rectime{margin-left:auto;display:inline-flex;align-items:center;gap:5px;color:var(--mut);font:500 12.5px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif}
 .rectime svg{width:13px;height:13px;opacity:.8}
-.recday{font:700 21px Inter,system-ui;color:var(--ink);letter-spacing:-.02em;margin-bottom:14px}
+.recday{font:700 21px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;color:var(--ink);letter-spacing:-.02em;margin-bottom:14px}
 .recbar{height:6px;border-radius:3px;background:var(--btn-alt);overflow:hidden;margin-bottom:11px}
 .recbar span{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#2dd4bf,#0d9488)}
 .recfoot{display:flex;align-items:baseline;justify-content:space-between;font-size:12.5px;color:var(--mut)}
-.recfoot b{color:var(--ink);font:700 16px Inter,system-ui;font-variant-numeric:tabular-nums}
+.recfoot b{color:var(--ink);font:700 16px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;font-variant-numeric:tabular-nums}
 .recn{font-size:11px;opacity:.7}
 /* --- Action Tracker --- */
 .trk-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px}
 .trk-tools{display:flex;gap:8px;flex-shrink:0}
 .trk-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.trk-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:999px;padding:6px 13px;font:600 12.5px Inter,system-ui;cursor:pointer;transition:all 120ms}
+.trk-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:999px;padding:6px 13px;font:600 12.5px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;cursor:pointer;transition:all 120ms}
 .trk-chip:hover{border-color:var(--accent);color:var(--accent)}
 .trk-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .trk-chip-n{background:rgba(0,0,0,.14);border-radius:999px;padding:1px 8px;font-size:11px}
@@ -943,7 +1072,7 @@ table.trk tbody tr:hover{background:var(--hover)}
 .trk-in:focus{outline:none;border-color:var(--accent);background:var(--panel)}
 .trk-sent{display:inline-flex;align-items:center;gap:6px;text-transform:capitalize;color:var(--mut)}
 .trk-sent .dot{width:8px;height:8px;border-radius:50%}
-.st-sel{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font:600 12px Inter,system-ui;cursor:pointer;-webkit-appearance:none;appearance:none;background-position:right 6px center}
+.st-sel{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font:600 12px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;cursor:pointer;-webkit-appearance:none;appearance:none;background-position:right 6px center}
 .st-sel.st-new{background:rgba(59,130,246,.14);color:#2563eb;border-color:transparent}
 .st-sel.st-prog{background:rgba(245,158,11,.16);color:#b45309;border-color:transparent}
 .st-sel.st-wait{background:var(--btn-alt);color:var(--mut);border-color:transparent}
@@ -1013,12 +1142,12 @@ html[data-theme="dark"] .infobox .ibchip.on{color:#86efac}
   .appfoot .fbrand{color:#111}.appfoot .built{color:#333}.appfoot .built .ftip{display:none}
   .appfoot .built img{width:18px;height:18px;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style></head><body>
-<div class="app">
+<div class="app sb-collapsed">
   <div id="sbScrim" class="sbscrim"></div>
   <aside class="sidebar">
     <div class="sbtop">
-      <button id="sbToggle" class="sbtoggle" type="button" aria-label="Toggle sidebar" title="Collapse sidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg></button>
       <a class="brand" href="index.html" title="ℏIntel hub"><img class="logo" src="public/log.png" alt="ℏIntel"><span><span class="h">ℏ</span>Intel</span></a>
+      <button id="sbToggle" class="sbtoggle" type="button" aria-label="Toggle sidebar" data-tip-open="Open sidebar" data-tip-close="Close sidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><polyline class="arr arr-open" points="13.5 9.5 16 12 13.5 14.5"/><polyline class="arr arr-close" points="16 9.5 13.5 12 16 14.5"/></svg></button>
     </div>
     <nav class="nav" id="nav">
       <a data-v="dashboard" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span class="t">Dashboard</span> <span class="cnt" id="c-dash"></span></a>
@@ -1035,7 +1164,7 @@ html[data-theme="dark"] .infobox .ibchip.on{color:#86efac}
   <div class="main">
     <div class="topbar">
       <button id="mOpen" class="topmenu" type="button" aria-label="Open sidebar" title="Open sidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg></button>
-      <h2 id="viewTitle">Dashboard</h2>
+      <h2 id="viewTitle">Dashboard</h2><a class="pswap" href="discord.html" title="Switch to the Discord dashboard"><img src="public/discord_icon.png" alt="Discord"></a>
       <div class="tbctrls" id="tbctrls">
         <span class="sub" id="periodHint"></span>
         <button class="rangebtn" id="periodBtn" type="button"><svg class="rb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="rb-l">Period</span><svg class="rb-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
@@ -1043,7 +1172,7 @@ html[data-theme="dark"] .infobox .ibchip.on{color:#86efac}
         <button class="rangebtn" id="compareBtn" type="button"><svg class="rb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 12h12M10 18h4"/></svg><span class="rb-l">Compare</span><svg class="rb-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
         <button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme" aria-label="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
         <a class="btn alt btn-ico" href="weekly.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/></svg>Weekly</a>
-        <span class="pswitch"><a class="on" href="reddit.html">Reddit</a><a href="discord.html">Discord</a></span>
+        
         <button class="btn btn-ico" onclick="exportPDF()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF</button>
       </div>
     </div>
@@ -1245,8 +1374,27 @@ function delta(cur,prev,goodUp=true,pct=false){
   const val = pct? d.toFixed(1)+'pp' : (d>0?'+':'')+ (Number.isInteger(d)?d:d.toFixed(1));
   return `<span class="delta ${cls}">${arrow} ${val}</span>`;
 }
-function kpi(label,val,prev,suffix='',goodUp=true){
-  return `<div class="card kpi"><div class="v">${val}${suffix}${delta(val,prev,goodUp)}</div><div class="l">${label}</div></div>`;
+// outline glyphs for the KPI badges (stroke-only, inherit --kpi-ico)
+const KPI_ICONS={
+  posts:'<path d="M4 4h16v12H7l-3 3V4z"/>',
+  upvote:'<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/>',
+  ratio:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 9 9h-9V3z"/>',
+  people:'<path d="M16 19v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 19v-2a4 4 0 0 0-3-3.87"/>',
+  comment:'<path d="M21 11.5a8.4 8.4 0 0 1-9 8.5 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 0 1 4 11.5a8.4 8.4 0 0 1 9-8.5 8.4 8.4 0 0 1 8 8.5z"/>',
+  check:'<path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="m9 11 3 3L22 4"/>',
+  flag:'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>',
+  alert:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>'};
+// label, value, previous value, unit suffix, up-is-good, pastel tint, icon key
+function kpi(label,val,prev,suffix='',goodUp=true,tint='blue',icon='posts'){
+  const ico=KPI_ICONS[icon]||KPI_ICONS.posts;
+  const d=delta(val,prev,goodUp);
+  return `<div class="kpi t-${tint}">
+    <div class="kpi-top">
+      <div><div class="kpi-k">${label}</div><div class="kpi-v">${val}${suffix}</div></div>
+      <span class="kpi-ico"><svg viewBox="0 0 24 24">${ico}</svg></span>
+    </div>
+    <div class="kpi-d">${d}${d?'<span>vs previous period</span>':''}</div>
+  </div>`;
 }
 // interactive multi-period SVG line chart — hover any point to read its value
 function trend(metricFn, label, color, suffix=''){
@@ -1315,7 +1463,7 @@ function evBlock(rows){
   if(!rows||!rows.length) return '<div class="muted" style="font-size:12px">No matches.</div>';
   return rows.map(r=>{const l=rlink(r.link);return `<div class="ev"><b>${esc(r.date)}</b> · u/${esc(r.author)} · ${r.where}${l?` · <a href="${l}" target="_blank">link</a>`:''}<br>“${esc(r.text)}”</div>`;}).join('');
 }
-const CPAL=['#3b82f6','#8b5cf6','#22c55e','#f59e0b','#ec4899','#14b8a6'];
+const CPAL=['#6366f1','#8b5cf6','#2dd4bf','#f59e0b','#ec4899','#38bdf8'];
 function avColor(s){let h=0;for(const c of (s||'?')) h=(h*31+c.charCodeAt(0))%360;return `hsl(${h},52%,55%)`;}
 
 // hero area chart from daily post counts — gridlines, smooth curve, y-axis ticks
@@ -1334,8 +1482,8 @@ function area(daily){
   const grp=daily.map((d,i)=>`<g class="ptg"><circle class="pt-hit" cx="${X(i)}" cy="${Y(d.c)}" r="9" data-name="Posts" data-win="${esc(d.d)}" data-val="${d.c}"/><circle class="pt" cx="${X(i)}" cy="${Y(d.c)}" r="2.4" fill="#3b82f6" data-name="Posts" data-win="${esc(d.d)}" data-val="${d.c}" pointer-events="none"/></g>`).join('');
   const labs=daily.map((d,i)=>i%Math.ceil(daily.length/8||1)===0?`<text x="${X(i)}" y="${H-8}" text-anchor="middle" style="fill:var(--mut);font-size:10px">${esc(d.d)}</text>`:'').join('');
   return `<svg viewBox="0 0 ${W} ${H}" width="100%"><defs><linearGradient id="ag" x1="0" x2="0" y1="0" y2="1">
-    <stop offset="0" stop-color="#3b82f6" stop-opacity=".26"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>${grid}
-    <path d="${fill}" fill="url(#ag)" class="cfill"/><path d="${line}" fill="none" stroke="#3b82f6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="cdraw"/>${grp}${labs}</svg>`;
+    <stop offset="0" stop-color="#5b5bd6" stop-opacity=".26"/><stop offset="1" stop-color="#5b5bd6" stop-opacity="0"/></linearGradient></defs>${grid}
+    <path d="${fill}" fill="url(#ag)" class="cfill"/><path d="${line}" fill="none" stroke="#5b5bd6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="cdraw"/>${grp}${labs}</svg>`;
 }
 function donut(title,segs,centerVal,centerSub){
   const total=segs.reduce((a,s)=>a+s.value,0)||1; const R=40,C=2*Math.PI*R; let off=0;
@@ -1343,9 +1491,9 @@ function donut(title,segs,centerVal,centerSub){
   const rings=segs.filter(s=>s.value>0).map(s=>{const len=s.value/total*C;
     const c=`<circle r="${R}" cx="60" cy="60" fill="none" stroke="${s.color}" stroke-width="15" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 60 60)"/>`;
     off+=len; return c;}).join('');
-  const leg=segs.map(s=>`<div class="lg"><span class="dot" style="background:${s.color}"></span>${esc(s.label)} <b>${Math.round(s.value/total*100)}%</b></div>`).join('');
+  const leg=segs.map(s=>`<div class="lg"><span class="dot" style="background:${s.color}"></span>${esc(s.label)} <b>${Math.round(s.value/total*100)}%</b> <span class="lgn">(${(s.value||0).toLocaleString('en-US')})</span></div>`).join('');
   return `<div class="card"><h3>${esc(title)}</h3><div class="donut">
-    <svg viewBox="0 0 120 120" width="106" height="106"><circle r="${R}" cx="60" cy="60" fill="none" stroke="#eef2fb" stroke-width="15"/>${rings}
+    <svg viewBox="0 0 120 120" width="106" height="106"><circle r="${R}" cx="60" cy="60" fill="none" stroke="var(--btn-alt)" stroke-width="15"/>${rings}
     <text x="60" y="57" text-anchor="middle" style="fill:var(--ink);font-size:21px;font-weight:700">${cv}</text>
     <text x="60" y="73" text-anchor="middle" style="fill:var(--mut);font-size:9px">${esc(cs)}</text></svg>
     <div class="lcol">${leg}</div></div></div>`;
@@ -1418,15 +1566,15 @@ function viewDashboard(p,q,cmp){
     <div class="muted">${p.posts_per_day}/day · ${p.start} → ${p.end}</div></div>
     <div class="hc">${area(p.daily)}</div></div>`;
   h+='<div class="grid g4" style="margin-top:14px">';
-  h+=kpi('Avg upvote ratio',p.avg_upvote_ratio,q.avg_upvote_ratio,'%');
-  h+=kpi('Contributors',p.contributors,q.contributors);
-  h+=kpi('Comments',p.comments,q.comments);
-  h+=kpi('Resolution rate',p.resolution_rate,q.resolution_rate,'%');
+  h+=kpi('Avg upvote ratio',p.avg_upvote_ratio,q.avg_upvote_ratio,'%',true,'blue','ratio');
+  h+=kpi('Contributors',p.contributors,q.contributors,'',true,'violet','people');
+  h+=kpi('Comments',p.comments,q.comments,'',true,'green','comment');
+  h+=kpi('Resolution rate',p.resolution_rate,q.resolution_rate,'%',true,'amber','check');
   h+='</div>';
   h+='<div class="grid g3" style="margin-top:14px">';
-  h+=donut('Sentiment',[{label:'Positive',value:p.sentiment.pos,color:'#22c55e'},{label:'Neutral',value:p.sentiment.neu,color:'#94a3b8'},{label:'Negative',value:p.sentiment.neg,color:'#ef4444'}],p.posts,'posts');
+  h+=donut('Sentiment',[{label:'Positive',value:p.sentiment.pos,color:'#10b981'},{label:'Neutral',value:p.sentiment.neu,color:'#cbd5e1'},{label:'Negative',value:p.sentiment.neg,color:'#f43f5e'}],p.posts,'posts');
   h+=donut('Post type',Object.entries(p.type_mix||{}).map(([k,v],i)=>({label:k,value:v,color:CPAL[i%CPAL.length]})),p.posts,'posts');
-  h+=donut('Contributors',[{label:'New',value:p.new_to_tracker,color:'#8b5cf6'},{label:'Returning',value:p.returning,color:'#3b82f6'}],p.contributors,'people');
+  h+=donut('Contributors',[{label:'New',value:p.new_to_tracker,color:'#8b5cf6'},{label:'Returning',value:p.returning,color:'#6366f1'}],p.contributors,'people');
   h+='</div>';
   h+='<div class="grid g2" style="margin-top:14px">';
   h+=`<div class="card"><h3>Topic cloud</h3>${wordcloud(p.theme_weights)}</div>`;
@@ -1451,8 +1599,8 @@ function viewModeration(p,q,cmp){
   h+='<div class="grid g4" style="margin-bottom:14px">';
   h+=`<div class="card kpi"><div class="v"><span class="pill s-${p.health}">${p.health}</span></div><div class="l">Community health</div></div>`;
   h+=`<div class="card kpi"><div class="v"><span class="pill s-${p.risk_level}">${p.risk_level}</span></div><div class="l">Overall risk level</div></div>`;
-  h+=kpi('Issues tracked',p.issues_tracked,q.issues_tracked);
-  h+=kpi('Resolution rate',p.resolution_rate,q.resolution_rate,'%');
+  h+=kpi('Issues tracked',p.issues_tracked,q.issues_tracked,'',false,'rose','flag');
+  h+=kpi('Resolution rate',p.resolution_rate,q.resolution_rate,'%',true,'green','check');
   h+='</div>';
   const risksSorted=[...p.risks].sort((a,b)=>b.rank-a.rank);
   h+='<div class="card"><h3>Risk & moderation — severity · evidence · suggested action</h3><table><thead><tr><th>Risk</th><th>Severity</th><th style="text-align:right">Hits</th><th>Suggested action</th></tr></thead><tbody>';
@@ -1588,7 +1736,7 @@ function renderPie(ct, total){
     const leader = `M${a.ex.toFixed(1)},${a.ey.toFixed(1)} L${elbowX.toFixed(1)},${a.labelY.toFixed(1)} L${textX.toFixed(1)},${a.labelY.toFixed(1)}`;
     return `<g><path d="${a.path}" fill="${a.col}" stroke="var(--panel)" stroke-width="2" data-rx="pie" data-val="${a.count} posts (${a.pct}%)" data-name="${esc(a.cap)}"/>
       <path d="${leader}" fill="none" stroke="${a.col}" stroke-width="1.2"/>
-      <text x="${(textX + a.side*4).toFixed(1)}" y="${(a.labelY+4).toFixed(1)}" text-anchor="${anchor}" style="fill:${a.col};font:600 12.5px Inter,system-ui">${esc(a.cap)} (${a.count})</text></g>`;
+      <text x="${(textX + a.side*4).toFixed(1)}" y="${(a.labelY+4).toFixed(1)}" text-anchor="${anchor}" style="fill:${a.col};font:600 12.5px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif">${esc(a.cap)} (${a.count})</text></g>`;
   }).join('');
   return `<div class="rxpie"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:560px">${slices}</svg></div>`;
 }
@@ -1624,7 +1772,7 @@ function renderTitleBars(buckets){
     return `<g class="tibg">
       <rect class="tihover" x="${padL + i*bw + 8}" y="${padT}" width="${bw-16}" height="${H-padT-padB}" fill="transparent" rx="4" data-rx="bar" data-name="${esc(b.label)}" data-val="${Math.round(b.avg_score).toLocaleString()}"/>
       <rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="${TEAL}" rx="3" pointer-events="none"/>
-      <text x="${(x+barW/2).toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle" style="fill:var(--ink);font:600 12px Inter,system-ui" pointer-events="none">${Math.round(b.avg_score).toLocaleString()}</text>
+      <text x="${(x+barW/2).toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle" style="fill:var(--ink);font:600 12px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif" pointer-events="none">${Math.round(b.avg_score).toLocaleString()}</text>
       <text x="${padL + i*bw + bw/2}" y="${H-12}" text-anchor="middle" style="fill:var(--mut);font-size:12px" pointer-events="none">${esc(b.label)}</text>
     </g>`;
   }).join('');
@@ -1911,14 +2059,15 @@ rpop.addEventListener('click', e => e.stopPropagation());
 document.addEventListener('click', e => { if(!rpop.contains(e.target)) closePop(); });
 
 // Theme toggle (light/dark) with CoD safe-zone-style curtain reveal on click
+(function(){var n=null;function node(){if(!n){n=document.createElement('div');n.className='railtip';document.body.appendChild(n);}return n;}function hide(){if(n)n.classList.remove('on');}document.addEventListener('mouseover',function(e){if(!e.target.closest)return;var a=e.target.closest('#nav a,#sbToggle');if(!a){hide();return;}var app=document.querySelector('.app'),col=app&&app.classList.contains('sb-collapsed'),txt='';if(a.id==='sbToggle'){txt=col?'Open sidebar':'Close sidebar';}else{if(!col){hide();return;}var t=a.querySelector('.t');txt=t?t.textContent.trim():'';}if(!txt){hide();return;}var b=a.getBoundingClientRect(),el=node();el.textContent=txt;var sb=document.querySelector('.sidebar'),edge=sb?sb.getBoundingClientRect().right:b.right;el.style.left=(Math.max(b.right,edge)+12)+'px';el.style.top=(b.top+b.height/2)+'px';el.classList.add('on');});document.addEventListener('mouseout',function(e){if(e.target.closest&&e.target.closest('#nav a,#sbToggle'))hide();});window.addEventListener('scroll',hide,true);window.addEventListener('resize',hide);})();
 const themeKey = 'hintel-theme';
 function applyTheme(t){
   if(t==='dark' || t==='light') document.documentElement.setAttribute('data-theme', t);
   else document.documentElement.removeAttribute('data-theme');
 }
-applyTheme(localStorage.getItem(themeKey) || 'auto');
+applyTheme(localStorage.getItem(themeKey) || 'dark');
 $('#themeBtn').onclick = ()=>{
-  const cur = localStorage.getItem(themeKey) || 'auto';
+  const cur = localStorage.getItem(themeKey) || 'dark';
   const next = cur==='auto' ? 'dark' : (cur==='dark' ? 'light' : 'auto');
   localStorage.setItem(themeKey, next);
   if(document.startViewTransition) document.startViewTransition(()=>applyTheme(next));
@@ -1930,7 +2079,10 @@ render();
 // --- collapsible / drawer sidebar (Gemini-style) ---
 const appEl=document.querySelector('.app');
 const mqMobile=matchMedia('(max-width:640px)');
-$('#sbToggle').onclick=()=>{ mqMobile.matches ? appEl.classList.toggle('sb-open') : appEl.classList.toggle('sb-collapsed'); };
+$('#sbToggle').onclick=()=>{ if(mqMobile.matches){ appEl.classList.toggle('sb-open'); return; }
+  appEl.classList.toggle('sb-collapsed');
+  try{ localStorage.setItem('hintel-sb', appEl.classList.contains('sb-collapsed')?'1':'0'); }catch(e){} };
+try{ if(localStorage.getItem('hintel-sb')==='0') appEl.classList.remove('sb-collapsed'); }catch(e){}
 $('#mOpen').onclick=()=>appEl.classList.add('sb-open');
 $('#sbScrim').onclick=()=>appEl.classList.remove('sb-open');
 // tablets start collapsed to a rail; clear any collapsed state when dropping to phone width
