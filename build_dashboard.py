@@ -559,7 +559,7 @@ def make_preset(label, ndays):
     return m
 
 PRESETS = [make_preset(l, n) for l, n in
-           [('Last 7 days', 7), ('Last 15 days', 15), ('Last 28 days', 28),
+           [('Last 7 days', 7), ('Last 15 days', 15), ('Last month', 30),
             ('Last 12 weeks', 84), ('Last 6 months', 182), ('Last 365 days', 365)]]
 DEFAULT_PRESET = 1  # Last 15 days
 
@@ -724,7 +724,7 @@ except Exception as e:
 TEMPLATE = r"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <title>ℏIntel — Reddit Dashboard</title>
-<link rel="icon" href="public/log.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="public/log.png"><script defer src="/_vercel/insights/script.js"></script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>/* Set data-theme BEFORE the stylesheet is parsed. The theme toggle lives at the
    end of this (very large) document; if the attribute is applied only there, the CSS
    has already resolved every var()-derived colour under the prefers-color-scheme
@@ -839,7 +839,7 @@ html[data-theme="dark"] .rangebtn .rb-i{color:#93c5fd}
 .theme-toggle svg{width:15px;height:15px}.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
 
 /* Popover: tighter, slightly darker tone in dark mode, refined separators */
-.rpop{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow-lg);padding:6px;min-width:212px;z-index:200;font:400 13px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.005em}
+.rpop{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow-lg);padding:6px;min-width:212px;max-width:calc(100vw - 24px);max-height:78vh;overflow:auto;z-index:200;font:400 13px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.005em}
 html[data-theme="dark"] .rpop{background:#1a1d24;border-color:#2a2f3a}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) .rpop{background:#1a1d24;border-color:#2a2f3a}}
 .rpop-presets button{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;border:none;color:var(--ink);padding:8px 12px;border-radius:6px;cursor:pointer;font:500 13px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.005em;text-align:left}
@@ -848,7 +848,7 @@ html[data-theme="dark"] .rpop{background:#1a1d24;border-color:#2a2f3a}
 .rpop-presets .div{height:1px;background:var(--line);margin:5px 6px}
 
 /* Calendar panel */
-.rpop-cal{margin-top:4px;padding:10px 6px 6px;border-top:1px solid var(--line);min-width:530px}
+.rpop-cal{margin-top:4px;padding:10px 6px 6px;border-top:1px solid var(--line);min-width:0;width:100%}
 
 /* Outlined Start/End tabs (segmented control) */
 .rpop-tabs{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:7px;overflow:hidden;margin:0 4px 12px}
@@ -872,6 +872,31 @@ html[data-theme="dark"] .rpop-tab.active{background:#252932;color:#dbeafe;box-sh
 .rpop-d:hover{background:var(--hover)}
 .rpop-d.dis{color:var(--mut);opacity:.32;cursor:not-allowed}
 .rpop-d.dis:hover{background:transparent}
+/* ---- calendar: circular date pills ---------------------------------------- */
+.rpop-m h4{margin:0 0 12px;text-align:center;font:700 15.5px Plus Jakarta Sans,Inter,system-ui;
+letter-spacing:-.01em;color:var(--ink)}
+.rpop-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px 2px;text-align:center;
+font-variant-numeric:tabular-nums}
+.rpop-dh{color:var(--mut);font:600 10px Plus Jakarta Sans,Inter,system-ui;letter-spacing:.09em;
+text-transform:uppercase;padding:2px 0 8px}
+.rpop-d{width:34px;height:34px;line-height:34px;margin:0 auto;padding:0;border-radius:50%;
+font:500 13.5px Plus Jakarta Sans,Inter,system-ui;cursor:pointer;user-select:none;
+transition:background .13s ease,color .13s ease,transform .13s ease}
+.rpop-d:hover{background:var(--tag-bg);transform:scale(1.06)}
+.rpop-d.sel{background:var(--accent);color:#fff;font-weight:700;
+box-shadow:0 3px 10px rgba(99,102,241,.42)}
+.rpop-d.sel:hover{background:var(--accent);transform:scale(1.06)}
+.rpop-d.in,.rpop-d.inr{background:rgba(99,102,241,.16);color:var(--ink);border-radius:50%}
+.rpop-d.dis{opacity:.28;cursor:not-allowed;background:none;transform:none}
+.rpop-d.dis:hover{background:none;transform:none}
+.rpop-nav{padding:0 4px 2px}
+.rpop-nav button{width:30px;height:30px;border-radius:50%;font-size:18px;line-height:1;
+display:flex;align-items:center;justify-content:center;transition:background .13s ease}
+.rpop-nav button:hover{background:var(--tag-bg);color:var(--ink)}
+.rpop-months{gap:22px}
+.rpop-tabs{border-radius:9px}
+.rpop-tab{padding:9px 0;font-weight:600}
+.rpop-apply{border-radius:9px;padding:9px 22px}
 .rpop-d.in-range{background:rgba(59,130,246,.18);border-radius:0;color:var(--ink)}
 html[data-theme="dark"] .rpop-d.in-range{background:rgba(59,130,246,.22)}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) .rpop-d.in-range{background:rgba(59,130,246,.22)}}
@@ -890,6 +915,11 @@ html[data-theme="dark"] .rpop-d.in-range{background:rgba(59,130,246,.22)}
   .topmenu{display:flex}
   .sidebar{position:fixed;left:0;top:0;height:100vh;width:266px;transform:translateX(-100%);transition:transform .25s ease;z-index:100;box-shadow:0 0 40px rgba(0,0,0,.45)}
   .app.sb-open .sidebar{transform:none}
+  .app.sb-collapsed .sidebar{width:266px}
+  .app.sb-collapsed .nav a{justify-content:flex-start;margin:2px 12px;padding:11px 14px}
+  .app.sb-collapsed .sbtop{justify-content:flex-start;padding:0 14px 18px}
+  .app.sb-collapsed .sbtop .brand{width:auto;justify-content:flex-start}
+  .app.sb-collapsed .sbtoggle{position:static;transform:none;opacity:1;pointer-events:auto}
   .app.sb-open .sbscrim{opacity:1;pointer-events:auto}
   .app .sidebar .brand span,.app .sidebar .nav a .t,.app .sidebar .nav .cnt{display:inline}
   .app .sidebar .sbnote{display:block}
@@ -1489,7 +1519,7 @@ function donut(title,segs,centerVal,centerSub){
   const total=segs.reduce((a,s)=>a+s.value,0)||1; const R=40,C=2*Math.PI*R; let off=0;
   const cv=centerVal!==undefined?centerVal:total; const cs=centerSub||'total';
   const rings=segs.filter(s=>s.value>0).map(s=>{const len=s.value/total*C;
-    const c=`<circle r="${R}" cx="60" cy="60" fill="none" stroke="${s.color}" stroke-width="15" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 60 60)"/>`;
+    const c=`<circle r="${R}" cx="60" cy="60" fill="none" stroke="${s.color}" stroke-width="15" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 60 60)" data-tt="${esc(s.label)} \u00b7 ${(s.value||0).toLocaleString('en-US')} (${Math.round(s.value/total*100)}%)"/>`;
     off+=len; return c;}).join('');
   const leg=segs.map(s=>`<div class="lg"><span class="dot" style="background:${s.color}"></span>${esc(s.label)} <b>${Math.round(s.value/total*100)}%</b> <span class="lgn">(${(s.value||0).toLocaleString('en-US')})</span></div>`).join('');
   return `<div class="card"><h3>${esc(title)}</h3><div class="donut">
@@ -1996,7 +2026,7 @@ function positionPop(role){
   const anchor = $('#'+role+'Btn'); const r = anchor.getBoundingClientRect();
   rpop.style.display='block';
   const wantsWide = $('#rpopCal').style.display !== 'none';
-  const w = wantsWide ? 600 : 240;
+  const w = Math.min(wantsWide ? 620 : 240, window.innerWidth - 24);
   let left = r.left;
   if(left + w > window.innerWidth - 12) left = Math.max(12, window.innerWidth - w - 12);
   rpop.style.left = left + 'px'; rpop.style.top = (r.bottom + 6) + 'px';
@@ -2059,7 +2089,7 @@ rpop.addEventListener('click', e => e.stopPropagation());
 document.addEventListener('click', e => { if(!rpop.contains(e.target)) closePop(); });
 
 // Theme toggle (light/dark) with CoD safe-zone-style curtain reveal on click
-(function(){var n=null;function node(){if(!n){n=document.createElement('div');n.className='railtip';document.body.appendChild(n);}return n;}function hide(){if(n)n.classList.remove('on');}document.addEventListener('mouseover',function(e){if(!e.target.closest)return;var a=e.target.closest('#nav a,#sbToggle');if(!a){hide();return;}var app=document.querySelector('.app'),col=app&&app.classList.contains('sb-collapsed'),txt='';if(a.id==='sbToggle'){txt=col?'Open sidebar':'Close sidebar';}else{if(!col){hide();return;}var t=a.querySelector('.t');txt=t?t.textContent.trim():'';}if(!txt){hide();return;}var b=a.getBoundingClientRect(),el=node();el.textContent=txt;var sb=document.querySelector('.sidebar'),edge=sb?sb.getBoundingClientRect().right:b.right;el.style.left=(Math.max(b.right,edge)+12)+'px';el.style.top=(b.top+b.height/2)+'px';el.classList.add('on');});document.addEventListener('mouseout',function(e){if(e.target.closest&&e.target.closest('#nav a,#sbToggle'))hide();});window.addEventListener('scroll',hide,true);window.addEventListener('resize',hide);})();
+(function(){var n=null;function node(){if(!n){n=document.createElement('div');n.className='railtip';document.body.appendChild(n);}return n;}function hide(){if(n)n.classList.remove('on');}document.addEventListener('mouseover',function(e){if(!e.target.closest)return;var a=e.target.closest('#nav a,#sbToggle');if(!a){hide();return;}var sbEl=document.querySelector('.sidebar');if(sbEl&&getComputedStyle(sbEl).position==='fixed'){hide();return;}var app=document.querySelector('.app'),col=app&&app.classList.contains('sb-collapsed'),txt='';if(a.id==='sbToggle'){txt=col?'Open sidebar':'Close sidebar';}else{if(!col){hide();return;}var t=a.querySelector('.t');txt=t?t.textContent.trim():'';}if(!txt){hide();return;}var b=a.getBoundingClientRect(),el=node();el.textContent=txt;var sb=document.querySelector('.sidebar'),edge=sb?sb.getBoundingClientRect().right:b.right;el.style.left=(Math.max(b.right,edge)+12)+'px';el.style.top=(b.top+b.height/2)+'px';el.classList.add('on');});document.addEventListener('mouseout',function(e){if(e.target.closest&&e.target.closest('#nav a,#sbToggle'))hide();});window.addEventListener('scroll',hide,true);window.addEventListener('resize',hide);})();
 const themeKey = 'hintel-theme';
 function applyTheme(t){
   if(t==='dark' || t==='light') document.documentElement.setAttribute('data-theme', t);
@@ -2083,6 +2113,7 @@ $('#sbToggle').onclick=()=>{ if(mqMobile.matches){ appEl.classList.toggle('sb-op
   appEl.classList.toggle('sb-collapsed');
   try{ localStorage.setItem('hintel-sb', appEl.classList.contains('sb-collapsed')?'1':'0'); }catch(e){} };
 try{ if(localStorage.getItem('hintel-sb')==='0') appEl.classList.remove('sb-collapsed'); }catch(e){}
+if(mqMobile.matches) appEl.classList.remove('sb-collapsed');
 $('#mOpen').onclick=()=>appEl.classList.add('sb-open');
 $('#sbScrim').onclick=()=>appEl.classList.remove('sb-open');
 // tablets start collapsed to a rail; clear any collapsed state when dropping to phone width

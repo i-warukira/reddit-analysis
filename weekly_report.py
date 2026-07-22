@@ -226,7 +226,7 @@ if COMMENTS_THROUGH < start:
 
 HTML = f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ℏIntel — Weekly Staff Update</title><link rel="icon" href="public/log.png">
+<title>ℏIntel — Weekly Staff Update</title><link rel="icon" href="public/log.png"><script defer src="/_vercel/insights/script.js"></script>
 <script>/* Apply the stored theme BEFORE the stylesheet parses. The toggle below runs after
    the document, and by then the CSS has already resolved its var()-derived colours under
    the prefers-color-scheme branch; those are not re-resolved on a later attribute change. */
