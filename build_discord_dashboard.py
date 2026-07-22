@@ -109,6 +109,51 @@ html[data-theme="dark"] .rpop{box-shadow:0 16px 50px rgba(0,0,0,.6)}
 .rpop button.sel .n{color:rgba(255,255,255,.75)}
 .rpop .div{height:1px;background:var(--line);margin:5px 6px}
 .rpop .hd{color:var(--mut);font:600 10.5px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:.07em;text-transform:uppercase;padding:9px 12px 5px}
+.rpop-cal{margin-top:4px;padding:10px 6px 6px;border-top:1px solid var(--line);min-width:0;width:100%}
+.rpop-tabs{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 4px 12px}
+.rpop-tab{background:transparent;border:none;border-right:1px solid var(--line);color:var(--mut);padding:8px 0;font:600 12.5px Plus Jakarta Sans,Inter,system-ui;cursor:pointer;width:auto;justify-content:center}
+.rpop-tab:last-child{border-right:none}
+.rpop-tab.active{background:var(--tag-bg);color:var(--accent)}
+.rpop-nav{display:flex;justify-content:space-between;align-items:center;margin:0 6px 4px}
+.rpop-nav button{background:transparent;border:none;color:var(--mut);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:17px;line-height:1;padding:0;justify-content:center}
+.rpop-nav button:hover{background:var(--tag-bg);color:var(--ink)}
+.rpop-months{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 6px}
+.rpop-m h4{margin:0 0 8px;text-align:center;font:600 13px Plus Jakarta Sans,Inter,system-ui;color:var(--ink)}
+.rpop-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;font-size:12px;text-align:center;font-variant-numeric:tabular-nums}
+.rpop-dh{color:var(--mut);font-weight:500;padding:4px 0;font-size:10.5px}
+.rpop-d{padding:6px 0;border-radius:6px;cursor:pointer;color:var(--ink);user-select:none}
+.rpop-d:hover{background:var(--tag-bg)}
+.rpop-d.dis{color:var(--mut);opacity:.32;cursor:not-allowed}
+.rpop-d.sel{background:var(--accent);color:#fff}
+.rpop-d.inr{background:var(--tag-bg)}
+.rpop-actions{display:flex;justify-content:flex-end;padding:10px 6px 2px}
+/* ---- calendar: circular date pills ---------------------------------------- */
+.rpop-m h4{margin:0 0 12px;text-align:center;font:700 15.5px Plus Jakarta Sans,Inter,system-ui;
+letter-spacing:-.01em;color:var(--ink)}
+.rpop-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px 2px;text-align:center;
+font-variant-numeric:tabular-nums}
+.rpop-dh{color:var(--mut);font:600 10px Plus Jakarta Sans,Inter,system-ui;letter-spacing:.09em;
+text-transform:uppercase;padding:2px 0 8px}
+.rpop-d{width:34px;height:34px;line-height:34px;margin:0 auto;padding:0;border-radius:50%;
+font:500 13.5px Plus Jakarta Sans,Inter,system-ui;cursor:pointer;user-select:none;
+transition:background .13s ease,color .13s ease,transform .13s ease}
+.rpop-d:hover{background:var(--tag-bg);transform:scale(1.06)}
+.rpop-d.sel{background:var(--accent);color:#fff;font-weight:700;
+box-shadow:0 3px 10px rgba(99,102,241,.42)}
+.rpop-d.sel:hover{background:var(--accent);transform:scale(1.06)}
+.rpop-d.in,.rpop-d.inr{background:rgba(99,102,241,.16);color:var(--ink);border-radius:50%}
+.rpop-d.dis{opacity:.28;cursor:not-allowed;background:none;transform:none}
+.rpop-d.dis:hover{background:none;transform:none}
+.rpop-nav{padding:0 4px 2px}
+.rpop-nav button{width:30px;height:30px;border-radius:50%;font-size:18px;line-height:1;
+display:flex;align-items:center;justify-content:center;transition:background .13s ease}
+.rpop-nav button:hover{background:var(--tag-bg);color:var(--ink)}
+.rpop-months{gap:22px}
+.rpop-tabs{border-radius:9px}
+.rpop-tab{padding:9px 0;font-weight:600}
+.rpop-apply{border-radius:9px;padding:9px 22px}
+.rpop-apply{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 20px;font:600 13px Plus Jakarta Sans,Inter,system-ui;cursor:pointer;width:auto}
+.rpop-apply[disabled]{opacity:.45;cursor:not-allowed}
 .sbscrim{position:fixed;inset:0;background:rgba(8,12,24,.5);opacity:0;pointer-events:none;transition:opacity .25s;z-index:99}
 @media(max-width:900px){
  .sidebar{position:fixed;left:0;top:0;height:100vh;width:266px;transform:translateX(-100%);transition:transform .25s ease;z-index:100;box-shadow:0 0 40px rgba(0,0,0,.45)}
@@ -117,7 +162,23 @@ html[data-theme="dark"] .rpop{box-shadow:0 16px 50px rgba(0,0,0,.6)}
  .topmenu{display:inline-flex}
  .app.sb-collapsed .sidebar{width:266px}
  .app.sb-collapsed .brand span,.app.sb-collapsed .nav a .t,.app.sb-collapsed .nav .cnt,.app.sb-collapsed .sbnote{display:revert}
+ /* The drawer is a full panel, so none of the collapsed-rail geometry should survive
+    here. Centring is invisible on badged items (.cnt has margin-left:auto, which
+    stretches the row) and only shows on the one item without a badge -- so override
+    it explicitly rather than trusting it to look right. */
+ .app.sb-collapsed .nav a{justify-content:flex-start;margin:2px 12px;padding:11px 14px}
+ .app.sb-collapsed .sbtop{justify-content:flex-start;padding:0 14px 18px}
+ .app.sb-collapsed .sbtop .brand{width:auto;justify-content:flex-start;opacity:1}
+ .app.sb-collapsed .sbtoggle{position:static;transform:none;opacity:1;pointer-events:auto}
  .content{padding:18px 16px 60px}
+ /* On mobile the period/compare controls move into the drawer rather than wrapping
+    the top bar into three rows -- same arrangement as the Reddit dashboard. */
+ .sbctrls .tbctrls{flex-direction:column;align-items:stretch;gap:9px;padding:12px 14px 4px;
+ margin:8px 0 0;border-top:1px solid var(--sb-border)}
+ .sbctrls .rangebtn{width:100%;justify-content:flex-start}
+ .sbctrls .sub{color:var(--sb-note);font-size:11.5px}
+ .sbctrls .theme-toggle{width:100%;justify-content:center}
+ .sbctrls .pswap{margin-left:0}
 }
 h1{font-size:26px;font-weight:600;letter-spacing:-.01em;margin:0}
 .meta{color:var(--mut);font-size:13px;margin-bottom:20px}
@@ -127,8 +188,8 @@ h1{font-size:26px;font-weight:600;letter-spacing:-.01em;margin:0}
 .pswitch a.on{background:var(--accent);color:#fff}
 .theme-toggle{background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:7px;cursor:pointer;display:inline-flex;margin-left:8px}
 .theme-toggle svg{width:16px;height:16px}.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
-.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
-@media(max-width:760px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:760px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g2{grid-template-columns:minmax(0,1fr)}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
 .card h3{margin:0 0 14px;font:700 15px Plus Jakarta Sans,Inter,system-ui,Segoe UI,Roboto,sans-serif;letter-spacing:-.01em;color:var(--ink)}
 /* tinted KPI tiles — same language as the Reddit dashboard */
@@ -170,6 +231,17 @@ html:not([data-theme="light"]) .kpi.t-amber{background:#241d13;--kpi-ico-bg:#0f1
 .dpt{cursor:default}
 .donut circle[data-tt]:hover{filter:brightness(1.15)}
 .donut{display:flex;align-items:center;gap:18px}.donut svg{flex-shrink:0}
+/* Charts draw themselves in when scrolled into view, matching the Reddit page: the
+   stroke unrolls via dashoffset while the fill fades up. */
+@keyframes cdraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes cfillin{from{opacity:0}to{opacity:1}}
+.cdraw{stroke-dasharray:1;stroke-dashoffset:1}
+.cfill{opacity:0}
+.chart-in .cdraw{animation:cdraw 1.15s cubic-bezier(.45,.05,.2,1) forwards}
+.chart-in .cfill{animation:cfillin 1.2s ease forwards}
+@media (prefers-reduced-motion: reduce){.cdraw{stroke-dasharray:none;stroke-dashoffset:0}
+.cfill{opacity:1}.chart-in .cdraw,.chart-in .cfill{animation:none}}
+@media print{.cdraw{stroke-dashoffset:0!important}.cfill{opacity:1!important}}
 .lcol{font-size:13px}.lcol .lg{margin:6px 0;display:flex;align-items:center;gap:7px}
 .lcol .lgn{color:var(--mut);font-variant-numeric:tabular-nums}
 .lcol .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
@@ -214,7 +286,10 @@ document.addEventListener('click',function(e){
   if(!e.target.closest)return;
   var a=e.target.closest('#nav a');
   if(a){e.preventDefault();show(a.getAttribute('data-v'));var p=app();if(p)p.classList.remove('sb-open');return;}
-  if(e.target.closest('#sbToggle')){var p1=app();if(p1){p1.classList.toggle('sb-collapsed');try{localStorage.setItem('hintel-sb',p1.classList.contains('sb-collapsed')?'1':'0');}catch(_){}}return;}
+  if(e.target.closest('#sbToggle')){var p1=app();if(!p1)return;
+    if(mqSmall.matches){p1.classList.toggle('sb-open');return;}   /* drawer: close it */
+    p1.classList.toggle('sb-collapsed');
+    try{localStorage.setItem('hintel-sb',p1.classList.contains('sb-collapsed')?'1':'0');}catch(_){}return;}
   if(e.target.closest('#mOpen')){var p2=app();if(p2)p2.classList.add('sb-open');return;}
   if(e.target.closest('#sbScrim')){var p3=app();if(p3)p3.classList.remove('sb-open');return;}
   if(e.target.closest('#themeBtn')){var c=localStorage.getItem(K)||'dark';var n=c==='auto'?'dark':(c==='dark'?'light':'auto');localStorage.setItem(K,n);theme(n);return;}
@@ -227,7 +302,7 @@ document.addEventListener('DOMContentLoaded',function(){
   mo.observe(document.body,{childList:true,subtree:true});
 });
 window.addEventListener('storage',function(e){if(e.key===K)theme(e.newValue||'dark');});
-(function(){var n=null;function node(){if(!n){n=document.createElement('div');n.className='railtip';document.body.appendChild(n);}return n;}function hide(){if(n)n.classList.remove('on');}document.addEventListener('mouseover',function(e){if(!e.target.closest)return;var a=e.target.closest('#nav a,#sbToggle');if(!a){hide();return;}var app=document.querySelector('.app'),col=app&&app.classList.contains('sb-collapsed'),txt='';if(a.id==='sbToggle'){txt=col?'Open sidebar':'Close sidebar';}else{if(!col){hide();return;}var t=a.querySelector('.t');txt=t?t.textContent.trim():'';}if(!txt){hide();return;}var b=a.getBoundingClientRect(),el=node();el.textContent=txt;var sb=document.querySelector('.sidebar'),edge=sb?sb.getBoundingClientRect().right:b.right;el.style.left=(Math.max(b.right,edge)+12)+'px';el.style.top=(b.top+b.height/2)+'px';el.classList.add('on');});document.addEventListener('mouseout',function(e){if(e.target.closest&&e.target.closest('#nav a,#sbToggle'))hide();});window.addEventListener('scroll',hide,true);window.addEventListener('resize',hide);})();
+(function(){var n=null;function node(){if(!n){n=document.createElement('div');n.className='railtip';document.body.appendChild(n);}return n;}function hide(){if(n)n.classList.remove('on');}document.addEventListener('mouseover',function(e){if(!e.target.closest)return;var a=e.target.closest('#nav a,#sbToggle');if(!a){hide();return;}var sbEl=document.querySelector('.sidebar');if(sbEl&&getComputedStyle(sbEl).position==='fixed'){hide();return;}var app=document.querySelector('.app'),col=app&&app.classList.contains('sb-collapsed'),txt='';if(a.id==='sbToggle'){txt=col?'Open sidebar':'Close sidebar';}else{if(!col){hide();return;}var t=a.querySelector('.t');txt=t?t.textContent.trim():'';}if(!txt){hide();return;}var b=a.getBoundingClientRect(),el=node();el.textContent=txt;var sb=document.querySelector('.sidebar'),edge=sb?sb.getBoundingClientRect().right:b.right;el.style.left=(Math.max(b.right,edge)+12)+'px';el.style.top=(b.top+b.height/2)+'px';el.classList.add('on');});document.addEventListener('mouseout',function(e){if(e.target.closest&&e.target.closest('#nav a,#sbToggle'))hide();});window.addEventListener('scroll',hide,true);window.addEventListener('resize',hide);})();
 
 /* ================= data-driven render layer (mirrors the Reddit dashboard) =========
    Every view below is a direct port of its Python renderer, so switching period
@@ -239,12 +314,125 @@ var TITLES={dashboard:'Dashboard',answers:'Answer Desk',helpers:'Helpers',covera
 var PROX=30;
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function num(n){return (n==null?0:n).toLocaleString('en-US');}
+
+/* ---- custom date range: rebuild a scope from the atoms ---------------------
+   Returns the same shape scopeOf() gives for a preset, so render() and every view
+   work unchanged. The equal-length window before the range is aggregated too, so
+   the significance-tested deltas still have a baseline. */
+function dstr(d){return d.toISOString().slice(0,10);}
+function addDays(ds,n){var d=new Date(ds+'T12:00:00');d.setDate(d.getDate()+n);return dstr(d);}
+function daysBetween(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5)+1;}
+function inR(ds,a,b){return ds>=a&&ds<=b;}
+function med(v){return v.length?(v.length%2?v[(v.length-1)/2]:(v[v.length/2-1]+v[v.length/2])/2):null;}
+
+function rangeSlice(A,a,b){
+  var out={messages:0,reactions:0,pos:0,neg:0,joins:0,members:{},contrib:{},chan:{},heat:[],daily:[]},i,k;
+  for(i=0;i<7;i++)out.heat.push([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
+  for(var ds in A.daily){ if(!inR(ds,a,b))continue; var d=A.daily[ds];
+    out.messages+=d.m; out.reactions+=d.r; out.pos+=d.p; out.neg+=d.n; out.joins+=(d.j||0);
+    (d.a||[]).forEach(function(x){out.members[x]=1;});
+    for(k in (d.u||{}))out.contrib[k]=(out.contrib[k]||0)+d.u[k];
+    for(k in (d.c||{}))out.chan[k]=(out.chan[k]||0)+d.c[k];
+    var wd=(new Date(ds+'T12:00:00').getDay()+6)%7;
+    for(i=0;i<24;i++)out.heat[wd][i]+=(d.h?d.h[i]:0);
+    out.daily.push([ds,d.m]); }
+  out.daily.sort(function(x,y){return x[0]<y[0]?-1:1;});
+  return out;
+}
+
+function computeRange(a,b){
+  var A=DATA.atoms; if(!A)return null;
+  var nd=daysBetween(a,b), pa=addDays(a,-nd), pb=addDays(a,-1);
+  var cur=rangeSlice(A,a,b), prv=rangeSlice(A,pa,pb);
+  var nm=function(i){return A.authors[i]||('#'+i);};
+  var ch=function(i){return A.channels[i]||('#'+i);};
+  var pairs=function(o,f){return Object.keys(o).map(function(k){return [f(+k),o[k]];})
+    .sort(function(x,y){return y[1]-x[1];});};
+
+  var q=A.q.filter(function(r){return inR(r[0],a,b);});
+  var pq=A.q.filter(function(r){return inR(r[0],pa,pb);});
+  var prompt=function(rs){return rs.filter(function(r){return r[4]>=0&&r[4]<=PROX;}).length;};
+  var everR=function(rs){return rs.filter(function(r){return r[5]===1;});};
+  var openQ=function(rs){return rs.filter(function(r){return r[5]!==1&&r[7]!==1;});};
+  var queue=openQ(q).sort(function(x,y){return x[0]<y[0]?1:-1;});
+  var waits=everR(q).map(function(r){return r[4];}).filter(function(w){return w>=0;}).sort(function(x,y){return x-y;});
+
+  function cover(bucket){var m={},r=[],k;
+    everR(q).forEach(function(x){if(x[4]<0)return;var kk=bucket(x[1]);(m[kk]=m[kk]||[]).push(x[4]);});
+    for(k in m){var v=m[k].sort(function(p,s){return p-s;}); if(v.length>=5)r.push([+k,med(v),v.length]);}
+    return r.sort(function(p,s){return p[0]-s[0];});}
+  var cov=cover(function(h){return h;}), gran='hour';
+  if(cov.length<4){var cb=cover(function(h){return Math.floor(h/4)*4;});
+    if(cb.length>=2){cov=cb;gran='block';}else{cov=[];gran='none';}}
+
+  var rw=A.rep.filter(function(r){return inR(r[0],a,b);});
+  var prw=A.rep.filter(function(r){return inR(r[0],pa,pb);});
+  var hm={};
+  rw.forEach(function(r){var h=hm[r[1]]=hm[r[1]]||{n:0,who:{},lat:[]};h.n++;h.who[r[2]]=1;h.lat.push(r[3]);});
+  var helpers=Object.keys(hm).map(function(i){var h=hm[i];var L=h.lat.sort(function(x,y){return x-y;});
+    return {name:nm(+i),answers:h.n,helped:Object.keys(h.who).length,median:med(L)||0};})
+    .sort(function(x,y){return y.answers-x.answers;});
+  var phc={};prw.forEach(function(r){phc[r[1]]=1;});
+
+  var arrived=[],k2;
+  for(k2 in A.first)if(inR(A.first[k2],a,b))arrived.push(k2);
+  var ret=arrived.filter(function(i){return (A.count[i]||0)>=2;});
+  var reg=arrived.filter(function(i){return (A.count[i]||0)>=5;});
+  var gaps=arrived.filter(function(i){return A.second[i];}).map(function(i){
+    return (new Date(A.second[i]+'T12:00:00')-new Date(A.first[i]+'T12:00:00'))/36e5;})
+    .sort(function(x,y){return x-y;});
+  var introSet={};A.intro.forEach(function(i){introSet[i]=1;});
+  var elseSet={};A.elsewhere.forEach(function(i){elseSet[i]=1;});
+  var introIn=arrived.filter(function(i){return introSet[i];});
+
+  var sfr=A.sf.filter(function(r){return inR(r[0],a,b);});
+  var kwr=A.kw.filter(function(r){return inR(r[0],a,b);});
+  var kwc={};kwr.forEach(function(r){kwc[r[1]]=(kwc[r[1]]||0)+1;});
+  var rp={};sfr.forEach(function(r){rp[r[1]]=(rp[r[1]]||0)+1;});
+  var negr=A.neg.filter(function(r){return inR(r[0],a,b);}).sort(function(x,y){return x[3]-y[3];});
+
+  var chRows=pairs(cur.chan,ch), total=cur.messages||1;
+  var uniq=Object.keys(cur.members).length, puniq=Object.keys(prv.members).length;
+
+  return {custom:true,start:a,end:b,days:nd,label:a+' – '+b,
+    messages:cur.messages,prev_messages:prv.messages,per_day:+(cur.messages/nd).toFixed(1),
+    members:uniq,prev_members:puniq,new_members:cur.joins,prev_new_members:prv.joins,
+    reactions:cur.reactions,prev_reactions:prv.reactions,
+    pos:cur.pos,neg:cur.neg,neu:cur.messages-cur.pos-cur.neg,
+    daily:cur.daily,
+    channels:chRows.slice(0,10).map(function(r){return ['#'+r[0],r[1]];}),
+    contributors:pairs(cur.contrib,nm).slice(0,10),
+    heat:cur.heat,
+    heat_max:Math.max.apply(null,cur.heat.map(function(r){return Math.max.apply(null,r);})),
+    negatives:negr.slice(0,12).map(function(r){return {author:nm(r[1]),channel:ch(r[2]),when:r[5],text:A.texts[r[4]]};}),
+    questions:q.length,prev_questions:pq.length,
+    answered:prompt(q),prev_answered:prompt(pq),
+    unanswered:queue.length,prev_unanswered:openQ(pq).length,
+    median_wait:med(waits),
+    answers_given:rw.length,prev_answers_given:prw.length,
+    helper_count:helpers.length,prev_helper_count:Object.keys(phc).length,
+    queue:queue.slice(0,15).map(function(r){return {author:nm(r[2]),channel:ch(r[3]),when:r[0],text:A.texts[r[6]]};}),
+    queue_total:queue.length,helpers:helpers.slice(0,15),cover:cov,cover_gran:gran,
+    sf_reports:sfr.length,sf_reporters:Object.keys(rp).length,sf_mentions:kwr.length,
+    sf_mention_channels:pairs(kwc,ch).slice(0,8).map(function(r){return ['#'+r[0],r[1]];}),
+    sf_recent:sfr.slice(-12).reverse().map(function(r){return {author:nm(r[1]),channel:ch(r[2]),when:r[4],text:A.texts[r[3]]};}),
+    sf_top_reporters:pairs(rp,nm).slice(0,8),
+    nc_arrived:arrived.length,nc_retained:ret.length,nc_regulars:reg.length,
+    nc_oneshot:arrived.length-ret.length,nc_median_return_h:med(gaps),
+    nc_intro:introIn.length,nc_intro_converted:introIn.filter(function(i){return elseSet[i];}).length,
+    ch_rows:chRows.slice(0,20).map(function(r){return [r[0],r[1],0,+(100*r[1]/total).toFixed(1)];}),
+    ch_total:chRows.length,
+    ch_active:chRows.filter(function(r){return r[1]>=50;}).length,
+    ch_quiet:chRows.filter(function(r){return r[1]>0&&r[1]<50;}).length,
+    ch_top3_share:+(100*chRows.slice(0,3).reduce(function(t,r){return t+r[1];},0)/total).toFixed(1)};
+}
+
 function scopeOf(sel){if(!sel||sel.kind==='none'||!DATA)return null;
   if(sel.kind==='preset')return DATA.presets[sel.idx];
-  if(sel.kind==='cohort')return DATA.periods[sel.idx];return null;}
+  if(sel.kind==='custom')return computeRange(sel.start,sel.end);return null;}
 function selLabel(sel){if(!sel||sel.kind==='none')return 'Compare';
-  if(sel.kind==='preset')return DATA.presets[sel.idx].label;
-  var c=DATA.periods[sel.idx];return c.start+' – '+c.end;}
+  if(sel.kind==='custom')return sel.start+' \u2013 '+sel.end;
+  return DATA.presets[sel.idx].label;}
 function selHint(sel){var s=scopeOf(sel);return s?s.start+' \\u2192 '+s.end:'';}
 
 /* significance gate -- identical arithmetic to the Python side */
@@ -311,7 +499,7 @@ function areaSvg(daily){
       'data-tt="'+esc(num(daily[i][1])+' messages on '+daily[i][0])+'"><set attributeName="opacity" to="1" begin="mouseover" end="mouseout"/></circle>';}
   return '<svg viewBox="0 0 '+W+' '+H+'" width="100%"><defs><linearGradient id="dg" x1="0" x2="0" y1="0" y2="1">'+
     '<stop offset="0" stop-color="#6366f1" stop-opacity=".28"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></linearGradient></defs>'+
-    '<polygon points="'+fill+'" fill="url(#dg)"/><polyline points="'+line+'" fill="none" stroke="#6366f1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'+labs+bands+'</svg>';}
+    '<polygon class="cfill" points="'+fill+'" fill="url(#dg)"/>'+'<polyline class="cdraw" pathLength="1" points="'+line+'" fill="none" stroke="#6366f1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'+labs+bands+'</svg>';}
 
 function hbars(pairs){
   if(!pairs||!pairs.length)return '<div class="meta">No data.</div>';
@@ -360,9 +548,20 @@ function viewOverview(p,q,cmp){
   h+='<div class="grid g4">';
   h+=dkpi('Messages \\u00b7 '+Math.round(p.per_day)+'/day',num(n),sigDelta(n,base(p,q,cmp,'messages'),true,p.days,bdays(p,q,cmp)),'blue','msg');
   h+=dkpi('Active members',num(p.members),sigUnique(p.members,base(p,q,cmp,'members'),true,p.days,bdays(p,q,cmp)),'violet','people');
-  h+=dkpi('New members joined',num(p.new_members),sigDelta(p.new_members,base(p,q,cmp,'new_members'),true,p.days,bdays(p,q,cmp)),'green','join');
+  /* Joins and leaves are separable only when the log embeds were captured. Before
+     that they are one indistinguishable stream, so report the combined churn
+     rather than passing it off as growth. */
+  if(p.split_ok){
+    h+=dkpi('Members joined',num(p.joined),sigDelta(p.joined,base(p,q,cmp,'joined'),true,p.days,bdays(p,q,cmp)),'green','join');
+  }else{
+    h+=dkpi('Join/leave events',num(p.new_members),sigDelta(p.new_members,base(p,q,cmp,'new_members'),true,p.days,bdays(p,q,cmp)),'green','join');
+  }
   h+=dkpi('Reactions given',num(p.reactions),sigDelta(p.reactions,base(p,q,cmp,'reactions'),true,p.days,bdays(p,q,cmp)),'amber','react');
   h+='</div>';
+  if(p.split_ok){h+='<div class="grid g4" style="margin-top:14px">'
+    +dkpi('Members left',num(p.left),sigDelta(p.left,base(p,q,cmp,'left'),false,p.days,bdays(p,q,cmp)),'amber','alert')
+    +dkpi('Net change',(p.joined-p.left>=0?'+':'')+num(p.joined-p.left),'','violet','people')
+    +'</div>';}
   h+='<div class="card" style="margin-top:14px"><h3>Daily activity</h3>'+areaSvg(p.daily)+'</div>';
   h+='<div class="grid g2" style="margin-top:14px"><div class="card"><h3>Busiest channels</h3>'+hbars(p.channels)+'</div>'+
      '<div class="card"><h3>Top contributors</h3>'+hbars(p.contributors)+'</div></div>';
@@ -514,6 +713,25 @@ function viewChannels(p){
     ' channels carry fewer than 50 messages in this window. Consolidating them concentrates the people who are left.</div>';
   return h+'</div>';}
 
+
+/* Reveal each chart's draw animation when it scrolls into view -- a direct port of
+   revealCharts() on the Reddit page. Must run AFTER #view is populated, since the
+   observer needs the svg nodes to exist. */
+var chartIO=null;
+function armCharts(){
+  if(!('IntersectionObserver' in window)){
+    document.querySelectorAll('#view svg').forEach(function(s){s.classList.add('chart-in');});return;}
+  if(chartIO)chartIO.disconnect();
+  chartIO=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      /* reveal on entry, or if it has already been scrolled past on a fast jump */
+      var passed=e.rootBounds&&e.boundingClientRect.bottom<=e.rootBounds.top;
+      if(e.isIntersecting||passed){e.target.classList.add('chart-in');chartIO.unobserve(e.target);}});
+  },{threshold:0.18,rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('#view svg').forEach(function(svg){
+    if(svg.querySelector('.cdraw'))chartIO.observe(svg);});
+}
+
 function curView(){return (location.hash||'').slice(1).split('?')[0]||'dashboard';}
 function render(){
   if(!DATA)return;
@@ -541,32 +759,82 @@ function render(){
   else if(v==='channels')h=viewChannels(p);
   else h=viewOverview(p,q,cmp);
   var host=document.getElementById('view');if(host)host.innerHTML=h;
-  window.scrollTo(0,0);}
+  window.scrollTo(0,0);armCharts();}
+
+
+/* ---- calendar: pick an arbitrary start/end, same flow as the Reddit picker ---- */
+var calTab='start', calStart=null, calEnd=null, calMonth=null, calOpen=false;
+var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function ymd(y,m,d){return y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+d).slice(-2);}
+function monthGrid(y,m){
+  var first=new Date(y,m,1).getDay(), n=new Date(y,m+1,0).getDate(), h='';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d){h+='<div class="rpop-dh">'+d+'</div>';});
+  for(var i=0;i<first;i++)h+='<div></div>';
+  for(var d=1;d<=n;d++){var ds=ymd(y,m,d);
+    var dis=ds<DATA.earliest||ds>DATA.latest;
+    var sel=(ds===calStart||ds===calEnd);
+    var inr=calStart&&calEnd&&ds>calStart&&ds<calEnd;
+    h+='<div class="rpop-d'+(dis?' dis':'')+(sel?' sel':'')+(inr?' inr':'')+'" data-d="'+ds+'">'+d+'</div>';}
+  return '<div class="rpop-m"><h4>'+MONTHS[m]+' '+y+'</h4><div class="rpop-grid">'+h+'</div></div>';
+}
+function renderCal(){
+  var el=document.getElementById('rpopCal'); if(!el)return;
+  if(!calMonth){var L=new Date(DATA.latest+'T12:00:00');calMonth=new Date(L.getFullYear(),L.getMonth()-1,1);}
+  var m2=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,1);
+  el.querySelector('#rpopMonths').innerHTML=
+    monthGrid(calMonth.getFullYear(),calMonth.getMonth())+monthGrid(m2.getFullYear(),m2.getMonth());
+  el.querySelectorAll('.rpop-tab').forEach(function(t){t.classList.toggle('active',t.getAttribute('data-tab')===calTab);});
+  el.querySelector('#rpopApply').disabled=!(calStart&&calEnd);
+}
+function pickDate(ds){
+  if(calTab==='start'){calStart=ds;if(calEnd&&calEnd<ds)calEnd=null;calTab='end';}
+  else{if(calStart&&ds<calStart){calEnd=calStart;calStart=ds;}else calEnd=ds;}
+  renderCal();
+}
 
 /* ---- picker popover: presets, then every semi-monthly cohort ---- */
 var pickRole=null;
 function closePop(){var e=document.getElementById('rangePop');if(e)e.style.display='none';pickRole=null;}
 function openPicker(role,btn){
   var pop=document.getElementById('rangePop');if(!pop||!DATA)return;
-  pickRole=role;var sel=role==='period'?periodSel:compareSel,h='';
+  pickRole=role;calOpen=false;var sel=role==='period'?periodSel:compareSel,h='';
   if(role==='compare')h+='<button data-k="none"'+(compareSel.kind==='none'?' class="sel"':'')+'>No comparison</button><div class="div"></div>';
-  h+='<div class="hd">Presets</div>';
   DATA.presets.forEach(function(p,i){
     var on=sel&&sel.kind==='preset'&&sel.idx===i;
-    h+='<button data-k="preset" data-i="'+i+'"'+(on?' class="sel"':'')+'><span>'+esc(p.label)+'</span><span class="n">'+num(p.messages)+'</span></button>';});
-  h+='<div class="div"></div><div class="hd">Semi-monthly periods</div>';
-  for(var i=DATA.periods.length-1;i>=0;i--){var c=DATA.periods[i],on=sel&&sel.kind==='cohort'&&sel.idx===i;
-    h+='<button data-k="cohort" data-i="'+i+'"'+(on?' class="sel"':'')+'><span>'+c.start+' \\u2013 '+c.end+'</span><span class="n">'+num(c.messages)+'</span></button>';}
-  pop.innerHTML=h;pop.style.display='block';
-  var r=btn.getBoundingClientRect();
-  pop.style.top=(r.bottom+6)+'px';
-  pop.style.left=Math.max(8,Math.min(r.left,window.innerWidth-pop.offsetWidth-8))+'px';}
+    h+='<button data-k="preset" data-i="'+i+'"'+(on?' class="sel"':'')+'>'
+      +'<span>'+esc(p.label)+'</span><span class="n">'+num(p.messages)+'</span></button>';});
+  h+='<div class="div"></div>'
+    +'<button data-k="cal"'+(sel&&sel.kind==='custom'?' class="sel"':'')+'>'
+    +'<span>Date range</span><span class="n">\u203a</span></button>';
+h+='<div class="rpop-cal" id="rpopCal" style="display:'+(calOpen?'block':'none')+'">'+'<div class="rpop-tabs"><button class="rpop-tab" data-tab="start" type="button">Start</button>'+'<button class="rpop-tab" data-tab="end" type="button">End</button></div>'+'<div class="rpop-nav"><button id="rpopPrev" type="button">‹</button>'+'<button id="rpopNext" type="button">›</button></div>'+'<div id="rpopMonths" class="rpop-months"></div>'+'<div class="rpop-actions"><button id="rpopApply" type="button" class="rpop-apply">Apply</button></div></div>';pop.innerHTML=h;pop.style.display='block';if(calOpen)renderCal();
+  positionPop(btn);}
+function positionPop(btn){var pop=document.getElementById('rangePop');
+  btn=btn||document.getElementById(pickRole==='period'?'periodBtn':'compareBtn');
+  if(!pop||!btn)return;var r=btn.getBoundingClientRect();
+  var cal=document.getElementById('rpopCal');
+  var w=(cal&&cal.style.display!=='none')?620:240;   /* size for the state it will be in */
+  w=Math.min(w,window.innerWidth-24);
+  var left=r.left;
+  if(left+w>window.innerWidth-12)left=Math.max(12,window.innerWidth-w-12);
+  pop.style.left=left+'px';pop.style.top=(r.bottom+6)+'px';}
 document.addEventListener('click',function(e){
   if(!e.target.closest)return;
   var pb=e.target.closest('#periodBtn'),cb=e.target.closest('#compareBtn');
   if(pb){e.stopPropagation();if(pickRole==='period')closePop();else openPicker('period',pb);return;}
   if(cb){e.stopPropagation();if(pickRole==='compare')closePop();else openPicker('compare',cb);return;}
+  var day=e.target.closest('#rangePop .rpop-d');
+  if(day){e.stopPropagation();if(!day.classList.contains('dis'))pickDate(day.getAttribute('data-d'));return;}
+  var tab=e.target.closest('#rangePop .rpop-tab');
+  if(tab){e.stopPropagation();calTab=tab.getAttribute('data-tab');renderCal();return;}
+  if(e.target.closest('#rpopPrev')){e.stopPropagation();calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()-1,1);renderCal();return;}
+  if(e.target.closest('#rpopNext')){e.stopPropagation();calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,1);renderCal();return;}
+  if(e.target.closest('#rpopApply')){e.stopPropagation();
+    if(calStart&&calEnd){var sel={kind:'custom',start:calStart,end:calEnd};
+      if(pickRole==='period')periodSel=sel;else compareSel=sel;
+      calOpen=false;closePop();render();}return;}
   var opt=e.target.closest('#rangePop button');
+  if(opt&&opt.getAttribute('data-k')==='cal'){e.stopPropagation();calOpen=true;
+    var c=document.getElementById('rpopCal');if(c){c.style.display='block';renderCal();positionPop();}return;}
   if(opt){var k=opt.getAttribute('data-k'),i=parseInt(opt.getAttribute('data-i'),10);
     var s=k==='none'?{kind:'none'}:{kind:k,idx:i};
     if(pickRole==='period')periodSel=s;else compareSel=s;
@@ -590,13 +858,26 @@ document.addEventListener('mousemove',function(e){
 document.addEventListener('mouseleave',function(){if(tipEl)tipEl.style.display='none';});
 
 function restoreSidebar(){var p=app();if(!p)return;
-  try{if(localStorage.getItem('hintel-sb')==='0')p.classList.remove('sb-collapsed');}catch(_){}}
+  try{if(localStorage.getItem('hintel-sb')==='0')p.classList.remove('sb-collapsed');}catch(_){}
+  if(mqSmall.matches)p.classList.remove('sb-collapsed');}
+
+/* Controls live in the top bar on desktop and in the drawer on mobile; moving the
+   node keeps one set of listeners rather than duplicating the picker. */
+var mqSmall=window.matchMedia('(max-width:900px)');
+function placeControls(){var c=document.querySelector('.tbctrls');if(!c)return;
+  var host=mqSmall.matches?document.getElementById('sbCtrlMount'):document.querySelector('.topbar');
+  if(host&&c.parentElement!==host)host.appendChild(c);}
+mqSmall.addEventListener('change',function(){placeControls();closePop();});
+/* matchMedia change does not always fire on programmatic resize, and a stuck
+   placement leaves the controls unreachable, so resize is a cheap backstop. */
+window.addEventListener('resize',placeControls);
 function bootData(){
   if(booted)return true;
   var el=document.getElementById('ddata');if(!el)return false;
   try{DATA=JSON.parse(el.textContent);}catch(err){return false;}
-  periodSel={kind:'preset',idx:DATA.default_preset||0};booted=true;restoreSidebar();render();return true;}
+  periodSel={kind:'preset',idx:DATA.default_preset||0};booted=true;restoreSidebar();placeControls();render();return true;}
 document.addEventListener('DOMContentLoaded',function(){
+  placeControls();
   if(!bootData()){var mo=new MutationObserver(function(){if(bootData())mo.disconnect();});
     mo.observe(document.body,{childList:true,subtree:true});}});
 })();</script>
@@ -623,7 +904,7 @@ def dkpi(label, value, d='', tint='blue', icon='msg'):
 
 HEADER = """<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ℏIntel — Discord Dashboard</title><link rel="icon" href="public/log.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>ℏIntel — Discord Dashboard</title><link rel="icon" href="public/log.png"><script defer src="/_vercel/insights/script.js"></script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {js}<style>{css}</style></head><body>"""
 
 # Sidebar icons, same Lucide set and stroke treatment as the Reddit dashboard.
@@ -680,6 +961,7 @@ def shell(tabs, views, note):
             f'<button id="sbToggle" class="sbtoggle" type="button" aria-label="Toggle sidebar" '
             f'data-tip-open="Open sidebar" data-tip-close="Close sidebar">{SB_SVG}</button></div>'
             f'<nav class="nav" id="nav">{nav}</nav>'
+            f'<div id="sbCtrlMount" class="sbctrls"></div>'
             f'<div class="sbnote">{note}</div></aside>'
             f'<div class="main"><div class="topbar">'
             f'<button id="mOpen" class="topmenu" type="button" aria-label="Open sidebar">{MENU_SVG}</button>'
@@ -957,6 +1239,126 @@ def desk_payload(G, start, end, prev_start):
     }
 
 
+
+JOIN_RE_TXT = re.compile(r'joined', re.I)
+LEAVE_RE_TXT = re.compile(r'(left|leave|kick|ban)\w*', re.I)
+
+
+def split_joins(joins):
+    """(joined, left, split_ok) from the join-log channel.
+
+    The log bot records both events as embeds. Older rows were fetched before
+    embeds were captured, so their text is empty and the two are indistinguishable
+    -- in that case report the combined count and say so, rather than presenting
+    churn as growth.
+    """
+    txt = joins.get('embed')
+    if txt is None:
+        return len(joins), 0, False
+    txt = txt.fillna('').astype(str)
+    if not (txt.str.strip() != '').any():
+        return len(joins), 0, False
+    j = int(txt.str.contains(JOIN_RE_TXT, na=False).sum())
+    l = int(txt.str.contains(LEAVE_RE_TXT, na=False).sum())
+    if j + l == 0:
+        return len(joins), 0, False
+    return j, l, True
+
+
+def build_atoms(df, joins, G, ctx):
+    """Per-day and per-event rows the client sums for an arbitrary date range.
+
+    Precomputed periods cannot answer a custom range: messages and reactions sum, but
+    unique members, the median wait, the helper table and the unanswered queue do not.
+    So ship the underlying rows once -- questions, cross-author replies, flagged and
+    scam messages -- indexed against lookup tables, and let the client filter by date.
+    """
+    d = df.sort_values('created_utc')
+    day = lambda t: t.strftime('%Y-%m-%d')
+
+    authors, chans, texts = {}, {}, {}
+    def ai(aid, name):
+        if aid not in authors:
+            authors[aid] = [len(authors), str(name)]
+        return authors[aid][0]
+    def ci(c):
+        if c not in chans:
+            chans[c] = len(chans)
+        return chans[c]
+    def ti(t):
+        t = str(t)[:220]
+        if t not in texts:
+            texts[t] = len(texts)
+        return texts[t]
+
+    # ---- per-day volume: everything that aggregates by simple addition
+    daily = {}
+    for k, g in d.groupby(d['created_utc'].dt.strftime('%Y-%m-%d')):
+        labs = [hs.classify_text(t) if str(t).strip() else ('neutral', 0.0)
+                for t in g['content'].fillna('').astype(str)]
+        pos = sum(1 for l, _ in labs if l == 'positive')
+        neg = sum(1 for l, _ in labs if l == 'negative')
+        hrs = [0] * 24
+        for t in g['created_utc']:
+            hrs[t.hour] += 1
+        daily[k] = {
+            'm': len(g), 'r': int(g['reactions'].fillna(0).sum()), 'p': pos, 'n': neg,
+            'a': sorted({ai(str(r.author_id), r.author) for r in g.itertuples()}),
+            'c': {str(ci(c)): int(v) for c, v in g.groupby('channel').size().items()},
+            'u': {str(ai(str(a), g[g.author_id == a]['author'].iloc[0])): int(v)
+                  for a, v in g.groupby('author_id').size().items()},
+            'h': hrs,
+        }
+    for k, g in joins.groupby(joins['created_utc'].dt.strftime('%Y-%m-%d')):
+        daily.setdefault(k, {'m': 0, 'r': 0, 'p': 0, 'n': 0, 'a': [], 'c': {}, 'u': {}, 'h': [0]*24})
+        daily[k]['j'] = len(g)
+
+    # ---- questions: [day, hour, author, channel, wait|-1, everAnswered, textIdx]
+    q = G['q']
+    qrows = [[day(r.created_utc), r.created_utc.hour, ai(str(r.author_id), r.author), ci(r.channel),
+              round(r.wait, 1) if r.wait == r.wait and r.wait is not None else -1,
+              1 if r.ever else 0, ti(r.content), 1 if r.reply_to == r.reply_to and r.reply_to else 0]
+             for r in q.itertuples()]
+
+    # ---- cross-author replies: [day, answerer, asker, latency]
+    rep = G['rep']
+    # keyed on the QUESTION's date, matching desk_stats(), so the two paths agree
+    rrows = [[day(r.t_time), ai(str(r.author_id), r.author),
+              str(r.t_author), round(r.lat, 1)] for r in rep.itertuples()]
+
+    # ---- flagged + scam rows, for Needs Attention and Safety over a custom range
+    labs = [hs.classify_text(t) if str(t).strip() else ('neutral', 0.0)
+            for t in d['content'].fillna('').astype(str)]
+    dd = d.assign(_lab=[l for l, _ in labs], _sc=[sc for _, sc in labs])
+    # itertuples() renames underscore-prefixed columns to positional _N, so a
+    # leading-underscore name cannot be read by attribute. Rename before iterating,
+    # or every score silently comes out 0 and "most negative" stops meaning anything.
+    negs = dd[dd['_lab'] == 'negative'].rename(columns={'_sc': 'sc'})
+    nrows = [[day(r.created_utc), ai(str(r.author_id), r.author), ci(r.channel),
+              round(float(r.sc), 3), ti(r.content),
+              r.created_utc.strftime('%Y-%m-%d %H:%M')] for r in negs.itertuples()]
+    sf = dd[dd['channel'].str.contains(SCAM_CH, na=False)]
+    srows = [[day(r.created_utc), ai(str(r.author_id), r.author), ci(r.channel), ti(r.content),
+              r.created_utc.strftime('%Y-%m-%d %H:%M')] for r in sf.itertuples()]
+    kw = dd[dd['content'].fillna('').str.contains(SCAM_KW, na=False)]
+    krows = [[day(r.created_utc), ci(r.channel)] for r in kw.itertuples()]
+
+    # ---- newcomer lookups: first-seen day and lifetime message count per author
+    first = {str(ai(a, a)): day(t) for a, t in ctx['first'].items()}
+    cnt = {str(ai(a, a)): int(v) for a, v in ctx['count'].items()}
+    second = {str(ai(a, a)): day(t) for a, t in ctx['second'].items()}
+
+    names = [None] * len(authors)
+    for aid, (i, nm) in authors.items():
+        names[i] = nm
+    return {'daily': daily, 'authors': names,
+            'channels': [c for c, _ in sorted(chans.items(), key=lambda x: x[1])],
+            'texts': [t for t, _ in sorted(texts.items(), key=lambda x: x[1])],
+            'q': qrows, 'rep': rrows, 'neg': nrows, 'sf': srows, 'kw': krows,
+            'first': first, 'count': cnt, 'second': second,
+            'intro': sorted({ai(a, a) for a in ctx['intro']}),
+            'elsewhere': sorted({ai(a, a) for a in ctx['elsewhere']})}
+
 def dmetrics(df, joins, start, end, G=None, ctx=None):
     """Every per-window figure for [start, end].
 
@@ -972,6 +1374,8 @@ def dmetrics(df, joins, start, end, G=None, ctx=None):
     n, pn = len(w), len(pw)
 
     nj = int(((joins.created_utc >= start) & (joins.created_utc <= end)).sum())
+    jw = joins[(joins.created_utc >= start) & (joins.created_utc <= end)]
+    n_join, n_left, split_ok = split_joins(jw)
     pnj = int(((joins.created_utc >= prev_start) & (joins.created_utc < start)).sum())
 
     members = int(w['author_id'].nunique())
@@ -1002,7 +1406,7 @@ def dmetrics(df, joins, start, end, G=None, ctx=None):
     neg = int((ww['_lab'] == 'negative').sum())
     negs = ww[ww['_lab'] == 'negative'].sort_values('_sc').head(12)
     neg_rows = [{'author': str(r['author']), 'channel': str(r['channel']),
-                 'when': r['created_utc'].strftime('%d %b %H:%M'),
+                 'when': r['created_utc'].strftime('%Y-%m-%d %H:%M'),
                  'text': str(r['content'])[:220]} for _, r in negs.iterrows()]
 
     out = {
@@ -1010,6 +1414,7 @@ def dmetrics(df, joins, start, end, G=None, ctx=None):
         'messages': n, 'prev_messages': pn, 'per_day': round(n / max(ndays, 1), 1),
         'members': members, 'prev_members': pmembers, 'new_members': nj,
         'prev_new_members': pnj, 'new_to_server': new_here, 'reactions': reacts,
+        'joined': n_join, 'left': n_left, 'split_ok': split_ok,
         'prev_reactions': int(pw['reactions'].fillna(0).sum()),
         'pos': pos, 'neg': neg, 'neu': n - pos - neg,
         'daily': daily, 'channels': chans, 'contributors': tops,
@@ -1322,7 +1727,8 @@ def main():
     # force it) and float64 holds only ~16 — every reply ID would be silently mangled,
     # breaking the answer graph. Read the ID columns as strings.
     raw = pd.read_csv(CSV_PATH, low_memory=False,
-                      dtype={'id': str, 'reply_to': str, 'author_id': str, 'channel_id': str})
+                      dtype={'id': str, 'reply_to': str, 'author_id': str, 'channel_id': str,
+                             'embed': str})
     if not len(raw):
         setup_page(); return
     raw['created_utc'] = pd.to_datetime(raw['created_utc'], errors='coerce')
@@ -1357,12 +1763,14 @@ def main():
         d['ndays'] = ndays
         return d
     PRESETS = [preset(l, n_) for l, n_ in
-               (('Last 7 days', 7), ('Last 15 days', 15), ('Last 28 days', 28),
+               (('Last 7 days', 7), ('Last 15 days', 15), ('Last month', 30),
                 ('Last 12 weeks', 84), ('Last 6 months', 182), ('Last 365 days', 365))]
 
+    ATOMS = build_atoms(df, joins, G, CTX)
     DATA = {'generated': datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
-            'periods': PERIODS, 'presets': PRESETS, 'default_preset': 1,
-            'earliest': EARLIEST.strftime('%Y-%m-%d'), 'latest': LATEST.strftime('%Y-%m-%d')}
+            'presets': PRESETS, 'default_preset': 1,
+            'earliest': EARLIEST.strftime('%Y-%m-%d'), 'latest': LATEST.strftime('%Y-%m-%d'),
+            'atoms': ATOMS}
     print(f'Periods: {len(PERIODS)} cohorts {PERIODS[0]["start"]} -> {PERIODS[-1]["end"]}'
           f'  ({sum(p["messages"] for p in PERIODS):,} messages covered)')
     w = df[df['created_utc'] >= start]
@@ -1402,7 +1810,7 @@ def main():
     b += '<div class="grid g4">'
     b += dkpi(f'Messages · {per_day:.0f}/day', f'{n:,}', sig_delta(n, pn), 'blue', 'msg')
     b += dkpi('Active members', f'{members:,}', sig_delta(members, pmembers), 'violet', 'people')
-    b += dkpi('New members joined', f'{new_members:,}', sig_delta(new_members, prev_members_j), 'green', 'join')
+    b += dkpi('Join/leave events', f'{new_members:,}', sig_delta(new_members, prev_members_j), 'green', 'join')
     b += dkpi('Reactions given', f'{reacts:,}', sig_delta(reacts, prev_reacts), 'amber', 'react')
     b += '</div>'
     b += f'<div class="card" style="margin-top:14px"><h3>Daily activity</h3>{area_svg(daily)}</div>'

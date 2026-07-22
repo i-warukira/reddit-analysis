@@ -290,7 +290,7 @@ def main():
             f'<div class="card kpi"><div class="v">{fmt(roll["people"])}</div>'
             f'<div class="l">Active people</div><div class="sub">{n_plat}</div></div>'
             f'<div class="card kpi"><div class="v">{fmt(roll["new_people"])}</div>'
-            f'<div class="l">New joiners &amp; first-time posters</div></div>'
+            f'<div class="l">Join/leave events &amp; first-time posters</div></div>'
             f'<div class="card kpi"><div class="v" style="color:{att_col}">{roll["attention"]}</div>'
             f'<div class="l">Flagged, needs attention</div></div></div>')
 
@@ -322,7 +322,7 @@ def main():
     gen = datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
     doc = f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-cache">
-<title>ℏIntel — Hedera Community Intelligence</title><link rel="icon" href="public/log.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>ℏIntel — Hedera Community Intelligence</title><link rel="icon" href="public/log.png"><script defer src="/_vercel/insights/script.js"></script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>{CSS}</style>{THEME_JS}</head><body>
 <div class="wrap">
   {hero_open}{feats}{hero_close}
