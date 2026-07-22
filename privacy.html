@@ -28,15 +28,16 @@ a{color:var(--accent)}
 <a class="brand" href="index.html"><img src="public/log.png" alt="ℏIntel"><b><span class="h">ℏ</span>Intel</b></a>
 
 <h1>Privacy Policy</h1>
-<p class="sub">How the ℏIntel bot and dashboard handle Discord data.</p>
+<p class="sub">How ℏIntel handles Hedera Discord and r/Hedera data.</p>
 <p class="sub">Last updated: 22 July 2026</p>
 
 <div class="card">
 <p><b>In short.</b> ℏIntel is an internal analytics tool run by a moderator of the Hedera
-Discord. It reads messages in public channels the server administrators have granted it
-access to, and turns them into a private, password-protected dashboard used by community
-staff. It posts nothing, replies to nobody, sends no DMs, and takes no moderation actions.
-Nothing is sold, shared with third parties, or used to train AI models.</p>
+community. It covers two sources: the <b>Hedera Discord</b>, read by a bot in channels the
+server administrators have granted it access to, and <b>r/Hedera</b>, a public subreddit,
+read from a public archive. Both feed private, staff-facing dashboards. The bot posts
+nothing, replies to nobody, sends no DMs, and takes no moderation actions. Nothing is sold,
+shared with third parties, or used to train AI models.</p>
 </div>
 
 <h2>What is collected</h2>
@@ -53,6 +54,23 @@ to report how many people joined in a period</li>
 <p>The bot does <b>not</b> collect voice data, presence/online status, private messages,
 email addresses, IP addresses, or payment information.</p>
 
+<h2>Reddit (r/Hedera)</h2>
+<p>Reddit data is <b>public</b> content from r/Hedera, obtained from the Arctic-Shift public
+archive rather than by scraping Reddit directly. No Reddit account is logged into, and no
+private or deleted content is requested.</p>
+<ul>
+<li>Post and comment text, titles, and links (permalinks)</li>
+<li>Reddit username of the author, where the author has not deleted their account</li>
+<li>Score, upvote ratio, comment counts, flair and timestamps</li>
+</ul>
+<p>Posts by <code>[deleted]</code> authors are excluded from contributor and author
+reporting. Because Reddit content is already public, the Reddit dashboard shows post titles
+and links openly; the Discord dashboard, which contains non-public channel messages, does
+not and is password-protected.</p>
+<p>The same choices below — opt out, deletion, access — apply to Reddit data. Note that
+removing content from Reddit itself does not remove it from a third-party archive; contact
+us and we will remove it from ours.</p>
+
 <h2>Why it is collected</h2>
 <ul>
 <li><b>Support quality</b> — detecting questions that went unanswered, and how long answers take</li>
@@ -62,10 +80,11 @@ email addresses, IP addresses, or payment information.</p>
 <p>Each of these requires reading message text; none can be derived from metadata alone.</p>
 
 <h2>Where it is stored, and who can see it</h2>
-<p>Data is stored in a file on the operator's machine and rendered into a static dashboard
-hosted on Vercel. The dashboard containing member names and message text is
-<b>encrypted and password-protected</b> — it is served as ciphertext and can only be read by
-staff holding the password. It is not indexed by search engines and is not publicly browsable.</p>
+<p>Data is stored in files on the operator's machine and rendered into static dashboards
+hosted on Vercel. The <b>Discord</b> dashboard, which contains member names and non-public
+channel messages, is <b>encrypted and password-protected</b> — served as ciphertext, readable
+only by staff holding the password, not indexed by search engines. The <b>Reddit</b> dashboard
+covers content that is already public on reddit.com and is not password-protected.</p>
 <p>Aggregate figures (totals, percentages, charts with no names or message text) may be shared
 more widely in staff updates.</p>
 
@@ -100,7 +119,7 @@ information or track visitors across sites.</p>
 <p>Material changes to this policy will be reflected in the date above and communicated to
 Hedera Discord staff.</p>
 
-<div class="foot">ℏIntel · operated by a moderator of the Hedera Discord<br>
+<div class="foot"><a href="terms.html">Terms of Service</a> · ℏIntel operated by a moderator of the Hedera community<br>
 Data requests: <a href="mailto:mwangihenry336@gmail.com">mwangihenry336@gmail.com</a> · Escalation: <a href="mailto:luis.vega@hashgraph.com">luis.vega@hashgraph.com</a></div>
 </div>
 <script>(function(){var k='hintel-theme';function a(v){if(v==='dark'||v==='light')document.documentElement.setAttribute('data-theme',v);else document.documentElement.removeAttribute('data-theme');}
