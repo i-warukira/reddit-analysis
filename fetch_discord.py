@@ -27,13 +27,31 @@ OUT_DIR = 'data/discord_hedera'
 CSV_PATH = os.path.join(OUT_DIR, 'messages.csv')
 STATE_PATH = os.path.join(OUT_DIR, 'state.json')
 FIELDS = ['id', 'channel_id', 'channel', 'author_id', 'author', 'bot',
-          'created_utc', 'content', 'reactions', 'reply_to']
+          'created_utc', 'content', 'reactions', 'reply_to', 'embed']
 
 DISCORD_EPOCH_MS = 1420070400000
 
 def dt_to_snowflake(dt):
     ms = int(dt.replace(tzinfo=timezone.utc).timestamp() * 1000)
     return str((ms - DISCORD_EPOCH_MS) << 22)
+
+def embed_text(m):
+    """Flatten a message's embeds to one line: title, description, author name and
+    any field names/values. Bot audit logs (joins, leaves, kicks) put the whole record
+    in the embed and leave content empty, so without this a join and a leave look
+    identical and both get counted as joins."""
+    out = []
+    for e in (m.get("embeds") or []):
+        for k in ("title", "description"):
+            if e.get(k):
+                out.append(str(e[k]))
+        if (e.get("author") or {}).get("name"):
+            out.append(str(e["author"]["name"]))
+        for fl in (e.get("fields") or []):
+            out.append(str(fl.get("name", "")) + " " + str(fl.get("value", "")))
+    joined = " | ".join(out)
+    return joined.replace(chr(13), " ").replace(chr(10), " ")[:1500]
+
 
 def snowflake_to_iso(sf):
     ms = (int(sf) >> 22) + DISCORD_EPOCH_MS
@@ -118,6 +136,10 @@ def main():
                     'content': (m.get('content') or '').replace('\r', ' ').replace('\n', ' ')[:1500],
                     'reactions': sum(r_['count'] for r_ in m.get('reactions', [])),
                     'reply_to': (m.get('referenced_message') or {}).get('id', '') if m.get('message_reference') else '',
+                    # Bot logs (joins, leaves, kicks) carry no content -- the record
+                    # lives in the embed. Flatten title+description so the dashboard
+                    # can tell a join from a leave instead of counting both as joins.
+                    'embed': embed_text(m),
                 })
             got += len(page)
             after = page[-1]['id']
