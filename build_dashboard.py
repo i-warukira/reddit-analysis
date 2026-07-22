@@ -1218,7 +1218,7 @@ html[data-theme="dark"] .infobox .ibchip.on{color:#86efac}
     <div class="content"><div id="view"></div>
       <p class="sub" style="margin-top:24px">Soft/keyword metrics (risk, themes, sentiment) are regex proxies over titles + comment bodies — not verified mod actions. Bans/reports/peak-online require the Reddit mod dashboard.</p>
       <div class="appfoot">
-        <span class="fbrand"><span class="h">ℏ</span>Intel · © 2026</span>
+        <span class="fbrand"><span class="h">ℏ</span>Intel · © 2026 &middot; <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a></span>
         <span class="built"><span class="ftip">Report issue or suggest ideas to henry</span>Built by henry <a class="xlink" href="https://x.com/harryfiedwrld" target="_blank" rel="noopener" aria-label="henry on X"><img src="public/henry.jpg" alt="henry" loading="lazy"></a></span>
         <span class="live"><span class="dot"></span>Live Data</span>
       </div>

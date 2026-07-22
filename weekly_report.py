@@ -294,7 +294,7 @@ a{{color:var(--blue);text-decoration:none}}a:hover{{text-decoration:underline}}
 {card_sec("Themes", "What people were talking about", f'<div>{themes_html}</div><div style="margin-top:12px">{rec_html}</div>')}
 {card_sec("Queue", f"Support queue — {len(escal)} need a look", queue_html)}
 {card_sec("Moderation", "Risk & moderation", risk_html)}
-<div class="foot">Soft/keyword metrics are regex proxies over titles — verify before acting. Full evaluation: the twice-monthly <a href="reddit.html">dashboard</a>.</div>
+<div class="foot"><a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a><br>Soft/keyword metrics are regex proxies over titles — verify before acting. Full evaluation: the twice-monthly <a href="reddit.html">dashboard</a>. &middot; <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a></div>
 </div></body></html>"""
 
 with open('weekly.html', 'w', encoding='utf-8') as f:

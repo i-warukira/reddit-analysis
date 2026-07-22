@@ -1,6 +1,6 @@
 # r/Hedera — Weekly Staff Update
 **Period covered:** Mon 08 Jun 2026 → Wed 22 Jul 2026  (45 days, since last meeting)
-**Prepared:** 2026-07-22 10:24 UTC · source: r/Hedera (Arctic-Shift archive)
+**Prepared:** 2026-07-22 13:49 UTC · source: r/Hedera (Arctic-Shift archive)
 
 ## TL;DR
 - **322 new posts** (7.2/day) (-44% vs prior 45d).

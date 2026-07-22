@@ -335,7 +335,7 @@ def main():
   <div class="sec">By platform</div>
   <div class="grid g2">{cards}</div>
 </div>
-<div class="foot">ℏIntel · intels.app · generated {gen} · each platform has its own dashboard with Compare, Weekly and PDF</div>
+<div class="foot">ℏIntel · intels.app &middot; <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a> · generated {gen} · each platform has its own dashboard with Compare, Weekly and PDF &middot; <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a></div>
 </body></html>"""
     with open(OUT, 'w', encoding='utf-8') as f:
         f.write(doc)

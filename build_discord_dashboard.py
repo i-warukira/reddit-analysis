@@ -987,8 +987,8 @@ def shell(tabs, views, note):
             f'<div id="rangePop" class="rpop" style="display:none"></div>'
             f'<div class="content"><div id="view">{body}</div>{FOOT}</div></div></div>')
 
-FOOT = ('<div class="foot">ℏIntel · Discord data via official Bot API (fetch_discord.py) · '
-        'sentiment uses the same hybrid classifier as the Reddit dashboard.</div>')
+FOOT = ('<div class="foot">ℏIntel &middot; <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a> · Discord data via official Bot API (fetch_discord.py) · '
+        'sentiment uses the same hybrid classifier as the Reddit dashboard. · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></div>')
 
 def _page_password():
     try:
