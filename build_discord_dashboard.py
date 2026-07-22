@@ -558,9 +558,13 @@ function viewOverview(p,q,cmp){
   }
   h+=dkpi('Reactions given',num(p.reactions),sigDelta(p.reactions,base(p,q,cmp,'reactions'),true,p.days,bdays(p,q,cmp)),'amber','react');
   h+='</div>';
-  if(p.split_ok){h+='<div class="grid g4" style="margin-top:14px">'
+  /* Departures split three ways: a voluntary leave and a ban mean different things,
+     and net growth should account for both. */
+  if(p.split_ok){var net=p.joined-p.left-(p.banned||0);
+    h+='<div class="grid g4" style="margin-top:14px">'
     +dkpi('Members left',num(p.left),sigDelta(p.left,base(p,q,cmp,'left'),false,p.days,bdays(p,q,cmp)),'amber','alert')
-    +dkpi('Net change',(p.joined-p.left>=0?'+':'')+num(p.joined-p.left),'','violet','people')
+    +dkpi('Members banned',num(p.banned||0),sigDelta(p.banned||0,base(p,q,cmp,'banned'),false,p.days,bdays(p,q,cmp)),'blue','alert')
+    +dkpi('Net change',(net>=0?'+':'')+num(net),'',net>=0?'green':'amber','people')
     +'</div>';}
   h+='<div class="card" style="margin-top:14px"><h3>Daily activity</h3>'+areaSvg(p.daily)+'</div>';
   h+='<div class="grid g2" style="margin-top:14px"><div class="card"><h3>Busiest channels</h3>'+hbars(p.channels)+'</div>'+
@@ -1240,29 +1244,35 @@ def desk_payload(G, start, end, prev_start):
 
 
 
-JOIN_RE_TXT = re.compile(r'joined', re.I)
-LEAVE_RE_TXT = re.compile(r'(left|leave|kick|ban)\w*', re.I)
+# Matched against the log bot's actual wording, not a guess. The channel also records
+# role grants and nickname changes, which are neither arrivals nor departures.
+# Bans are kept separate from voluntary leaves: removing a spam account is
+# moderation working, not a member disengaging, and merging them overstates churn.
+JOIN_RE_TXT = re.compile(r'member\s+joined', re.I)
+LEAVE_RE_TXT = re.compile(r'member\s+left', re.I)
+BAN_RE_TXT = re.compile(r'member\s+banned', re.I)
 
 
 def split_joins(joins):
-    """(joined, left, split_ok) from the join-log channel.
+    """(joined, left, banned, split_ok) from the join-log channel.
 
-    The log bot records both events as embeds. Older rows were fetched before
-    embeds were captured, so their text is empty and the two are indistinguishable
-    -- in that case report the combined count and say so, rather than presenting
-    churn as growth.
+    Older rows were fetched before embeds were captured, so their text is empty and
+    the events are indistinguishable -- in that case report the combined count as
+    `joined` with split_ok False, so the dashboard shows churn rather than passing
+    it off as growth.
     """
     txt = joins.get('embed')
     if txt is None:
-        return len(joins), 0, False
+        return len(joins), 0, 0, False
     txt = txt.fillna('').astype(str)
     if not (txt.str.strip() != '').any():
-        return len(joins), 0, False
+        return len(joins), 0, 0, False
     j = int(txt.str.contains(JOIN_RE_TXT, na=False).sum())
     l = int(txt.str.contains(LEAVE_RE_TXT, na=False).sum())
-    if j + l == 0:
-        return len(joins), 0, False
-    return j, l, True
+    b = int(txt.str.contains(BAN_RE_TXT, na=False).sum())
+    if j + l + b == 0:
+        return len(joins), 0, 0, False
+    return j, l, b, True
 
 
 def build_atoms(df, joins, G, ctx):
@@ -1375,7 +1385,7 @@ def dmetrics(df, joins, start, end, G=None, ctx=None):
 
     nj = int(((joins.created_utc >= start) & (joins.created_utc <= end)).sum())
     jw = joins[(joins.created_utc >= start) & (joins.created_utc <= end)]
-    n_join, n_left, split_ok = split_joins(jw)
+    n_join, n_left, n_ban, split_ok = split_joins(jw)
     pnj = int(((joins.created_utc >= prev_start) & (joins.created_utc < start)).sum())
 
     members = int(w['author_id'].nunique())
@@ -1414,7 +1424,7 @@ def dmetrics(df, joins, start, end, G=None, ctx=None):
         'messages': n, 'prev_messages': pn, 'per_day': round(n / max(ndays, 1), 1),
         'members': members, 'prev_members': pmembers, 'new_members': nj,
         'prev_new_members': pnj, 'new_to_server': new_here, 'reactions': reacts,
-        'joined': n_join, 'left': n_left, 'split_ok': split_ok,
+        'joined': n_join, 'left': n_left, 'banned': n_ban, 'split_ok': split_ok,
         'prev_reactions': int(pw['reactions'].fillna(0).sum()),
         'pos': pos, 'neg': neg, 'neu': n - pos - neg,
         'daily': daily, 'channels': chans, 'contributors': tops,
